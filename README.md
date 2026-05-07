@@ -59,6 +59,10 @@ install fast path, не трогает инфобазу): [`scripts/dev/README.m
 
 ### Куда идти дальше
 
+- [`docs/release-handoff.md`](docs/release-handoff.md) —
+  release handoff для receive-side оператора: что вы получили,
+  prerequisites, reproducible install sequence, verify sequence,
+  known limitations.
 - [`apps/platform/README.md`](apps/platform/README.md) — product
   layer: bootstrap, runtime, dashboard, guided workflows, rollback
   assistant, real-stand smoke, enterprise foundation inspector.
