@@ -3,6 +3,87 @@
 Проект **1C Agent Platform** — собственная MCP-платформа (Model Context Protocol) для работы
 ИИ-агентов с конфигурацией и инфобазами 1С:Предприятие.
 
+## Quickstart
+
+> **Что это.** MCP-платформа для работы AI-агентов с конфигурацией и
+> инфобазами 1С:Предприятие. На сегодня закрыты Phases 1–6 (read /
+> write / metadata / intelligence / product layer / industrialization)
+> и Parallel Track A — full real binary-backed write path
+> (DumpCfg → LoadConfigFromFiles → UpdateDBCfg), отработанный на
+> reference stand'е. Активный сейчас трек — Track B (productization
+> & delivery polish), результаты которого вы видите в трёх блоках
+> ниже.
+
+### Системные требования
+
+- Windows + PowerShell 5.1 / 7+ (текущие entrypoints — PowerShell-скрипты);
+- Python 3.11 (см. `.python-version`);
+- (опционально) `1cv8.exe` — нужен только для real binary-backed
+  write path; без него работают read-only / synthetic режимы.
+
+### Install — материализовать product config
+
+```powershell
+.\scripts\release\install.ps1 `
+    -ConfigPath examples\demo-infobase\infobase6.config.json `
+    -OutputConfigPath C:\path\to\target\product.config.json
+```
+
+По умолчанию запускается в **preview** режиме (ничего не пишется на
+диск). Чтобы реально записать config — добавьте `-Confirm`. Подробности
+параметров и exit-кодов: [`scripts/release/README.md`](scripts/release/README.md).
+
+### Check — local selfcheck
+
+```powershell
+.\scripts\dev\launch.ps1 selfcheck
+```
+
+Печатает компактный отчёт с registry counts (`read=15 / write=25 /
+intelligence=16`), `imports_ok=true`, `selfcheck_status=ok`.
+Эквивалент [`scripts/dev/run_dev_check.ps1`](scripts/dev/run_dev_check.ps1)
+(используется в `.github/workflows/dev-check.yml`).
+
+### Local dev launch — operator / dev umbrella
+
+```powershell
+.\scripts\dev\launch.ps1 help                 # usage
+.\scripts\dev\launch.ps1 selfcheck            # см. выше
+.\scripts\dev\launch.ps1 repl                 # interactive Python с PYTHONPATH
+.\scripts\dev\launch.ps1 run <script.py> ...  # ad-hoc Python script
+```
+
+Подробности и список того, что `launch.ps1` сознательно **не**
+делает (не стартует MCP-серверы, не запускает pytest, не дублирует
+install fast path, не трогает инфобазу): [`scripts/dev/README.md`](scripts/dev/README.md).
+
+### Куда идти дальше
+
+- [`apps/platform/README.md`](apps/platform/README.md) — product
+  layer: bootstrap, runtime, dashboard, guided workflows, rollback
+  assistant, real-stand smoke, enterprise foundation inspector.
+- [`docs/operator-manual.md`](docs/operator-manual.md) —
+  operator-facing reference.
+- [`docs/runbooks/`](docs/runbooks/) — воспроизводимые сценарии,
+  включая `track-a-reference-stand-round-trip.md`.
+- [`docs/architecture/`](docs/architecture/) — phase- и track-plans
+  + step maps (включая Track B planning).
+- [`PROJECT-STATUS.md`](PROJECT-STATUS.md) — детальный статус фаз
+  и треков с per-step deliverables.
+
+### Что Quickstart **не** обещает
+
+Этот entry — про **локальный** install и check. Он **не**: production-
+grade MCP transport (нет authentication / authorisation / network
+hardening), **не** installer ecosystem (`.msi` / `.deb` / GUI wizard
+/ signed binary distribution), **не** web UI / dashboard frontend,
+**не** enterprise-ready deployment (SSO/RBAC, multi-tenant, secrets
+vault, federated audit storage, multi-instance HA), **не** hot
+reload / OS-level service supervision. Эти направления — out of
+scope активных треков; см. honest constraints в
+[`SECURITY.md`](SECURITY.md), [`CHANGELOG.md`](CHANGELOG.md) и
+[`docs/architecture/`](docs/architecture/).
+
 ## Идея
 
 Платформа строится как единая система, через которую ИИ-агенты (Claude Code и другие)
