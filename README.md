@@ -565,46 +565,79 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 
 ## Closed parallel tracks
 
-После закрытия Phase 6 был открыт первый **post-phase
-completion track** — **Parallel Track A — Full Real
-1cv8-backed Write Path** — и **закрыт** на Step 7 (final
-integration pass and Track A closure).
+После закрытия Phase 6 были последовательно открыты и
+закрыты два post-phase completion track'а:
 
-## Active parallel track
+- **Parallel Track A — Full Real 1cv8-backed Write Path** —
+  закрыт на Step 7 (final integration pass and Track A
+  closure).
+- **Parallel Track B — Productization & Delivery Polish** —
+  закрыт на Step 6 (final integration pass and Track B
+  closure).
 
-После closure'а Track A открыт второй post-phase track —
-**Parallel Track B — Productization & Delivery Polish**.
-Цель — довести существующий продукт до удобного
-**install / run / repo / release** состояния, **не**
-открывая нового execution-core sprint'а и **не** входя в
-enterprise-super-set. Track B сейчас на **Step 1
-(planning)** — ship'нуты только два planning-документа
-(`docs/architecture/track-b-productization-polish-plan.md`,
-`docs/architecture/track-b-productization-polish-step-map.md`);
-никаких code changes Step 1 не делал, registries `read=15 /
-write=25 / intelligence=16` без drift'а, selfcheck зелёный.
+**Активного трека сейчас нет.** Открытие следующего
+parallel track'а — отдельное решение оператора проекта;
+Phase 7 как линейная фаза по-прежнему не запланирована.
 
-Что **не** входит в Track B (повтор для ясности):
-production-grade MCP transport, full installer ecosystem
+## Track B detail (закрыт)
+
+**Цель Track B** была — довести существующий продукт до
+удобного **install / run / repo / release** состояния, не
+открывая нового execution-core sprint'а и не входя в
+enterprise-super-set. Шесть шагов; production-код Track B
+вообще **не правил**.
+
+- **Step 1 (planning)** — два planning-документа
+  ([`docs/architecture/track-b-productization-polish-plan.md`](docs/architecture/track-b-productization-polish-plan.md),
+  [`docs/architecture/track-b-productization-polish-step-map.md`](docs/architecture/track-b-productization-polish-step-map.md)):
+  назначение трека, целевой результат, guardrails,
+  10 acceptance criteria, явный список «что НЕ входит».
+- **Step 2 (repo hygiene + legal layer)** — `git init` на
+  `main`, расширенный `.gitignore` под snapshot trees /
+  audit dirs / live dump trees / runtime state / 1С DB-
+  файлы / writable configs / scratch dirs;
+  [`LICENSE`](LICENSE) (Apache-2.0, полный стандартный
+  текст); [`CHANGELOG.md`](CHANGELOG.md);
+  [`SECURITY.md`](SECURITY.md) (reporting flow + honest
+  constraints + safety guarantees); первый meaningful
+  commit `85a4a7e`.
+- **Step 3 (operator-discoverable install fast path)** —
+  тонкий PowerShell wrapper [`scripts/release/install.ps1`](scripts/release/install.ps1)
+  поверх существующего `run_install_fast_path` из
+  Phase 6 / Step 3, плюс `_install_runner.py` и
+  [`scripts/release/README.md`](scripts/release/README.md).
+  Production-код не правил.
+- **Step 4 (operator/dev local launch umbrella)** —
+  [`scripts/dev/launch.ps1`](scripts/dev/launch.ps1) с
+  четырьмя subcommands (`selfcheck` / `repl` / `run` /
+  `help`); добавлена секция в
+  [`scripts/dev/README.md`](scripts/dev/README.md).
+  Production-код не правил.
+- **Step 5 (root README quickstart and docs polish)** —
+  верхний `## Quickstart` блок в этом README с install /
+  check / launch командами и map'ом deeper docs.
+- **Step 6 (final integration pass and Track B closure)** —
+  этот closure: README + PROJECT-STATUS + CHANGELOG
+  обновлены под Track B closed.
+
+Что Track B **не** делает «глубоким индустриальным продуктом»
+после closure (honest constraints, никаких скрытых гэпов):
+production-grade MCP transport (нет authentication /
+authorisation / network hardening), full installer ecosystem
 (`.msi` / `.deb` / GUI wizard / signed distribution),
 web-UI / dashboard frontend, полный enterprise super-set
-(SSO/RBAC, multi-tenant, secrets vault как сервис,
-federated audit, policy-as-code DSL, multi-instance HA),
-hot reload / OS-level service supervision, multi-version
-matrix smoke, полный AST-парсер XML/BSL, полная
-rollback/delete-вселенная, новые MCP tools, production
-code rewrite. Эти направления остаются другими parallel
-track'ами после Phase 6 / Track A / Track B.
+(SSO/RBAC, multi-tenant, secrets vault как сервис, federated
+audit, policy-as-code DSL, multi-instance HA), hot reload /
+OS-level service supervision, multi-version matrix smoke,
+полный AST-парсер XML/BSL, полная rollback/delete-вселенная,
+новые MCP tools, production code rewrite. Эти направления
+остаются за пределами Track B — открытие отдельных тематических
+parallel track'ов под них — operator decision.
 
-Следующий шаг по Track B — **Step 2 (repo hygiene + legal
-layer)**: `git init`, расширение `.gitignore` под реалии
-проекта, `LICENSE` (выбор лицензии — operator call),
-`CHANGELOG.md`, `SECURITY.md` (минимальный), первый
-осмысленный initial commit. **GitHub remote push —
-operator action, не часть трека.**
-
-Документы трека: `docs/architecture/track-b-productization-polish-plan.md`,
-`docs/architecture/track-b-productization-polish-step-map.md`.
+Registry-инвариант сохранён точно на всём треке: `read=15 /
+write=25 / intelligence=16`, `selfcheck_status=ok`. **GitHub
+remote push** не часть Track B — repo готов к выкладке, но
+пушить — operator action.
 
 ## Track A detail (закрыт)
 

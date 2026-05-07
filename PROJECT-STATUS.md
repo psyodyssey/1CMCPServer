@@ -2,17 +2,27 @@
 
 ## Текущий шаг
 
-**Parallel Track B / Step 1 — Productization & Delivery
-Polish — planning documentation entry (in progress /
-documentation only).** Track A полностью закрыт ранее.
+**Parallel Track B полностью закрыт** на Step 6 (final
+integration pass and Track B closure). Никакого активного
+трека / фазы сейчас не открыто. Track A был закрыт ранее.
 
 ## Статус
 
-`in progress` (для Parallel Track B / Step 1 как
-documentation-only opening — два planning-документа
-ship'нуты, никаких code changes, никаких изменений
-registry, никаких новых MCP tool'ов; Track B / Step 2 —
-следующий шаг и не открывался).
+`closed` (для всего Parallel Track B — Steps 1–6 закрыты
+последовательно; четыре meaningful commit'а в `main`:
+`85a4a7e` (Step 2 — repo hygiene + legal baseline),
+`bce8966` (Step 3 — install fast path operator-discoverable),
+`fd92477` (Step 4 — operator/dev local launch umbrella),
+`0f65c58` (Step 5 — root README quickstart and docs polish),
+плюс closure commit Step 6 фиксирует обновлённые
+README/PROJECT-STATUS/CHANGELOG; production-код Track B
+**не правил вообще ни разу** — все deliverables это
+scripts-only wrapper'ы, repo hygiene и documentation;
+registries без drift'а на всём треке;
+`selfcheck_status=ok`).
+
+`in progress` — пусто. Никакого активного трека / фазы
+сейчас нет.
 
 `closed` (для всего Parallel Track A — Phase 1–6
 закрыты ранее; Track A / Steps 1–7 закрыты;
@@ -8770,15 +8780,277 @@ read/write/intelligence-серверов, с честно
   `selfcheck_status = ok`. Track B / Step 1 не
   правил production-кода, поэтому drift'а быть не
   должно — и его нет.
-- **Следующий шаг.** **Parallel Track B / Step 2 —
-  repo hygiene + legal layer.** Step 2 включает:
-  `git init` в корне, расширение `.gitignore` под
-  реалии проекта, `LICENSE` (после resolve'а Q1),
-  `CHANGELOG.md` (одна запись `## 0.1.0 — initial
-  public release`), `SECURITY.md` (минимальный,
-  одна-две строки про reporting flow), первый
-  осмысленный initial commit. **Никакого remote
-  push'а** — это operator gate.
+- **Следующий шаг.** Parallel Track B / Step 2 —
+  закрыт; см. секцию ниже.
+
+### Parallel Track B / Step 2 — repo hygiene + legal layer (завершён)
+
+- **Цель шага.** Превратить рабочую директорию в
+  git-репозиторий, выровнять `.gitignore` под реалии
+  проекта, добавить `LICENSE` / `CHANGELOG.md` /
+  `SECURITY.md`, сделать первый meaningful commit.
+  Resolve Q1 (license), Q2 (`main` vs `master`), Q5
+  (CONTRIBUTING / SECURITY), Q6
+  (`examples/demo-dumps/` artifacts), Q7
+  (version в `pyproject.toml`).
+- **Что сделано.**
+  - `git init -b main` в корне `C:\Tools\1c-agent-platform`.
+  - `.gitignore` расширен (Python / IDE / OS + 1С DB-
+    файлы и locks `*.1CD` / `*.cfl` + Track A
+    round-trip evidence (`examples/demo-dumps/_snapshots/`,
+    `examples/demo-dumps/infobase6/`) + audit dirs
+    `**/.audit/` + runtime state `.runtime/` /
+    `**/.runtime/` + bootstrap work dir
+    `examples/demo-infobase/_work/` + local writable /
+    fixed configs `*-writable.config.json` /
+    `*.config.fixed.json` / `*.config.json.bak` +
+    scratch `scratch/` / `.scratch/` + editor scratch).
+  - `LICENSE` (Apache-2.0, полный стандартный текст —
+    header + 9 numbered TERMS + END OF TERMS AND
+    CONDITIONS + APPENDIX).
+  - `CHANGELOG.md` (заголовок `## 0.1.0 — initial public
+    snapshot (in preparation)`; перечень что закрыто до
+    0.1.0 — Phases 1–6 + Track A; registry invariant
+    15/25/16; honest constraints).
+  - `SECURITY.md` (private reporting flow + honest
+    constraints — pre-1.0, credentials out-of-band, no
+    production transport, single-version smoke, no
+    installer ecosystem, limited rollback coverage —
+    + safety guarantees: `run_write_flow` единственный
+    mutating-путь, intelligence read-only, no
+    `shell=True`, append-only audit, fail-closed
+    defaults).
+  - Initial meaningful commit `85a4a7e` —
+    `Initial public snapshot — repo hygiene and legal
+    baseline` — 126 файлов, 0 dangerous matches на
+    safety scan'е.
+- **Что НЕ сделано.** Production-код вообще не
+  трогали. `apps/`, `packages/`, `scripts/dev/`,
+  `pyproject.toml`, `.github/`, `examples/`, `docs/`
+  — без изменений. Registries `read=15 / write=25 /
+  intelligence=16` без drift'а. Никакого remote
+  push'а.
+
+### Parallel Track B / Step 3 — install fast path operator-discoverable (завершён)
+
+- **Цель шага.** Сделать существующий
+  `onec_platform.run_install_fast_path_from_json_file`
+  operator-discoverable через тонкий PowerShell
+  wrapper в каноническом `scripts/release/`, без
+  правки production-installer-core.
+- **Что сделано.**
+  - `scripts/release/install.ps1` — operator-facing
+    PowerShell wrapper. Params: `-ConfigPath`
+    (mandatory), `-OutputConfigPath` (mandatory),
+    `-Confirm` (switch). Dot-source'ит
+    `scripts/dev/bootstrap_paths.ps1`, форвардит
+    вызов в Python helper, мапит outcome в exit code
+    (`0` preview/executed, `2` rejected, `3` other
+    failure, `64` bad args).
+  - `scripts/release/_install_runner.py` — тонкий
+    Python helper. Underscore-prefixed (не для
+    импорта). Принимает 3 positional args, валидирует
+    confirm-флаг, вызывает
+    `run_install_fast_path_from_json_file`, печатает 7
+    ключевых полей результата + findings +
+    recommended_actions.
+  - `scripts/release/README.md` — operator-facing
+    документация: usage (preview + execute),
+    параметры, exit codes, явный список «что wrapper
+    НЕ делает» (no MCP server start, no write-tools,
+    no infobase touch, no `shell=True`, no packaging
+    ecosystem, не подменяет launch ergonomics
+    Step 4).
+  - End-to-end preview-mode прогон verified: `ok=True`,
+    `mode=preview`, `config_written=False`,
+    bootstrap_pre OK, recommended action — re-run с
+    `-Confirm`. Bad-args path возвращает usage и
+    exit 64. Selfcheck registries без drift'а.
+  - Commit `bce8966` — `Track B / Step 3 —
+    operator-discoverable install fast path wrapper`,
+    3 файла, 264 insertions.
+- **Что НЕ сделано.** Production-код не правили
+  (`apps/platform/installer.py` не тронут).
+  Registries без drift'а. Никакого packaging
+  ecosystem'а.
+
+### Parallel Track B / Step 4 — operator/dev local launch umbrella (завершён)
+
+- **Цель шага.** Снять с оператора/разработчика
+  ритуал ручного PYTHONPATH bootstrap'а для типовых
+  локальных задач. Один очевидный umbrella entry в
+  каноническом `scripts/dev/`.
+- **Что сделано.**
+  - `scripts/dev/launch.ps1` — PowerShell умbrella с
+    четырьмя subcommands: `selfcheck` (delegate в
+    существующий `run_dev_check.ps1`), `repl`
+    (dot-source bootstrap + interactive `python`),
+    `run <script.py> [args…]` (dot-source bootstrap +
+    `python @args`), `help` (default at no-args).
+    Exit codes: `0` success / help; делегированный
+    `$LASTEXITCODE` для `selfcheck` / `run`; `64` —
+    unknown command или missing args.
+  - `scripts/dev/README.md` — UPDATE одной добавочной
+    секцией про `launch.ps1` сверху (без удаления /
+    реструктуризации существующих описаний
+    `bootstrap_paths.ps1` / `selfcheck.py` /
+    `run_dev_check.ps1`).
+  - Verification: parse OK, help / selfcheck / `run
+    scripts/dev/selfcheck.py` happy paths возвращают
+    exit 0 с корректным выводом (registries 15/25/16,
+    `selfcheck_status=ok`); unknown command + `run`
+    без args возвращают exit 64; `run nope.py`
+    propagatе'ит python's exit code (2).
+  - Commit `fd92477` — `Track B / Step 4 —
+    operator/dev local launch umbrella`, 2 файла, 152
+    insertions, 1 deletion.
+- **Что НЕ сделано.** Никаких `__main__.py` в
+  server-package'ах. Production-код вообще не
+  тронут. Никакого MCP-server-launch ритуала
+  (production transport — out of Track B). Никакого
+  pytest (нет test suite'а). Registries без drift'а.
+
+### Parallel Track B / Step 5 — root README quickstart and docs polish (завершён)
+
+- **Цель шага.** Сделать root README нормальной
+  «входной дверью» для нового человека: ≤ 50 строк
+  основного текста с 1–2 строками о проекте,
+  системными требованиями, install / check / launch
+  командами, картой deeper docs, и явным «что
+  Quickstart НЕ обещает».
+- **Что сделано.**
+  - `README.md` — добавлен блок `## Quickstart`
+    между intro-параграфом и `## Идея`. Содержит:
+    quote-блок «Что это» с current honest state
+    (Phases 1–6 + Track A закрыты; Track B in
+    progress; обновлён в Step 6 на «закрыт»);
+    `### Системные требования`;
+    `### Install` (PowerShell-команда + ссылка на
+    `scripts/release/README.md`); `### Check`
+    (`launch.ps1 selfcheck` + ссылка на
+    `run_dev_check.ps1`); `### Local dev launch`
+    (четыре umbrella-команды); `### Куда идти
+    дальше` (5 pointer'ов на `apps/platform/README.md`,
+    `docs/operator-manual.md`, `docs/runbooks/`,
+    `docs/architecture/`, `PROJECT-STATUS.md`);
+    `### Что Quickstart **не** обещает` (явно: no
+    production transport, no installer ecosystem, no
+    web UI, no enterprise deployment, no hot reload).
+  - +81 insertion, 0 deletion — pure addition; ничего
+    не удалено и не реструктурировано.
+  - 15 referenced paths валидны (verified `test -e`).
+  - Commit `0f65c58` — `Track B / Step 5 — root
+    README quickstart and docs polish`, 1 файл.
+- **Что НЕ сделано.** `scripts/release/README.md`,
+  `scripts/dev/README.md`, `apps/platform/README.md`,
+  `docs/operator-manual.md`, `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks.md` — не
+  трогали. Никаких широких docs rewrite'ов.
+  Registries без drift'а.
+
+### Parallel Track B / Step 6 — final integration pass and Track B closure (завершён)
+
+- **Цель шага.** Закрыть весь Track B как documented
+  status. Read-only final integration check уже
+  закрытых Steps 2–5, потом минимальные
+  closure-docs/status updates, потом final closure
+  commit.
+- **Read-only final integration check.**
+  - Working tree clean перед началом
+    (`git status --short` пуст).
+  - Git history линейная и читаемая: `85a4a7e`
+    (Step 2) → `bce8966` (Step 3) → `fd92477`
+    (Step 4) → `0f65c58` (Step 5).
+  - Все Step 2 deliverables на диске: `.git`,
+    `.gitignore`, `LICENSE`, `CHANGELOG.md`,
+    `SECURITY.md`. Все Step 3 deliverables на месте.
+    Все Step 4 deliverables на месте. Step 5
+    Quickstart-блок в README присутствует.
+  - Production-код вообще не тронут на всём треке —
+    подтверждено отсутствием `apps/` / `packages/` в
+    diff'ах ни одного из четырёх Track B commit'ов.
+- **Что сделано в этом шаге.** Только closure
+  docs/status updates (минимальный scope):
+  - `README.md` — секция «Active parallel track»
+    переработана в «Closed parallel tracks»
+    (множественное число) + «Track B detail
+    (закрыт)» с per-step описанием Steps 1–6 и
+    summary outcomes; явный список «что Track B НЕ
+    делает индустриальным продуктом» (honest
+    constraints); явное «активного трека сейчас
+    нет».
+  - `PROJECT-STATUS.md` — header (Текущий шаг +
+    Статус) обновлён под Track B closed; добавлены
+    пять новых per-step секций (Steps 2/3/4/5/6).
+  - `CHANGELOG.md` — entry `## 0.1.0` приведён в
+    соответствие фактическому состоянию (Track B
+    Steps 1–6 закрыты, не «in preparation»;
+    `## 0.1.0 — initial public snapshot`).
+  - Commit `Track B / Step 6 — final integration
+    pass and track closure` зафиксирует closure event
+    в git history.
+- **Что НЕ сделано.** Никакого нового feature work,
+  никаких production-правок, никаких новых MCP
+  tool'ов, никакого remote push'а. `apps/`,
+  `packages/`, `scripts/`, `examples/`,
+  `docs/architecture/`, `docs/runbooks/`,
+  `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks.md`,
+  `pyproject.toml`, `.github/`, `.editorconfig`,
+  `.python-version`, `.gitignore`, `LICENSE`,
+  `SECURITY.md` — **не тронуты** в этом шаге.
+- **Что Track B в сумме дал проекту.**
+  - Repo стал git-репозиторием на ветке `main` с
+    чистой линейной history, легко выкладываемой на
+    любой git remote.
+  - `.gitignore` корректно покрывает project-specific
+    опасные / тяжёлые / локальные артефакты, защищая
+    от случайного коммита cleartext credentials или
+    snapshot tree'ев.
+  - Apache-2.0 license, CHANGELOG, SECURITY на месте
+    — legal/doc baseline для honest публикации.
+  - Operator-discoverable install:
+    `scripts/release/install.ps1` — без знания
+    internal Python module path и без ручного
+    PYTHONPATH ритуала.
+  - Operator/dev local launch umbrella:
+    `scripts/dev/launch.ps1` — `selfcheck` / `repl` /
+    `run` / `help` за одну команду.
+  - Root README имеет верхний Quickstart-блок:
+    новый человек за 1–2 минуты понимает что это,
+    как поставить, как проверить, куда идти дальше.
+  - Production-код не трогали ни разу за весь
+    Track B. Registry-инвариант сохранён точно
+    `read=15 / write=25 / intelligence=16`.
+- **Honest constraints, оставшиеся после closure
+  Track B.** Track B **не сделал** проект «глубоким
+  индустриальным продуктом». По-прежнему отсутствуют:
+  production-grade MCP transport (auth /
+  authorisation / network hardening), полный
+  installer ecosystem (`.msi` / `.deb` / GUI wizard /
+  signed binary distribution), web-UI / dashboard
+  frontend, полный enterprise super-set (SSO/RBAC,
+  multi-tenant, secrets vault как сервис, federated
+  audit storage, policy-as-code DSL, multi-instance
+  HA), hot reload / OS-level service supervision,
+  multi-version matrix smoke на всех 1С версиях,
+  полный AST-парсер XML/BSL, полная rollback/delete-
+  вселенная (whitelist остаётся на двух tool'ах),
+  production-grade transport / `__main__` / CLI у
+  трёх MCP-серверов с auth. Эти направления остаются
+  за пределами Track A + Track B.
+- **Следующий шаг.** Активного трека нет. Открытие
+  следующего parallel track'а — **отдельное решение
+  оператора проекта**; Phase 7 как линейная фаза не
+  запланирована. Possible candidates (только
+  recommendations, без авто-открытия): operator
+  credentials hardening track (env-substitution или
+  OS keychain integration); multi-version 1С smoke
+  track; полный rollback whitelist track. Менее
+  рекомендуемые — full enterprise super-set, web-UI,
+  packaging ecosystem (более широкий scope, выше
+  риск).
 
 ## Phase 6 закрыта
 

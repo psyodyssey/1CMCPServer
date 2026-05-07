@@ -6,11 +6,10 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
-## 0.1.0 — initial public snapshot (in preparation)
+## 0.1.0 — initial public snapshot
 
-This is the first publicly trackable snapshot of the project. The version
-matches `pyproject.toml`. This entry will be finalised when the operator
-makes the first meaningful commit at the end of Track B / Step 2.
+The first publicly trackable snapshot of the project. The version
+matches `pyproject.toml`.
 
 ### Closed before 0.1.0
 
@@ -22,6 +21,29 @@ makes the first meaningful commit at the end of Track B / Step 2.
   (`/DumpConfigToFiles` / `/LoadConfigFromFiles` / `/UpdateDBCfg`) is
   proven on a reference stand. See
   `docs/runbooks/track-a-reference-stand-round-trip.md`.
+- **Parallel Track B — Productization & Delivery Polish** — closed on
+  Step 6 (final integration pass and Track B closure). Six steps
+  total; production code untouched throughout the track. Per-step
+  outcomes:
+  - Step 1 (planning) — two planning documents under
+    `docs/architecture/track-b-*`.
+  - Step 2 (repo hygiene + legal layer) — `git init` on `main`,
+    extended `.gitignore`, this `CHANGELOG.md`, `LICENSE`
+    (Apache-2.0, full standard text), `SECURITY.md`, first
+    meaningful commit.
+  - Step 3 (operator-discoverable install fast path) — thin
+    PowerShell wrapper `scripts/release/install.ps1` over the
+    existing `run_install_fast_path` helper, plus
+    `_install_runner.py` and `scripts/release/README.md`.
+  - Step 4 (operator/dev local launch umbrella) —
+    `scripts/dev/launch.ps1` with `selfcheck` / `repl` / `run` /
+    `help` subcommands; updated `scripts/dev/README.md`.
+  - Step 5 (root README quickstart and docs polish) — top-level
+    `## Quickstart` block in this README with install / check /
+    launch commands and a deeper-docs map.
+  - Step 6 (final integration pass and Track B closure) — this
+    closure: README + PROJECT-STATUS + CHANGELOG aligned with
+    Track B closed status.
 
 ### Registry invariant carried into 0.1.0
 
@@ -29,7 +51,7 @@ makes the first meaningful commit at the end of Track B / Step 2.
 - `mcp-write-server` — 25 public tools.
 - `mcp-intelligence-server` — 16 public tools.
 
-No MCP surface drift through Track A or Track B / Step 2.
+No MCP surface drift through Track A or Track B.
 
 ### Honest constraints carried into 0.1.0
 
@@ -47,9 +69,8 @@ No MCP surface drift through Track A or Track B / Step 2.
 
 These are honest constraints, not hidden gaps.
 
-### In progress
+### Active work
 
-- **Parallel Track B — Productization & Delivery Polish** — Step 1
-  (planning) closed. Step 2 (this entry: `git init`, `.gitignore`
-  expansion, legal/doc baseline) in progress. Steps 3–6 not yet
-  opened.
+None. No parallel track is currently open. Phase 7 as a linear phase
+is not planned. Opening the next parallel track is an explicit
+operator decision.
