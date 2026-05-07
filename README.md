@@ -575,9 +575,49 @@ version-matrix smoke, etc.). Phase 7 как отдельная
   закрыт на Step 6 (final integration pass and Track B
   closure).
 
-**Активного трека сейчас нет.** Открытие следующего
-parallel track'а — отдельное решение оператора проекта;
-Phase 7 как линейная фаза по-прежнему не запланирована.
+## Active parallel track
+
+После closure'а Track B открыт третий post-phase track —
+**Parallel Track C — Packaging & Installer Delivery**.
+Цель — довести продукт до состояния, в котором его удобно
+передать другому человеку как **packaged unit / process**:
+release-facing layout polish, reproducible install sequence
+checklist, pre-handoff sanity check, release handoff
+документация, единый release entrypoint map. Это **не**
+новый execution-core sprint, **не** enterprise track, **не**
+GUI installer wizard, **не** signed binary distribution,
+**не** package-manager publication.
+
+Track C сейчас на **Step 1 (planning)** — ship'нуты только
+два planning-документа
+(`docs/architecture/track-c-packaging-installer-delivery-plan.md`,
+`docs/architecture/track-c-packaging-installer-delivery-step-map.md`);
+никаких code changes Step 1 не делал, registries `read=15 /
+write=25 / intelligence=16` без drift'а.
+
+Что **не** входит в Track C (повтор для ясности): GUI
+installer wizard, `.msi` / `.deb` / signed binary
+distribution, publication к package managers (PyPI /
+Chocolatey / winget / apt), systemd / Windows Service
+registration, hot reload, web-UI / dashboard frontend,
+полный enterprise super-set (SSO/RBAC, multi-tenant,
+secrets vault как сервис, federated audit storage,
+policy-as-code DSL, multi-instance HA), production-grade
+MCP transport, multi-version 1С matrix, полный AST-парсер
+XML/BSL, полная rollback/delete-вселенная, новые MCP tools,
+production code rewrite. Эти направления остаются
+другими parallel track'ами после Phase 6 / Track A /
+Track B / Track C.
+
+Следующий шаг по Track C — **Step 2 (release-facing
+`scripts/release/` layout полишинг)**: тонкое расширение
+existing release scripts слоя через `verify-release.ps1`
+(pre-handoff sanity check) + UPDATE
+`scripts/release/README.md`. **GitHub remote push —
+operator action, не часть трека.**
+
+Документы трека: `docs/architecture/track-c-packaging-installer-delivery-plan.md`,
+`docs/architecture/track-c-packaging-installer-delivery-step-map.md`.
 
 ## Track B detail (закрыт)
 
