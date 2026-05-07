@@ -4,9 +4,38 @@
 
 На текущем этапе это временный bootstrap для монорепы: настоящий
 packaging / workspace setup (editable install, workspace discovery)
-появится позже. Пока используем три скрипта.
+появится позже.
+
+Если ты только пришёл в проект — начни с `launch.ps1` (умbrella-вход
+в типовые локальные действия). Остальные скрипты ниже — это нижний
+слой, на который `launch.ps1` ссылается.
 
 ## Содержимое
+
+### `launch.ps1`
+
+Operator/dev umbrella для типовых локальных действий. Track B /
+Step 4. Тонкий PowerShell-диспетчер поверх `bootstrap_paths.ps1`
+и `run_dev_check.ps1`; никакой новой бизнес-логики не вводит.
+
+Subcommands:
+
+```powershell
+.\scripts\dev\launch.ps1 selfcheck         # эквивалент run_dev_check.ps1
+.\scripts\dev\launch.ps1 repl              # interactive Python REPL с PYTHONPATH
+.\scripts\dev\launch.ps1 run <script> [args...]   # ad-hoc Python script
+.\scripts\dev\launch.ps1 help              # usage
+```
+
+Без аргументов или с `help` печатает usage. Exit codes: `0` —
+success / help; делегированный `$LASTEXITCODE` для `selfcheck` /
+`run`; `64` — unknown command или missing args.
+
+`launch.ps1` сознательно **не** делает: не стартует MCP-серверы
+(production-grade transport — out of Track B), не запускает
+pytest (нет test suite'а), не делает install fast path
+(см. `scripts/release/install.ps1`, Track B / Step 3), не
+трогает 1С-инфобазу.
 
 ### `bootstrap_paths.ps1`
 
