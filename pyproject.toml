@@ -20,4 +20,26 @@ target-version = "py311"
 testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
+# Intentionally empty (Track C / Step 3 honest constraint).
+#
+# The operator install flow for this project runs through
+# `scripts/release/install.ps1` (a thin wrapper over
+# `onec_platform.run_install_fast_path_from_json_file`), NOT through
+# `pip install`. The source layout spreads 11 importable packages
+# across `apps/*/src/` and `packages/*/src/`; PYTHONPATH for local
+# development is bootstrapped by `scripts/dev/bootstrap_paths.ps1`,
+# which the rest of the scripts/ tree dot-sources.
+#
+# Consequences of leaving this empty:
+#   - `python -m build` produces no usable artifact for this project;
+#   - the build toolchain (`build` / `hatch` / `hatchling`) is NOT
+#     part of the documented dev prerequisites;
+#   - no one is expected to install this project via pip today.
+#
+# This is a deliberate honest limitation of the current scaffolding,
+# not an oversight. A future packaging track may revisit it and adopt
+# either a single-wheel layout (one wheel containing all 11 packages)
+# or a multi-wheel split (one wheel per package). Until that track is
+# opened, see `scripts/release/README.md` for the canonical install
+# story.
 packages = []

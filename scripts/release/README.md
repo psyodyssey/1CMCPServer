@@ -202,3 +202,37 @@ With switches:
 - `scripts/dev/selfcheck.py` — the script invoked by Check 6.
 - `docs/architecture/track-c-packaging-installer-delivery-plan.md`
   — Track C plan that introduced this wrapper.
+
+
+## Packaging-facing install flow (honest constraint)
+
+**The project does not ship a meaningful Python wheel today.** The
+canonical install path is `scripts/release/install.ps1` (this
+directory), which materialises a product config through the
+`onec_platform.run_install_fast_path_from_json_file` boundary
+helper, NOT through `pip install <wheel>`.
+
+`pyproject.toml` declares `[tool.hatch.build.targets.wheel]
+packages = []` deliberately:
+
+- the source layout spreads 11 importable Python packages across
+  `apps/*/src/` and `packages/*/src/`; the project has not yet
+  committed to a single-wheel or multi-wheel distribution story;
+- the build toolchain (`build` / `hatch` / `hatchling`) is not part
+  of the documented dev prerequisites, and no one in the
+  documented operator flow runs `python -m build`;
+- `python -m build` therefore produces no usable artifact and
+  attempting it is not a supported workflow.
+
+To work with the platform locally, use:
+
+| Action | Entrypoint |
+|--------|-----------|
+| Set PYTHONPATH | `scripts/dev/bootstrap_paths.ps1` |
+| Materialise a product config | `scripts/release/install.ps1` |
+| Verify release readiness | `scripts/release/verify-release.ps1` |
+| Run selfcheck / REPL / ad-hoc Python | `scripts/dev/launch.ps1` |
+
+This is a documented Track C honest constraint, not a hidden gap.
+A future packaging track may revisit it. No `.msi`, `.deb`, GUI
+wizard, or signed binary distribution is currently in scope.
