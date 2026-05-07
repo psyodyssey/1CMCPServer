@@ -1,0 +1,28 @@
+{
+  "product_name": "infobase6-stand-candidate",
+  "profile_name": "infobase6-candidate",
+  "default_environment": "infobase6",
+  "project": {
+    "environments": {
+      "infobase6": {
+        "name": "infobase6",
+        "base_id": "infobase6-file",
+        "base_path": "C:/Users/user/Documents/InfoBase6",
+        "publication_name": "infobase6",
+        "http_base_url": "http://infobase6.invalid/no-publication",
+        "dump_path": "C:/Tools/1c-agent-platform/examples/demo-dumps/infobase6",
+        "timeout_seconds": 600,
+        "allow_write": false,
+        "onec_binary_path": "C:/Program Files/1cv8/8.3.27.1859/bin/1cv8.exe"
+      }
+    }
+  },
+  "servers": {
+    "read": true,
+    "write": true,
+    "intelligence": true
+  },
+  "bootstrap": {
+    "work_dir": "C:/Tools/1c-agent-platform/examples/demo-infobase/_work/infobase6"
+  }
+}
