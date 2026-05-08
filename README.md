@@ -17,7 +17,11 @@
 > (env-substitution `${ENV:NAME}` path с render-time fail-closed,
 > password-position redaction в `command_preview`, 8-й
 > credential-template-hygiene check в `verify-release.ps1`; **не**
-> enterprise security platform). Активного трека сейчас нет.
+> enterprise security platform). Активный трек сейчас — Parallel
+> Track E — Multi-Version 1C Smoke Matrix (planning-only, Step 1;
+> расширяет evidence base с одного reference stand'а на узкую
+> matrix из нескольких 1С версий — это **не** «поддержка всех
+> версий» и **не** full QA program).
 
 ### Системные требования
 
@@ -592,12 +596,52 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 
 ## Active parallel track
 
-Активного parallel-трека сейчас нет. После closure'а Track C
-был открыт четвёртый post-phase трек — **Parallel Track D —
-Operator Credentials Hardening** — и закрыт на Step 6 (final
-integration pass and Track D closure). См. «Track D detail
-(закрыт)» ниже. Открытие следующего трека — отдельное
-operator-решение.
+После closure'а Track D открыт пятый post-phase track —
+**Parallel Track E — Multi-Version 1C Smoke Matrix**. Цель —
+расширить доказательную базу проекта с **одного** reference
+stand'а / **одной** 1С версии (`8.3.27.1859`, evidence Track
+A / Step 6) на узкую documented smoke matrix из нескольких
+1С версий по одному и тому же узкому сценарию (default
+candidate — cut-down `create_dump_snapshot` через
+`/DumpConfigToFiles`). Это **не** «поддержка всех версий»,
+**не** full QA program, **не** performance / stress /
+fuzzing track, **не** enterprise certification, **не** новый
+MCP surface. Платформа по-прежнему **не делает**
+version-sniffing — оператор сам выбирает binary path в
+config'е; Track E добавляет evidence-уровень и docs, не
+архитектуру.
+
+Track E сейчас на **Step 1 (planning)** — ship'нуты только
+два planning-документа
+([`docs/architecture/track-e-multi-version-smoke-matrix-plan.md`](docs/architecture/track-e-multi-version-smoke-matrix-plan.md),
+[`docs/architecture/track-e-multi-version-smoke-matrix-step-map.md`](docs/architecture/track-e-multi-version-smoke-matrix-step-map.md));
+никаких code changes Step 1 не делал, registries
+`read=15 / write=25 / intelligence=16` без drift'а; никаких
+запусков 1cv8.exe в этом шаге; никаких реальных credentials в
+repo / docs / commit messages.
+
+Что **не** входит в Track E (повтор для ясности): полная
+QA-программа, performance benchmarking, stress / load /
+fuzzing testing, enterprise certification, «universal version
+support» marketing, feature additions для конкретных версий,
+version-sniffing в платформе, новые MCP tools, 1cv8 binary
+changes, transport rewrite, packaging rewrite, CI matrix
+runner-инфраструктура, полный AST-парсер, полная rollback /
+delete-вселенная, production-grade MCP transport, remote
+push. Эти направления остаются за пределами Track A + B + C
++ D + E.
+
+Следующий шаг по Track E — **Step 2 (current evidence
+baseline audit + version selection criteria + smoke scenario
+freeze, docs-only)**: новый short audit-документ под
+существующее single-version evidence; принципиальные criteria
+отбора target версий (без привязки к конкретным номерам);
+freeze узкого smoke scenario. Production-код Step 2 не
+правит. Никаких real credentials. **GitHub remote push —
+operator action, не часть трека.**
+
+Документы трека: `docs/architecture/track-e-multi-version-smoke-matrix-plan.md`,
+`docs/architecture/track-e-multi-version-smoke-matrix-step-map.md`.
 
 ## Track D detail (закрыт)
 
