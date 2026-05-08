@@ -18,10 +18,15 @@
 > password-position redaction в `command_preview`, 8-й
 > credential-template-hygiene check в `verify-release.ps1`; **не**
 > enterprise security platform). Активный трек сейчас — Parallel
-> Track E — Multi-Version 1C Smoke Matrix (planning-only, Step 1;
-> расширяет evidence base с одного reference stand'а на узкую
-> matrix из нескольких 1С версий — это **не** «поддержка всех
-> версий» и **не** full QA program).
+> Track E — Multi-Version 1C Smoke Matrix; ship'нуты frozen smoke
+> scenario, operator runbook и matrix-table scaffolding с
+> reference row на `8.3.27.1859` (см.
+> [`docs/version-support-matrix.md`](docs/version-support-matrix.md)).
+> Additional version evidence rows пока не добавлены — Step 4
+> закрыт через honest operator-supplied gap (на operator machine
+> отсутствуют 1С minor families помимо `8.3.27`). Это **не**
+> «поддержка всех версий», **не** full QA program и **не**
+> blanket multi-version support claim.
 
 ### Системные требования
 
@@ -78,9 +83,16 @@ install fast path, не трогает инфобазу): [`scripts/dev/README.m
 - [`docs/operator-manual.md`](docs/operator-manual.md) —
   operator-facing reference.
 - [`docs/runbooks/`](docs/runbooks/) — воспроизводимые сценарии,
-  включая `track-a-reference-stand-round-trip.md`.
+  включая `track-a-reference-stand-round-trip.md` (real binary-backed
+  round-trip) и `track-e-multi-version-smoke-matrix.md` (operator
+  runbook для `frozen-smoke-v1` на operator-supplied 1С версиях).
+- [`docs/version-support-matrix.md`](docs/version-support-matrix.md) —
+  evidence table с frozen 12-column shape (Track E); single source
+  of truth для актуального уровня multi-version evidence — **не**
+  blanket support claim.
 - [`docs/architecture/`](docs/architecture/) — phase- и track-plans
-  + step maps (включая Track B, Track C и Track D planning).
+  + step maps (включая Track B, Track C, Track D и Track E
+  planning).
 - [`PROJECT-STATUS.md`](PROJECT-STATUS.md) — детальный статус фаз
   и треков с per-step deliverables.
 

@@ -111,9 +111,20 @@ they are intentional limits of the current scaffolding.
 - **No hot reload or OS-level service supervision** (Windows
   Service / systemd unit registration, automatic restart
   supervisor).
-- **No multi-version 1С smoke matrix.** Real-stand evidence
-  exists for `8.3.27.1859`; other 1С platform versions are not
-  covered.
+- **Multi-version 1С smoke matrix — scaffolding only.** Real-stand
+  binary-backed evidence exists for `8.3.27.1859` (Windows x64,
+  file-based reference stand) — represented as the reference row
+  in [`docs/version-support-matrix.md`](version-support-matrix.md).
+  Track E (Multi-Version 1C Smoke Matrix) ship'ит **scaffolding**
+  для extension этой базы: frozen smoke scenario (`frozen-smoke-v1`),
+  operator runbook
+  ([`docs/runbooks/track-e-multi-version-smoke-matrix.md`](runbooks/track-e-multi-version-smoke-matrix.md)),
+  и matrix-table doc. **Additional version evidence rows пока не
+  добавлены** — Track E / Step 4 закрыт через honest operator-supplied
+  gap (отсутствие 1С minor families помимо `8.3.27` на operator
+  machine). Other 1С platform versions therefore are not yet
+  evidenced. Additional rows возможны post-closure через
+  operator-driven runs.
 - **No live 1С execution as part of this handoff.** The default
   receive-side flow does NOT call `1cv8.exe`. The reference-stand
   runbook is available if you have a stand and want to exercise
@@ -309,7 +320,12 @@ as a single checklist so the receiver does not miss them.
 - **Pre-1.0 software.** Backwards-compatibility guarantees
   across versions are not yet in place.
 - **Single-version 1С coverage** — `8.3.27.1859`. Other versions
-  are not yet exercised.
+  are not yet exercised. Multi-version smoke matrix scaffolding
+  (frozen scenario + operator runbook + matrix table) ship'нута
+  Track E / Steps 1–3 и закрыта Step 4 через honest
+  operator-supplied gap; single source of truth для актуального
+  evidence-уровня —
+  [`docs/version-support-matrix.md`](version-support-matrix.md).
 - **Limited rollback coverage** — the automatic rollback
   whitelist is small and intentional. See
   `apps/platform/README.md` and the Phase 6 / Step 4 history in

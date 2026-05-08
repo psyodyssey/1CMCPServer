@@ -42,8 +42,19 @@ hidden gaps.
   authentication, authorisation, multi-tenant isolation, or hardened
   network transport. Treat them as you would any local development
   service.
-- **Single-version 1С evidence.** Real binary-backed round-trip has been
-  exercised on `8.3.27.1859`. Other versions are not yet covered.
+- **Single-version 1С evidence (with multi-version scaffolding).** Real
+  binary-backed round-trip evidence has been exercised on `8.3.27.1859`
+  (Windows x64, file-based reference stand) — see Track A / Step 6 in
+  `PROJECT-STATUS.md`. Track E (Multi-Version 1C Smoke Matrix) ship'ит
+  scaffolding для extension этой базы: frozen smoke scenario
+  (`frozen-smoke-v1`), operator runbook, и matrix-table doc
+  ([`docs/version-support-matrix.md`](docs/version-support-matrix.md)).
+  На момент Track E / Step 4 closure additional version evidence rows
+  не были добавлены — Step 4 закрыт через honest operator-supplied gap
+  (отсутствие на operator machine 1С minor families помимо `8.3.27`).
+  Additional rows могут быть добавлены post-closure через operator-driven
+  runs по `docs/runbooks/track-e-multi-version-smoke-matrix.md`. Никакого
+  blanket multi-version support claim не делается.
 - **No installer ecosystem.** No `.msi` / `.deb` / GUI wizard / signed
   binary distribution. The install fast path operates on a declarative
   product config and a Python entry point.
