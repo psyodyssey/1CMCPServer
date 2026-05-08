@@ -39,7 +39,15 @@
 > categorical exclusions (`create_*` family,
 > `apply_config_from_files`,
 > `update_database_configuration`) остаются вне whitelist'а
-> by design. Активного трека сейчас нет.
+> by design. Активный трек сейчас — Parallel Track G —
+> Production-Grade MCP Transport and CLI (planning-only,
+> Step 1; первый production-grade слой operational gap'а —
+> canonical `__main__.py` для трёх MCP servers + minimal
+> stdio JSON-RPC transport + minimal CLI surface +
+> `[project.scripts]` console entries; **не** network
+> transport, **не** authentication / authorization, **не**
+> supervisor daemon, **не** web UI, **не** packaging
+> ecosystem).
 
 ### Системные требования
 
@@ -627,12 +635,68 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 
 ## Active parallel track
 
-Активного parallel-трека сейчас нет. После closure'а Track E
-был открыт шестой post-phase трек — **Parallel Track F —
-Rollback Whitelist Expansion** — и закрыт на Step 6 (final
-integration pass and Track F closure). См. «Track F detail
-(закрыт)» ниже. Открытие следующего трека — отдельное
-operator-решение.
+После closure'а Track F открыт седьмой post-phase track —
+**Parallel Track G — Production-Grade MCP Transport and
+CLI**. Цель — ship'ить **первый production-grade operational
+слой** для трёх MCP servers: canonical `__main__.py`
+entrypoints, minimal stdio JSON-RPC transport, minimal CLI
+surface (`--help`, `--config-path`, `--transport`,
+`--log-level`), и `[project.scripts]` console entry points в
+`pyproject.toml`. Это закрывает factual gap «MCP servers
+cannot start at all» — после Track G closure
+`python -m mcp_read_server`, `python -m mcp_write_server` и
+`python -m mcp_intelligence_server` будут работать в trusted
+local environment. Это **не** universal production transport,
+**не** network-grade HTTP/WebSocket layer, **не**
+authentication / authorization, **не** supervisor daemon,
+**не** HA / clustering, **не** web UI, **не** packaging
+ecosystem (`.msi` / `.deb` / signed distribution), **не**
+enterprise super-set (SSO/RBAC/multi-tenant). Платформа
+архитектурно остаётся при том же подходе: existing
+`server.py:REGISTERED_TOOLS` registries (`list_tools()` /
+`get_tool(name)`) preserved unchanged; Track G ship'ит
+**transport layer поверх** этих registries, не задевая их.
+
+Track G сейчас на **Step 1 (planning)** — ship'нуты только
+два planning-документа
+([`docs/architecture/track-g-production-grade-mcp-transport-and-cli-plan.md`](docs/architecture/track-g-production-grade-mcp-transport-and-cli-plan.md),
+[`docs/architecture/track-g-production-grade-mcp-transport-and-cli-step-map.md`](docs/architecture/track-g-production-grade-mcp-transport-and-cli-step-map.md));
+никаких code changes Step 1 не делал; registries
+`read=15 / write=25 / intelligence=16` без drift'а; никаких
+1cv8.exe runs (трек работает на process / transport layer,
+не на 1cv8 binary surface); никаких реальных credentials в
+repo / docs / commit messages.
+
+Что **не** входит в Track G (повтор для ясности): HTTP /
+WebSocket / SSE network transports (отдельный subsequent
+track), authentication / authorization / token validation /
+mTLS / OAuth / SAML / OpenID Connect / RBAC / multi-tenant
+isolation, supervision daemon / systemd unit / Windows
+Service registration / automatic restart watcher, HA /
+clustering / multi-node, service discovery / load balancing,
+distributed tracing / observability stack, web UI / dashboard
+frontend, packaging ecosystem (`.msi` / `.deb` / GUI installer
+/ signed distribution / PyPI publication) beyond
+`[project.scripts]` console entries, full enterprise
+super-set (SSO/RBAC/multi-tenant/secrets vault as service /
+federated audit / policy-as-code DSL), 1cv8.exe execution
+work, rollback work, AST / metadata work, multi-version 1С
+matrix expansion, новые MCP tools (registries без drift'а),
+hot reload, remote push.
+
+Следующий шаг по Track G — **Step 2 (transport / entrypoint
+baseline audit, docs-only)**: новый short audit-документ
+с per-server inventory current state + concrete missing
+pieces + где должна интегрироваться MCP protocol
+implementation; resolve Q1 (transport choice — default stdio
+only), Q2 (`mcp` Python SDK availability vs custom),
+Q6 (`apps/platform` standalone entrypoint — out-of-scope
+default). Production-код Step 2 не правит. Никаких real
+credentials. **GitHub remote push — operator action, не часть
+трека.**
+
+Документы трека: `docs/architecture/track-g-production-grade-mcp-transport-and-cli-plan.md`,
+`docs/architecture/track-g-production-grade-mcp-transport-and-cli-step-map.md`.
 
 ## Track F detail (закрыт)
 

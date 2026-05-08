@@ -2,16 +2,29 @@
 
 ## Текущий шаг
 
-**Активного шага нет.** Phase 1–6 закрыты ранее; все шесть
-post-phase parallel track'ов (A, B, C, D, E, F) закрыты. Track F —
-**Rollback Whitelist Expansion** — закрыт на Step 6 (final
-integration pass and Track F closure); `pyproject.toml` version
-bumped `0.2.0` → `0.3.0` (Q5 = ДА; Track F / Step 4 ship'нул real
-production code change с functional delta — backward-compatible
-new functionality, classic MINOR bump per SemVer). Открытие
-следующего трека — отдельное operator-решение.
+**Parallel Track G / Step 1 — planning Production-Grade MCP
+Transport and CLI (in progress / documentation only).**
+Phase 1–6 закрыты ранее; шесть post-phase parallel track'ов
+(A, B, C, D, E, F) полностью закрыты. Track G — седьмой
+post-phase parallel track, открыт после closure'а Track F;
+цель — ship'ить **первый production-grade operational слой**
+для трёх MCP servers (canonical `__main__.py` + minimal stdio
+JSON-RPC transport + minimal CLI + `[project.scripts]` console
+entries), закрывая factual gap «MCP servers cannot start at
+all». Step 1 — два planning-документа без code changes.
+`pyproject.toml` `version=0.3.0` (Track F closure bump
+0.2.0→0.3.0 сохраняется до Track G closure Step 6 — Q7
+default ДА bump 0.3.0→0.4.0 на closure).
 
 ## Статус
+
+`in progress` (для Parallel Track G / Step 1 как
+documentation-only opening — два planning-документа
+ship'нуты, никаких code changes, никаких изменений
+registry, никаких новых MCP tool'ов, никаких запусков
+1cv8.exe в этом шаге; никаких реальных credentials в
+repo / docs / commit message; Track G / Step 2 —
+следующий шаг и не открывается в этом же заходе).
 
 `closed` (для всего Parallel Track F — Steps 1–6 закрыты
 последовательно; пять meaningful commit'ов в `main`:
@@ -281,6 +294,47 @@ Registry-инвариант `read=15 / write=25 / intelligence=16`
 в одном из шести Track F commit'ов; никаких 1cv8.exe runs
 ни на одном шаге Track F. **GitHub remote push не часть
 трека — operator action.**
+
+После closure'а Track F открыт седьмой post-phase track —
+**Parallel Track G — Production-Grade MCP Transport and CLI**.
+Track G сейчас documentation-only (Step 1 planning). Цель —
+ship'ить **первый production-grade operational слой** для
+трёх MCP servers, закрывая factual gap «MCP servers cannot
+start at all»: canonical `__main__.py` для трёх MCP servers,
+minimum-viable stdio JSON-RPC transport, minimal CLI
+(`--help`, `--config-path`, `--transport`, `--log-level`),
+и `[project.scripts]` console entry points в `pyproject.toml`.
+Это **не** universal production transport, **не**
+network-grade HTTP/WebSocket layer, **не** authentication /
+authorization, **не** supervisor daemon, **не** HA /
+clustering, **не** web UI, **не** packaging ecosystem
+(`.msi` / `.deb` / signed distribution / PyPI publication
+beyond `[project.scripts]`), **не** enterprise super-set
+(SSO/RBAC/multi-tenant). Платформа архитектурно остаётся при
+том же подходе: existing `server.py:REGISTERED_TOOLS`
+registries для всех 3 MCP servers preserved unchanged
+(`list_tools()` / `get_tool(name)` API без изменений);
+Track G ship'ит **transport layer поверх** этих registries,
+не задевая их. Никаких изменений в `apps/`, `packages/`,
+`scripts/`, `pyproject.toml`, `.github/`, `.editorconfig`,
+`.python-version`, `.gitignore`, `examples/`, `LICENSE`,
+`SECURITY.md`, `CHANGELOG.md`, `docs/release-handoff.md`,
+`docs/operator-manual.md`, `docs/administrator-manual.md`,
+`docs/developer-manual.md`, `docs/runbooks/*`,
+`apps/platform/README.md`, `server.py` files после Step 1.
+Production-код Track G будет тронут **только на Step 4** и
+**только** на explicit allowed surfaces: 3 new
+`__main__.py` files (`apps/mcp-{read,write,intelligence}-server/src/.../`)
++ `pyproject.toml` (новый `[project.scripts]` block) +
+optional minor adjustments в `server.py` если absolutely
+necessary; никаких изменений в `tools.py`, `runtime/`,
+packages/, scripts/release/, registries не планируется.
+Track G / Step 2 (transport / entrypoint baseline audit,
+docs-only) — следующий шаг. **GitHub remote push явно НЕ
+часть трека** — это operator action. Никаких запусков
+1cv8.exe в Step 1; 1cv8.exe не запускается ни на одном
+шаге Track G (трек работает на process / transport layer,
+не на 1cv8 binary surface).
 
 ## Что сделано
 
@@ -10766,10 +10820,170 @@ read/write/intelligence-серверов, с честно
   `read=15 / write=25 / intelligence=16` без drift'а;
   selfcheck_status=ok; verify-release.ps1 GREEN на 8 checks;
   никаких реальных credentials в Step 6 diff'е.
-- **Следующий шаг.** Активного шага нет. Track F полностью
-  закрыт. Phase 7 как линейная фаза не запланирована.
-  Открытие следующего parallel track'а — отдельное
-  operator-решение.
+- **Следующий шаг (на момент закрытия Step 6 / Track F).**
+  Активного шага не было. После Track F closure открыт
+  седьмой post-phase track — **Parallel Track G —
+  Production-Grade MCP Transport and CLI** — Step 1
+  которого закрыт сразу следом (см. секцию ниже).
+
+### Parallel Track G / Step 1 — planning Production-Grade MCP Transport and CLI (завершён)
+
+- **Цель шага.** Зафиксировать документационный вход в
+  **Parallel Track G — Production-Grade MCP Transport and
+  CLI**: назначение трека, целевой результат, что
+  закрывает трек и что НЕ закрывает, чем отличается от
+  Track A / B / C / D / E / F, guardrails, acceptance
+  criteria, открытые вопросы Q1–Q7. Кода не писать.
+  Никаких изменений registry. Никаких новых MCP tool'ов.
+  Никаких запусков 1cv8.exe.
+- **Назначение трека.** После closure'а Track F (Rollback
+  Whitelist Expansion) у проекта есть сильное
+  execution-ядро (Phase 1–6) + сильная docs/product
+  shell (Tracks B/C/D/E) + расширенная rollback coverage
+  (Track F), но **operational run story для MCP servers
+  всё ещё не доведена до production-grade состояния**.
+  Concrete gaps: никакого `__main__.py` ни в одном из
+  4 packages (`mcp_read_server`, `mcp_write_server`,
+  `mcp_intelligence_server`, `onec_platform`); никакого
+  `[project.scripts]` console entry points в
+  `pyproject.toml`; никакого MCP protocol implementation
+  (server.py содержит только tool registry skeleton, не
+  JSON-RPC framing); никакого CLI surface; никакого
+  operator-facing «how to start MCP server in production»
+  SSOT runbook. Этот gap уже зафиксирован как honest
+  constraint в `SECURITY.md` («No production-grade MCP
+  transport yet»), `docs/release-handoff.md`, `README.md`
+  Quickstart, Track A/D plan + Phase 6 docs + Track F
+  closure recommendation. Track G — седьмой post-phase
+  parallel track, который ship'ит **первый
+  production-grade слой** этого operational gap'а.
+- **Что реально появилось в Step 1.**
+  - **Один новый план трека:**
+    `docs/architecture/track-g-production-grade-mcp-transport-and-cli-plan.md`
+    — зачем нужен Track G после Track F, стартовая точка
+    (read-only inventory: 4 packages без `__main__.py`;
+    `pyproject.toml` без `[project.scripts]`; `server.py`
+    skeleton только с `list_tools()` / `get_tool(name)`;
+    existing `apps/platform/runtime.py` Phase 5/Step 3 +
+    Phase 6/Step 6 process orchestration layer не задевается),
+    gap statement (5 concrete gaps), целевой результат
+    (canonical `__main__.py` × 3 + minimal stdio JSON-RPC
+    transport + CLI surface + `[project.scripts]` console
+    entries + aligned operator-facing docs + no security
+    claim beyond local trusted environment), что входит /
+    не входит, guardrails, 11 acceptance criteria, honest
+    constraints after closure, связь с Track A / B / C / D /
+    E / F, 7 open questions Q1–Q7.
+  - **Один новый step-map:**
+    `docs/architecture/track-g-production-grade-mcp-transport-and-cli-step-map.md`
+    — шесть шагов: Step 1 (planning, этот), Step 2
+    (transport / entrypoint baseline audit, docs-only —
+    per-server inventory + integration points + resolve
+    Q1/Q2/Q6), Step 3 (exact runtime / CLI / entrypoint
+    contract, docs-only — RFC 2119-style normative contract:
+    `__main__.py` shape, CLI surface, transport contract,
+    tool dispatch, auth contract «none on transport»,
+    supervision integration через existing product runtime,
+    `[project.scripts]` contract, backward compatibility,
+    implementation surface, non-goals, verification
+    contract; resolve Q3/Q4/Q5), Step 4 (narrow
+    implementation slice — единственный шаг с production
+    code change: 3 new `__main__.py` files + minimal stdio
+    MCP transport + CLI flag parsing + `[project.scripts]`
+    block в `pyproject.toml`; optional minor adjustments
+    в `server.py` если absolutely necessary; verification
+    `python -m <server> --help` все возвращают exit 0 +
+    non-empty usage), Step 5 (operator/docs alignment —
+    Quickstart + handoff + SECURITY + apps/platform/README
+    + scripts/dev/launch.ps1 + optional new short runbook),
+    Step 6 (final integration pass + Track G closure;
+    Q7 default ДА version bump 0.3.0 → 0.4.0). Каждый шаг
+    описан в формате Цель / Что меняем / Что НЕ меняем /
+    Результат.
+- **Что НЕ сделано (намеренно).**
+  - **Никаких изменений production-кода.** `apps/`,
+    `packages/`, `scripts/`, `pyproject.toml`, `.github/`,
+    `.editorconfig`, `.python-version`, `.gitignore`,
+    `examples/`, `LICENSE`, `SECURITY.md`, `CHANGELOG.md`,
+    `docs/release-handoff.md`, `docs/operator-manual.md`,
+    `docs/administrator-manual.md`,
+    `docs/developer-manual.md`, `docs/runbooks/*`,
+    `apps/platform/README.md`, `server.py` files — без
+    изменений на Step 1.
+  - **Никаких изменений в `mcp-read-server`,
+    `mcp-write-server`, `mcp-intelligence-server`,
+    `apps/platform/`, всех packages/.** Track G / Step 1
+    это documentation-only.
+  - **Никакого `__main__.py` файла** — это Step 4.
+  - **Никакого baseline audit doc** — это Step 2.
+  - **Никакого normative contract** — это Step 3.
+  - **Никакого docs migration** — это Step 5.
+  - **Никакого CHANGELOG update.** По симметрии с Track
+    A / B / C / D / E / F (CHANGELOG обновляется один
+    раз на closure трека).
+  - **Никаких реальных credentials** в созданных docs /
+    commit message — Track G не задевает credentials
+    surface.
+- **Что сказали явно в плане трека.**
+  - Track G **не** закрывает: HTTP / WebSocket / SSE
+    network transports (отдельный subsequent track),
+    authentication / authorization / token validation /
+    mTLS / OAuth / SAML / OpenID Connect / RBAC /
+    multi-tenant isolation, supervision daemon / systemd
+    unit / Windows Service registration / automatic
+    restart watcher, HA / clustering / multi-node,
+    service discovery / load balancing, distributed
+    tracing / observability stack, web UI / dashboard
+    frontend, packaging ecosystem (`.msi` / `.deb` / GUI
+    installer / signed distribution / PyPI publication)
+    beyond `[project.scripts]` console entries, full
+    enterprise super-set (SSO/RBAC/multi-tenant/secrets
+    vault as service / federated audit / policy-as-code
+    DSL), 1cv8.exe execution work, rollback work,
+    AST / metadata work, multi-version 1С matrix
+    expansion, новые MCP tools (registries без drift'а),
+    hot reload, remote push.
+  - **GitHub remote push** — operator action, не часть
+    трека.
+- **Открытые вопросы Step 2+.** Q1 (transport choice
+  для Step 4 — default stdio only; HTTP/WebSocket
+  out-of-scope; resolve в Step 2), Q2 (`mcp` Python SDK
+  vs custom — default «зависит от availability в
+  dependency graph» с manual code review SDK shape;
+  resolve в Step 2), Q3 (CLI flag set — default minimal:
+  `--help`, `--config-path`, `--transport stdio`,
+  `--log-level`; resolve в Step 3), Q4 (auth posture —
+  default НЕТ на transport уровне; security model =
+  trusted local environment; resolve в Step 3), Q5
+  (supervision integration — default через existing
+  `apps/platform/runtime.py` boundary; никакого нового
+  supervisor daemon Track G не ship'ит; resolve в Step 3),
+  Q6 (`apps/platform` standalone entrypoint —
+  out-of-scope initial Track G по умолчанию; resolve в
+  Step 2), Q7 (closure version bump 0.3.0 → 0.4.0 —
+  default ДА; Step 4 ship'ит real code change with
+  functional delta = backward-compatible new
+  functionality, classic MINOR bump per SemVer; resolve
+  в Step 6).
+- **Selfcheck после Step 1.** Зелёный без правок:
+  registries `read=15 / write=25 / intelligence=16`,
+  `selfcheck_status=ok`. Track G / Step 1 не правил
+  production-кода — drift'а нет.
+- **Следующий шаг.** **Parallel Track G / Step 2 —
+  transport / entrypoint baseline audit (docs-only).**
+  Step 2 включает: новый short audit-документ
+  `docs/architecture/track-g-transport-baseline-audit.md`
+  (per-server inventory current state + concrete
+  missing pieces + где должна интегрироваться MCP
+  protocol implementation; resolve Q1 — transport
+  choice; Q2 — `mcp` Python SDK availability;
+  Q6 — `apps/platform` standalone entrypoint scope).
+  **Никаких изменений** в `apps/`, `packages/`,
+  `scripts/`, `pyproject.toml`, `SECURITY.md`,
+  `docs/release-handoff.md`, `docs/operator-manual.md`,
+  `apps/platform/README.md`. Production-код не правится.
+  Никакого 1cv8.exe не запускается. Step 2 я открываю
+  отдельным заходом, не в этом.
 
 ## Phase 6 закрыта
 
