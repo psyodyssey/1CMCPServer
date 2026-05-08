@@ -2,19 +2,34 @@
 
 ## Текущий шаг
 
-**Parallel Track D / Step 1 — planning Operator Credentials
-Hardening (in progress / documentation only).** Track A, Track B
-и Track C полностью закрыты ранее. Track D — четвёртый post-phase
-parallel track; Step 1 — два planning-документа без code changes.
+**Активного шага нет.** Phase 1–6 закрыты ранее; все четыре
+post-phase parallel track'а (A, B, C, D) закрыты. Track D —
+**Operator Credentials Hardening** — закрыт на Step 6 (final
+integration pass and Track D closure); `pyproject.toml` version
+bumped `0.1.0` → `0.2.0`. Открытие следующего трека — отдельное
+operator-решение.
 
 ## Статус
 
-`in progress` (для Parallel Track D / Step 1 как
-documentation-only opening — два planning-документа
-ship'нуты, никаких code changes, никаких изменений
-registry, никаких новых MCP tool'ов; никаких реальных
-credentials в repo / docs / commit message; Track D / Step 2 —
-следующий шаг и не открывается в этом же заходе).
+`closed` (для всего Parallel Track D — Steps 1–6 закрыты
+последовательно; пять meaningful commit'ов в `main`:
+`61cf225` (Step 1 — planning operator credentials
+hardening), `0d708d1` (Step 2 — credentials flow audit
+and contract), `af4436f` (Step 3 — env substitution and
+preview redaction), `393e869` (Step 4 — operator docs and
+migration alignment), `1fd2d35` (Step 5 — release verify
+credential hygiene heuristic), плюс closure commit Step 6
+фиксирует обновлённые README/PROJECT-STATUS/CHANGELOG +
+version bump `0.1.0` → `0.2.0`; production-код Track D
+правил **только два** boundary'а —
+`apps/mcp-write-server/.../runtime/binary_dispatch.py`
+в write-server runtime layer (Step 3) и
+`scripts/release/verify-release.ps1` release-side скрипт
+(Step 5); остальные шаги — documentation-only или
+выравнивание operator-facing docs. Registry-инвариант
+`read=15 / write=25 / intelligence=16` без drift'а на
+всём треке; `selfcheck_status=ok`. Никаких реальных
+credentials ни в одном из шести Track D commit'ов).
 
 `closed` (для всего Parallel Track C — Steps 1–6 закрыты
 последовательно; шесть meaningful commit'ов в `main`:
@@ -117,20 +132,25 @@ product/intelligence; нет back-door write channel'а;
 нет `shell=True`; audit append-only; fail-closed по
 умолчанию) **сохраняются без изменений**).
 
-После closure'а Track C открыт четвёртый post-phase track —
-**Parallel Track D — Operator Credentials Hardening**.
-Track D сейчас documentation-only (Step 1 planning).
-Никаких изменений в `apps/`, `packages/`, `scripts/`,
-`pyproject.toml`, `.github/`, `.editorconfig`,
-`.python-version`, `.gitignore`, `examples/`, `LICENSE`,
-`SECURITY.md`, `CHANGELOG.md`, `docs/release-handoff.md`,
-`docs/operator-manual.md`, `docs/administrator-manual.md`,
-`docs/developer-manual.md`, `docs/runbooks/*` после Step 1.
-Track D / Step 2 (credentials-flow audit and contract:
-docs-only audit + формальный contract на env-substitution
-`${ENV:NAME}`, fail-closed semantics, redaction discipline)
-— следующий шаг. **GitHub remote push явно НЕ часть
-трека** — это operator action.
+После closure'а Track C был открыт четвёртый post-phase track —
+**Parallel Track D — Operator Credentials Hardening** — и
+закрыт на Step 6 (final integration pass and Track D closure).
+Track D ввёл `${ENV:NAME}` substitution путь для DESIGNER
+credentials в `onec_*_command_template`-массивах с render-time
+fail-closed на missing / empty / mixed формах, password-position
+redaction (`<redacted>` в `command_preview` и trimmed excerpt'ах
+при сохранённом unredacted subprocess argv), миграцию
+operator-facing docs на env-substitution как рекомендованный
+default (literal cleartext остался legacy fallback), и 8-й
+credential-template-hygiene check в
+`scripts/release/verify-release.ps1` (WARN, не FAIL — legacy
+templates не блокируют receive-side flow). Это **не**
+enterprise security platform: никакого secrets manager / vault /
+KMS / OS keychain / SSO / RBAC / encrypted-at-rest secrets file
+format / production-grade MCP transport. Registry-инвариант
+`read=15 / write=25 / intelligence=16` без drift'а на всём треке;
+никаких реальных credentials ни в одном из шести Track D
+commit'ов. **GitHub remote push не часть трека — operator action.**
 
 ## Что сделано
 
@@ -9539,22 +9559,263 @@ read/write/intelligence-серверов, с честно
   write=25 / intelligence=16`, `selfcheck_status =
   ok`. Track D / Step 1 не правил production-кода,
   поэтому drift'а быть не должно — и его нет.
-- **Следующий шаг.** **Parallel Track D / Step 2 —
-  credentials-flow audit and contract (docs-only).**
-  Step 2 включает: новый short документ
-  `docs/architecture/track-d-credentials-flow-audit.md`
-  (где `/P "<password>"` физически появляется, какие
-  payload-поля видят rendered argv, что значит
-  «out-of-band» сейчас); новый short документ
-  `docs/architecture/track-d-credentials-contract.md`
-  (синтаксис env-substitution, resolution order,
-  fail-closed semantics, redaction contract,
-  backward-compat). **Никаких изменений** в
-  `apps/`, `packages/`, `scripts/`, `pyproject.toml`,
-  `SECURITY.md`, `docs/release-handoff.md`,
-  `docs/operator-manual.md`. Production-код не
-  правится. Step 2 я открываю отдельным заходом, не
-  в этом.
+- **Следующий шаг (на момент закрытия Step 1).**
+  **Parallel Track D / Step 2 — credentials-flow audit
+  and contract (docs-only).** Step 2 / 3 / 4 / 5 / 6
+  последовательно пройдены — см. секции ниже.
+
+### Parallel Track D / Step 2 — credentials flow audit and contract (завершён)
+
+- **Цель шага.** Честно описать **существующий**
+  credentials surface и зафиксировать **минимальный
+  contract** на env-substitution и redaction. Никакой
+  implementation. Никаких code changes. Step 2 — чисто
+  documentation-only.
+- **Что реально появилось в Step 2.**
+  - **Новый documentation-only документ:**
+    `docs/architecture/track-d-credentials-flow-audit.md`
+    (303 строки) — где `/P "<password>"` физически
+    появляется в `onec_*_command_template`-массивах сегодня,
+    какие payload-поля видят rendered argv (`command_preview`,
+    `stdout_excerpt`, `stderr_excerpt`), какие audit-поля
+    могут отражать password при cleartext template'е, как
+    `.gitignore` (Track B / Step 2) ловит local writable
+    config'и, что значит «out-of-band» до Track D и почему
+    это аспирация, а не enforced контракт. Optional
+    research-note про tier-2 OS keychain (`keyring`) явно
+    помечен как research-only, не in-scope.
+  - **Новый documentation-only документ:**
+    `docs/architecture/track-d-credentials-contract.md`
+    (308 строк) — формальный контракт env-substitution
+    syntax (`${ENV:NAME}` full-element token), resolution
+    order (render-time, после structural-placeholder
+    substitution, до запуска subprocess'а), fail-closed
+    semantics (missing/empty env → render-time `ok=False`),
+    redaction contract (`/P` / `/Pwd` argv-position →
+    `<redacted>` в `command_preview` и trimmed excerpt'ах;
+    actual subprocess argv остаётся unredacted), backward-
+    compat (literal cleartext по-прежнему supported,
+    репортится только Step 5 heuristic'ой).
+- **Что НЕ сделано (намеренно).** Никаких изменений
+  production-кода. `apps/`, `packages/`, `scripts/`,
+  `pyproject.toml`, `SECURITY.md`, `CHANGELOG.md`,
+  `docs/release-handoff.md`, `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks/*` —
+  не тронуты на Step 2 (миграция docs — это Step 4).
+- **Selfcheck после Step 2.** Зелёный без правок:
+  `imports_ok = true`, registries `read=15 / write=25 /
+  intelligence=16`, `selfcheck_status = ok`. Step 2 не
+  правил production-кода — drift'а нет.
+- **Commit.** `0d708d1` (Track D / Step 2 — credentials
+  flow audit and contract).
+
+### Parallel Track D / Step 3 — env substitution and preview redaction (завершён)
+
+- **Цель шага.** Реализовать env-substitution и
+  redaction discipline в write-server'е, оставаясь
+  backward-compatible с cleartext-template'ом. Один
+  boundary-файл, узкий внутренний contract из Step 2.
+- **Что реально появилось в Step 3.**
+  - **`apps/mcp-write-server/src/mcp_write_server/runtime/binary_dispatch.py`**:
+    - `render_command_template(...)` расширен вторым pass'ом
+      env-substitution для full-element токенов
+      `${ENV:NAME}` после structural-placeholder
+      substitution; missing / empty / partial / mixed форма →
+      render-fail branch (`mode='binary-backed'`,
+      `binary_invoked=False`, `command_preview=None`,
+      honest reason); fail-closed по аналогии с
+      unknown-placeholder discipline (sealed Track A).
+    - `_assemble_command_preview(...)` обращается к
+      новому helper'у `_redact_password_args(...)`,
+      который сканирует rendered argv list, для argv-
+      элементов после `/P` / `/Pwd` (case-insensitive)
+      подменяет value на `<redacted>` и возвращает
+      редактированный preview. **Actual subprocess argv
+      не трогается** — иначе binary не аутентифицируется.
+    - Внутренние helper'ы `_resolve_env_token` и
+      `_redact_password_args` живут в том же файле, не
+      в новом package'е, чтобы не раздувать surface.
+- **Backward-compat.** Literal cleartext templates
+  по-прежнему render OK, по-прежнему запускают
+  subprocess; но `command_preview` для них тоже
+  редактируется на `<redacted>` (по той же
+  password-position discipline).
+- **Что НЕ сделано (намеренно).** Не тронуты:
+  `run_write_flow` discipline, structural-placeholder
+  whitelists per tool (sealed Track A), `subprocess` без
+  `shell=True`, public surface write-server'а (никаких
+  новых tools, никаких изменений в JSON shapes для
+  existing tools), `onec-config` loader semantics
+  (substitution живёт в render-time, не в load-time).
+  Никаких изменений в `mcp-read-server`,
+  `mcp-intelligence-server`, `apps/platform/`. Никакого
+  CHANGELOG update (это closure, Step 6).
+- **Selfcheck после Step 3.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без drift'а;
+  `selfcheck_status=ok`; никаких реальных credentials в
+  diff'е.
+- **Commit.** `af4436f` (Track D / Step 3 — env
+  substitution and preview redaction).
+
+### Parallel Track D / Step 4 — operator docs and migration alignment (завершён)
+
+- **Цель шага.** Перевести operator-facing документацию
+  на env-substitution как **default рекомендованный путь**.
+  Cleartext literal становится legacy fallback'ом, который
+  остаётся supported, но не рекомендуется.
+- **Что реально появилось в Step 4.**
+  - `docs/runbooks/track-a-reference-stand-round-trip.md`:
+    section 3 (product-config example) переписана —
+    `"/N", "${ENV:ONEC_DESIGNER_USER}"` /
+    `"/P", "${ENV:ONEC_DESIGNER_PASSWORD}"` как baseline;
+    добавлен env-substitution callout; failure mode F2
+    расширен под env-token failures (missing / empty /
+    partial / mixed); credentials-in-logs нота обновлена
+    под redaction discipline.
+  - `SECURITY.md`: Honest constraints block переписан
+    под env-substitution. «Operator credentials are
+    out-of-band» теперь имеет конкретную реализацию
+    (`${ENV:NAME}` substitution, render-time fail-closed,
+    `<redacted>` в `command_preview`); явно перечислено
+    что **по-прежнему** out-of-scope: secrets manager,
+    vault, KMS, OS keychain integration, encrypted-at-rest
+    secrets file format.
+  - `docs/release-handoff.md`: Known limitations
+    DESIGNER credentials bullet переписан под
+    env-substitution как default; legacy cleartext
+    отмечен как fallback; redaction contract упомянут
+    конкретно.
+- **Что НЕ сделано (намеренно).** `docs/operator-manual.md`
+  **не тронут** — credentials guidance в нём отсутствует,
+  раздувать его новой секцией без существующей опоры
+  было бы scope creep. `apps/`, `packages/`, `scripts/`,
+  `pyproject.toml`, `CHANGELOG.md`, registries — не
+  тронуты. Никакого нового короткого документа
+  `docs/operator-credentials.md` (step-map допускал
+  optional, но без operator-manual'овского pointer'а
+  это был бы orphan).
+- **Selfcheck после Step 4.** Зелёный: registries без
+  drift'а; selfcheck_status=ok; никаких реальных
+  credentials в diff'е.
+- **Commit.** `393e869` (Track D / Step 4 — operator docs
+  and migration alignment).
+
+### Parallel Track D / Step 5 — release verify credential hygiene heuristic (завершён)
+
+- **Цель шага.** Расширить `scripts/release/verify-release.ps1`
+  узкой heuristic'ой, которая ловит наиболее очевидный
+  паттерн утечки — literal `/P "<value>"` в tracked
+  `*.config.json` без env-substitution-формы и без
+  `<password>` placeholder'а.
+- **Что реально появилось в Step 5.**
+  - `scripts/release/verify-release.ps1`: добавлен
+    8-й named check **Credential template hygiene**
+    (отдельный от существующего Credential leak guard).
+    Heuristic сканирует tracked `*.config.json` через
+    `git ls-files`, regex
+    `(?i)"/P(?:wd)?"\s*,\s*"([^"]*)"`. Value матчит
+    `^\$\{ENV:[A-Z_][A-Z0-9_]*\}$` или `<password>` →
+    PASS-skip; пустой value → skip; literal non-empty →
+    **WARN** (не FAIL) с `file:line`. Heuristic
+    deliberately узкая: только tracked `*.config.json`,
+    только `/P` / `/Pwd` adjacency, не сканирует
+    runbook'и или другие документы. Header comment +
+    summary marker switch + новый блок check 8 — три
+    точечных правки скрипта.
+  - `scripts/release/README.md`: row 8 в таблице checks +
+    короткий disclaimer «не full DLP, узкая heuristic».
+  - `docs/release-handoff.md`: «seven» → «eight» в
+    четырёх местах + row 8 в verify-таблице.
+- **Что НЕ сделано (намеренно).** Existing checks 1–7 в
+  `verify-release.ps1` не тронуты. Exit-code semantics:
+  WARN не инкрементит `$script:failed`; FAIL остался FAIL
+  (default behaviour `Add-Check`). `apps/`, `packages/`,
+  `pyproject.toml`, registries не тронуты. CHANGELOG не
+  обновлён (это closure, Step 6).
+- **Verification.** verify-release.ps1 прогон с
+  `-AllowDirtyTree -SkipSelfcheck` и затем с full
+  selfcheck — оба GREEN на 8 checks. 10 inline regex
+  test cases прошли (env-form / lowercase / Pwd /
+  multiline / placeholder → PASS; literal latin/cyrillic
+  → WARN; empty → skip; `Program Files` substring + no
+  quotes → no match).
+- **Commit.** `1fd2d35` (Track D / Step 5 — release
+  verify credential hygiene heuristic).
+
+### Parallel Track D / Step 6 — final integration pass and Track D closure (завершён)
+
+- **Цель шага.** Закрыть весь Track D как documented
+  status. Read-only final integration check уже
+  закрытых Steps 1–5, потом минимальные closure-docs/
+  status updates, потом final closure commit. Никакого
+  нового feature work, никаких новых MCP tools,
+  никакого remote push'а.
+- **Read-only final integration check (pre-closure).**
+  - working tree clean перед началом — gate PASS;
+  - git history линейная Step 1 → 2 → 3 → 4 → 5 → 6
+    (все commit'ы существуют);
+  - все Step 2 docs на диске (audit + contract,
+    303 + 308 строк);
+  - env-substitution + redaction присутствуют в
+    `binary_dispatch.py` (Step 3): `_resolve_env_token`
+    строки 161/209/242, `_redact_password_args` строки
+    63/269/284/416/433/445;
+  - operator docs обновлены (Step 4): runbook (23 hits
+    Track D / env-substitution), SECURITY.md (Track D /
+    Step 3 mention), release-handoff.md (4+ hits);
+  - 8-й check присутствует в `verify-release.ps1`
+    (Step 5);
+  - registries `read=15 / write=25 / intelligence=16`
+    без drift'а;
+  - `verify-release.ps1` GREEN на 8 checks (full selfcheck
+    включён);
+  - no real credentials в diff'ах ни одного из пяти
+    Track D commit'ов.
+- **Что реально изменено на Step 6 (closure-docs only).**
+  - `pyproject.toml` — version bumped `0.1.0` → `0.2.0`
+    (Q7 разрешён в этом шаге; единственное non-doc
+    исключение per Track D step-map);
+  - `README.md` — Quickstart-блок переписан под Track D
+    closed; «Closed parallel tracks» секция дополнена
+    Track D bullet'ом (три → четыре закрытых трека);
+    «Active parallel track» секция сжата под «нет
+    активного трека» с pointer'ом на Track D detail;
+    добавлена «Track D detail (закрыт)» секция
+    симметрично Track A/B/C detail блокам;
+  - `PROJECT-STATUS.md` — header (Текущий шаг + Статус)
+    обновлён под Track D closed; общий narrative-блок
+    переписан под closure; добавлены пять новых
+    per-step секций (Steps 2/3/4/5/6); устаревший
+    «Следующий шаг — Step 2» удалён;
+  - `CHANGELOG.md` — добавлен новый раздел
+    `## 0.2.0 — Parallel Track D — Operator
+    Credentials Hardening` с per-step outcomes,
+    registry invariant, honest constraints update;
+    «Active work» в 0.1.0 секции обновлён под «closed
+    in 0.2.0».
+- **Что НЕ изменено на Step 6 (закрытый scope).**
+  `apps/`, `packages/`, `scripts/release/` (помимо
+  Step 5 deliverable),`scripts/dev/`, `examples/`,
+  `.github/`, `.editorconfig`, `.python-version`,
+  `.gitignore`, `LICENSE`, `SECURITY.md` (Step 4 уже
+  выровнял), `docs/release-handoff.md` (Step 4 + Step 5
+  уже выровняли), `scripts/release/README.md` (Step 5
+  уже выровнял), `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks/*`
+  (Step 4 уже выровнял runbook), `docs/architecture/track-d-*`
+  (planning / audit / contract docs остаются как
+  written), registries, `1cv8.exe` не запускался.
+- **Selfcheck после Step 6.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без drift'а;
+  selfcheck_status=ok; verify-release.ps1 GREEN на
+  8 checks; никаких реальных credentials в Step 6
+  diff'е.
+- **Следующий шаг.** Активного шага нет. Track D полностью
+  закрыт. Phase 7 как линейная фаза не запланирована.
+  Открытие следующего parallel track'а — отдельное
+  operator-решение.
 
 ## Phase 6 закрыта
 

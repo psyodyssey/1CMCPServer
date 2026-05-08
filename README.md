@@ -11,10 +11,13 @@
 > Parallel Track A — full real binary-backed write path
 > (DumpCfg → LoadConfigFromFiles → UpdateDBCfg), отработанный на
 > reference stand'е, Parallel Track B — productization & delivery
-> polish, и Parallel Track C — packaging & installer delivery
-> (release-facing layout, verify path, release handoff document).
-> Активный сейчас трек — Parallel Track D — Operator Credentials
-> Hardening (planning-only, Step 1; не enterprise security platform).
+> polish, Parallel Track C — packaging & installer delivery
+> (release-facing layout, verify path, release handoff document),
+> и Parallel Track D — operator credentials hardening
+> (env-substitution `${ENV:NAME}` path с render-time fail-closed,
+> password-position redaction в `command_preview`, 8-й
+> credential-template-hygiene check в `verify-release.ps1`; **не**
+> enterprise security platform). Активного трека сейчас нет.
 
 ### Системные требования
 
@@ -572,7 +575,7 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 ## Closed parallel tracks
 
 После закрытия Phase 6 были последовательно открыты и
-закрыты три post-phase completion track'а:
+закрыты четыре post-phase completion track'а:
 
 - **Parallel Track A — Full Real 1cv8-backed Write Path** —
   закрыт на Step 7 (final integration pass and Track A
@@ -583,49 +586,143 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 - **Parallel Track C — Packaging & Installer Delivery** —
   закрыт на Step 6 (final integration pass and Track C
   closure).
+- **Parallel Track D — Operator Credentials Hardening** —
+  закрыт на Step 6 (final integration pass and Track D
+  closure).
 
 ## Active parallel track
 
-После closure'а Track C открыт четвёртый post-phase track —
-**Parallel Track D — Operator Credentials Hardening**. Цель —
-сделать `operator credentials` flow менее хрупким: ввести
-документированный env-substitution путь для DESIGNER credentials
-в `onec_*_command_template`, добавить redaction discipline в
-`command_preview` / audit excerpt'ы, перенести cleartext-password-
-literal из «нормального baseline'а» в legacy fallback, и расширить
-`verify-release.ps1` узкой credential-hygiene heuristic'ой. Это
-**не** enterprise security platform, **не** vault / KMS / SSO /
-RBAC track, **не** OS keychain integration as baseline и **не**
-production-grade MCP transport.
+Активного parallel-трека сейчас нет. После closure'а Track C
+был открыт четвёртый post-phase трек — **Parallel Track D —
+Operator Credentials Hardening** — и закрыт на Step 6 (final
+integration pass and Track D closure). См. «Track D detail
+(закрыт)» ниже. Открытие следующего трека — отдельное
+operator-решение.
 
-Track D сейчас на **Step 1 (planning)** — ship'нуты только два
-planning-документа
-([`docs/architecture/track-d-operator-credentials-hardening-plan.md`](docs/architecture/track-d-operator-credentials-hardening-plan.md),
-[`docs/architecture/track-d-operator-credentials-hardening-step-map.md`](docs/architecture/track-d-operator-credentials-hardening-step-map.md));
-никаких code changes Step 1 не делал, registries `read=15 /
-write=25 / intelligence=16` без drift'а; никаких реальных
-credentials в repo / docs / commit messages.
+## Track D detail (закрыт)
 
-Что **не** входит в Track D (повтор для ясности): enterprise
-vault platform, cloud KMS / Secrets Manager / Key Vault как
-baseline, SSO / RBAC / multi-tenant identity, federated audit
-storage, production-grade MCP transport / auth, GUI installer
-wizard, signed binary distribution, package-manager publication,
-web-UI / dashboard, multi-version 1С matrix, AST-парсер, hot
-reload, новые MCP tools, OS keychain integration (deliberately
-optional research-only note), encrypted-at-rest secrets file
-format, remote push. Эти направления остаются за пределами Track
-A + Track B + Track C + Track D.
+**Цель Track D** была — сделать operator credentials flow
+менее хрупким: ввести документированный env-substitution путь
+для DESIGNER credentials в `onec_*_command_template`-массивах,
+добавить redaction discipline в `command_preview` и trimmed
+payload-excerpt'ы, перенести cleartext-password literal из
+«нормального baseline'а» в legacy fallback, и расширить
+`verify-release.ps1` узкой credential-template-hygiene
+heuristic'ой. Это **не** enterprise security platform, **не**
+vault / KMS / SSO / RBAC track, **не** OS keychain integration
+as baseline и **не** production-grade MCP transport. Шесть
+шагов; production-код Track D правил **только два**
+boundary'а — один внутри `mcp-write-server` runtime layer и
+один release-side скрипт.
 
-Следующий шаг по Track D — **Step 2 (credentials-flow audit and
-contract)**: docs-only audit текущего credentials surface +
-формальный contract на env-substitution syntax (`${ENV:NAME}`),
-fail-closed semantics, redaction discipline. Production-код
-Step 2 не правит. **GitHub remote push — operator action, не
-часть трека.**
+- **Step 1 (planning)** — два planning-документа
+  ([`docs/architecture/track-d-operator-credentials-hardening-plan.md`](docs/architecture/track-d-operator-credentials-hardening-plan.md),
+  [`docs/architecture/track-d-operator-credentials-hardening-step-map.md`](docs/architecture/track-d-operator-credentials-hardening-step-map.md)):
+  назначение трека, целевой результат, guardrails,
+  10 acceptance criteria, открытые вопросы Q1–Q7. Никакого
+  code change; commit `61cf225`.
+- **Step 2 (credentials-flow audit and contract)** — два
+  новых documentation-only документа:
+  [`docs/architecture/track-d-credentials-flow-audit.md`](docs/architecture/track-d-credentials-flow-audit.md)
+  (где `/P "<password>"` физически появляется сегодня, какие
+  payload-поля видят rendered argv, что значит «out-of-band»
+  до Track D), и
+  [`docs/architecture/track-d-credentials-contract.md`](docs/architecture/track-d-credentials-contract.md)
+  (формальный contract на env-substitution syntax,
+  render-time resolution order, fail-closed semantics,
+  redaction discipline, backward-compat с literal
+  cleartext). Никаких изменений production-кода; commit
+  `0d708d1`.
+- **Step 3 (env substitution and preview redaction)** —
+  implementation в
+  `apps/mcp-write-server/src/mcp_write_server/runtime/binary_dispatch.py`:
+  helper `_resolve_env_token(...)` резолвит full-element
+  токен `${ENV:NAME}` из process environment в render-time
+  (после structural-placeholder substitution); fail-closed
+  на missing / empty / partial / mixed формах
+  (`ok=False`, `command_preview=None`, subprocess **не**
+  стартует); helper `_redact_password_args(...)` подменяет
+  argv-элемент после `/P` или `/Pwd` (case-insensitive) на
+  sentinel `<redacted>` в `command_preview` и trimmed
+  excerpt'ах. Actual subprocess argv остаётся unredacted —
+  иначе binary не аутентифицируется. Literal cleartext
+  templates по-прежнему supported как legacy fallback.
+  Registry-инвариант `read=15 / write=25 / intelligence=16`
+  без drift'а; commit `af4436f`.
+- **Step 4 (operator docs and migration alignment)** —
+  operator-facing документация переведена на
+  `${ENV:NAME}` форму как **рекомендованный default**, с
+  literal cleartext clearly marked legacy fallback. Три
+  документа выровнены:
+  [`docs/runbooks/track-a-reference-stand-round-trip.md`](docs/runbooks/track-a-reference-stand-round-trip.md)
+  (product-config example, env-substitution callout,
+  failure mode F2 расширен под env-token failures,
+  credentials-in-logs нота обновлена),
+  [`SECURITY.md`](SECURITY.md) (Honest constraints block
+  переписан под env-substitution),
+  [`docs/release-handoff.md`](docs/release-handoff.md)
+  (Known limitations DESIGNER credentials bullet
+  переписан). Никаких изменений production-кода; commit
+  `393e869`.
+- **Step 5 (release verify credential hygiene heuristic)** —
+  8-й check **Credential template hygiene** добавлен в
+  [`scripts/release/verify-release.ps1`](scripts/release/verify-release.ps1).
+  Сканирует tracked `*.config.json` (через `git ls-files`)
+  на argv-элементы непосредственно после `"/P"` / `"/Pwd"`
+  (case-insensitive) внутри command-template массивов.
+  Документированные safe-формы (`"${ENV:NAME}"`,
+  `"<password>"`) → PASS; literal cleartext → **WARN**
+  (не FAIL), с file:line; пустые value не флагуются. WARN
+  не меняет exit-code semantics, поэтому legacy templates
+  не блокируют receive-side flow.
+  [`scripts/release/README.md`](scripts/release/README.md) и
+  [`docs/release-handoff.md`](docs/release-handoff.md)
+  синхронизированы под 8 checks и описывают узкий
+  heuristic-not-DLP scope; commit `1fd2d35`.
+- **Step 6 (final integration pass and Track D closure)** —
+  этот closure: `pyproject.toml` version bumped
+  `0.1.0` → `0.2.0`; README + PROJECT-STATUS + CHANGELOG
+  обновлены под Track D closed.
 
-Документы трека: `docs/architecture/track-d-operator-credentials-hardening-plan.md`,
-`docs/architecture/track-d-operator-credentials-hardening-step-map.md`.
+Что Track D **реально закрыл** (на основе Steps 1–5
+deliverables):
+
+- documented `${ENV:NAME}` substitution path для DESIGNER
+  credentials в `onec_*_command_template`-массивах;
+  render-time resolution; fail-closed на missing / empty /
+  mixed формах;
+- redaction discipline: argv-элемент после `/P` / `/Pwd`
+  редактируется на `<redacted>` в `command_preview` и
+  trimmed excerpt'ах; actual subprocess argv остаётся
+  unredacted (binary должен аутентифицироваться);
+- migration: env-substitution стал рекомендованным
+  default'ом, literal cleartext остался supported как
+  legacy fallback — backward-compat сохраняется;
+- release-verify scope расширен 8-м credential-template-
+  hygiene check'ом, который ловит наиболее очевидный
+  паттерн утечки (literal `/P "<value>"` без
+  env-substitution или `<password>` placeholder'а) как
+  WARN, не блокируя release flow.
+
+Что Track D **не делает** «enterprise security platform»
+после closure (honest constraints, никаких скрытых гэпов):
+никакого secrets manager / vault / KMS / cloud secrets
+service / OS keychain integration / encrypted-at-rest
+secrets format; никакого SSO / RBAC / multi-tenant
+identity; никакого federated audit storage /
+policy-as-code DSL; никакого production-grade MCP
+transport / auth; никакого GUI installer wizard / signed
+distribution / package-manager publication / web-UI /
+dashboard; никакой multi-version 1С matrix / AST-парсер /
+hot reload / новых MCP tools / 1cv8 binary changes. Эти
+направления остаются за пределами Track A + Track B +
+Track C + Track D.
+
+Registry-инвариант сохранён точно на всём треке: `read=15 /
+write=25 / intelligence=16`, `selfcheck_status=ok`.
+Никаких реальных credentials ни в одном из шести Track D
+commit'ов. **GitHub remote push** не часть Track D — repo
+готов к выкладке, но пушить — operator action.
 
 ## Track C detail (закрыт)
 
