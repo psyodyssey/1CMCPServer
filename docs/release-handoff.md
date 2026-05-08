@@ -62,7 +62,7 @@ The operator-facing surface you are receiving:
 
 - A scripts-based **install path** (`scripts/release/install.ps1`).
 - A scripts-based **release verify path**
-  (`scripts/release/verify-release.ps1`) covering seven
+  (`scripts/release/verify-release.ps1`) covering eight
   release-facing invariants.
 - A **local dev launch umbrella** (`scripts/dev/launch.ps1`)
   with `selfcheck`, `repl`, `run` subcommands.
@@ -149,7 +149,7 @@ or adjust your local policy.
 | Bootstrap `PYTHONPATH` | `scripts/dev/bootstrap_paths.ps1` (dot-source) | Adds the 11 internal `src/` directories to `PYTHONPATH` for the current PowerShell session. The other scripts dot-source it; you rarely call it directly. |
 | Local selfcheck | `scripts/dev/launch.ps1 selfcheck` | Imports every internal package and prints registry counts, health summary, `selfcheck_status`. |
 | Materialise a product config | `scripts/release/install.ps1 -ConfigPath <in> -OutputConfigPath <out> [-Confirm]` | Runs the install fast path. Default is `preview` (no file written); pass `-Confirm` to actually write. |
-| Verify release readiness | `scripts/release/verify-release.ps1 [-AllowDirtyTree] [-SkipSelfcheck]` | Runs seven release-facing checks (layout, entrypoints, docs, working tree, git baseline, selfcheck, credential leak guard). |
+| Verify release readiness | `scripts/release/verify-release.ps1 [-AllowDirtyTree] [-SkipSelfcheck]` | Runs eight release-facing checks (layout, entrypoints, docs, working tree, git baseline, selfcheck, credential leak guard, credential template hygiene). |
 | Interactive Python REPL | `scripts/dev/launch.ps1 repl` | Starts `python` interactively with `PYTHONPATH` already set. |
 | Run an ad-hoc Python script | `scripts/dev/launch.ps1 run <script.py> [args...]` | Bootstraps `PYTHONPATH`, then `python <script>`. |
 
@@ -206,8 +206,10 @@ to narrow the failure surface.
    .\scripts\release\verify-release.ps1
    ```
 
-   Expected: seven check lines, all `[PASS]` (or `[SKIP]` if
-   you supplied `-SkipSelfcheck`), and the final
+   Expected: eight check lines, mostly `[PASS]` (or `[SKIP]`
+   for selfcheck if you supplied `-SkipSelfcheck`; check 8 may
+   report `[WARN]` on legacy templates without failing the run),
+   and the final
    `Release verify: GREEN (all checks passed or skipped)`.
    Exit code `0`. If any check fails, the summary names the
    offender; address it before proceeding.
@@ -236,7 +238,7 @@ against a target environment.
 
 ## Verify sequence in detail
 
-`scripts/release/verify-release.ps1` runs seven read-only
+`scripts/release/verify-release.ps1` runs eight read-only
 checks:
 
 | # | Check | Asserts |
@@ -248,6 +250,7 @@ checks:
 | 5 | Git baseline | branch `main`, non-empty history. |
 | 6 | Selfcheck | `imports_ok=true`; registry counts `15 / 25 / 16`; `selfcheck_status=ok`. Skipped with `-SkipSelfcheck`. |
 | 7 | Credential leak guard | `git grep` finds none of three PEM private-key header variants (generic, RSA, OpenSSH) and the well-known AWS secret-access-key token in tracked files (excluding self-references). The exact pattern list lives in `scripts/release/verify-release.ps1`; this document avoids quoting the literals to stay outside the scan's match set. |
+| 8 | Credential template hygiene | Scans tracked `*.config.json` files for argv elements following `"/P"` or `"/Pwd"` (case-insensitive) inside 1С command-template arrays. Documented safe forms — `"${ENV:NAME}"` (Track D / Step 3 substitution) and the abstract `"<password>"` placeholder — pass; literal cleartext values emit `[WARN]` (not `[FAIL]`) and are reported with `file:line`. Empty values are not flagged. Heuristic only — narrow by design (only `*.config.json`, only the `/P` adjacency). |
 
 Exit codes:
 

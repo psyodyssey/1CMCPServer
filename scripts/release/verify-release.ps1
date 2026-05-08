@@ -21,9 +21,17 @@
 #      Skipped with -SkipSelfcheck.
 #   7. Credential leak guard (no PRIVATE KEY / AWS secret access
 #      key markers in tracked files).
+#   8. Credential template hygiene (Track D / Step 5). Narrow
+#      heuristic over tracked *.config.json files: scans for argv
+#      elements immediately following /P or /Pwd in 1C command
+#      templates. The documented safe forms are the env-substitution
+#      token ${ENV:NAME} (Track D / Step 3) and the abstract
+#      <password> placeholder. Literal cleartext values trigger
+#      WARN (not FAIL) so legacy templates do not block the
+#      receive-side verify flow.
 #
 # Exit codes:
-#   0  — all checks PASS (or SKIP)
+#   0  — all checks PASS / SKIP / WARN (WARN does not block)
 #   2  — one or more release-facing assertions FAILED
 #   64 — wrapper invoked with bad arguments (PS native handling)
 
@@ -209,6 +217,57 @@ try {
 } finally { Pop-Location }
 
 
+# 8. Credential template hygiene (Track D / Step 5)
+# Narrow heuristic over tracked *.config.json files. Looks for argv
+# elements immediately following the 1C "/P" or "/Pwd" flag inside
+# command-template arrays. The two documented safe forms are the
+# env-substitution token "${ENV:NAME}" (resolved at render time by
+# the write server, see Track D / Step 3) and the abstract
+# placeholder "<password>". Literal cleartext values trigger WARN
+# with the file:line offender, not FAIL — by design, so legacy
+# templates do not block the receive-side flow. The check is
+# deliberately scoped: only tracked *.config.json files, only the
+# /P and /Pwd adjacency, no scanning of runbooks or other docs.
+Push-Location $root
+try {
+    $configFilesRaw = git ls-files -- '*.config.json'
+    if ($null -eq $configFilesRaw) { $configFilesRaw = @() }
+    $configFiles = @($configFilesRaw)
+
+    $warns   = New-Object System.Collections.Generic.List[string]
+    $scanned = 0
+
+    $pattern        = '(?i)"/P(?:wd)?"\s*,\s*"([^"]*)"'
+    $envFormPattern = '^\$\{ENV:[A-Z_][A-Z0-9_]*\}$'
+
+    foreach ($f in $configFiles) {
+        $full = Join-Path $root $f
+        if (-not (Test-Path -LiteralPath $full)) { continue }
+        $scanned++
+        $text = Get-Content -LiteralPath $full -Raw -Encoding UTF8
+        if ([string]::IsNullOrEmpty($text)) { continue }
+
+        $found = [regex]::Matches($text, $pattern)
+        foreach ($m in $found) {
+            $value = $m.Groups[1].Value
+            if ($value -match $envFormPattern)  { continue }
+            if ($value -eq '<password>')        { continue }
+            if ([string]::IsNullOrEmpty($value)) { continue }
+
+            $prefix = $text.Substring(0, $m.Index)
+            $line   = ([regex]::Matches($prefix, "`n")).Count + 1
+            $warns.Add(('{0}:{1} - literal /P value; expected ${{ENV:NAME}} or <password>' -f $f, $line))
+        }
+    }
+
+    if ($warns.Count -eq 0) {
+        Add-Check "Credential template hygiene" "PASS" "scanned $scanned tracked *.config.json file(s); no literal /P values"
+    } else {
+        Add-Check "Credential template hygiene" "WARN" ($warns -join '; ')
+    }
+} finally { Pop-Location }
+
+
 # Summary
 Write-Host
 Write-Host "Summary:"
@@ -217,6 +276,7 @@ foreach ($c in $checks) {
         "PASS" { "[PASS]" }
         "FAIL" { "[FAIL]" }
         "SKIP" { "[SKIP]" }
+        "WARN" { "[WARN]" }
         default { "[?]" }
     }
     Write-Host ("  {0} {1} - {2}" -f $marker, $c.Name, $c.Detail)

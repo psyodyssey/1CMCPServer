@@ -161,6 +161,7 @@ With switches:
 | 5 | Git baseline | Current branch is `main` and history is non-empty. |
 | 6 | Selfcheck | `python scripts/dev/selfcheck.py` returns exit 0; output contains `imports_ok = true` and `selfcheck_status = ok`; registry counts are exactly `read=15 / write=25 / intelligence=16`. Skipped with `-SkipSelfcheck`. |
 | 7 | Credential leak guard | `git grep` over tracked files finds none of: `BEGIN PRIVATE KEY`, `BEGIN RSA PRIVATE KEY`, `BEGIN OPENSSH PRIVATE KEY`, `aws_secret_access_key`. |
+| 8 | Credential template hygiene | Tracked `*.config.json` files (via `git ls-files`) are scanned for argv elements immediately following `"/P"` or `"/Pwd"` (case-insensitive) inside 1С command-template arrays. The two documented safe forms are the env-substitution token `"${ENV:NAME}"` (Track D / Step 3) and the abstract placeholder `"<password>"`; either form is a PASS. Literal cleartext values trigger **WARN** (not FAIL), naming the offending file and line. Empty values are not flagged. The check is deliberately narrow: only tracked `*.config.json`, only the `/P` / `/Pwd` adjacency, no scanning of runbooks or other documentation. |
 
 ### Exit codes
 
@@ -185,6 +186,13 @@ With switches:
   leak guard catches the most obvious markers (private key
   headers and one well-known cloud credential token); it is
   belt-and-suspenders, not a substitute for a real secrets scan.
+- Check 8 (credential template hygiene) is a narrow heuristic
+  over tracked `*.config.json` files; it is **not a full DLP
+  scan**. It does not parse 1С template semantics, does not
+  scan runbooks or other documentation, does not understand
+  templating macros beyond the documented `${ENV:NAME}`
+  substitution form, and emits WARN (not FAIL) so legacy
+  cleartext templates do not block release verify.
 - It does **not** modify the working tree. It is strictly
   read-only.
 
