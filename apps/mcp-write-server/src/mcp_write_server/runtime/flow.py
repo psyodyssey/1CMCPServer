@@ -94,17 +94,23 @@ def _append_audit(
         return None
 
 
-# Phase 6 / Step 4 — small whitelist used to mark audit details with
-# ``rollback_supported=True`` for the operations the recovery
-# assistant can actually execute against. Single source of truth lives
-# in :mod:`onec_platform.recovery`; this helper-side mirror exists
-# only so the audit row carries a stable hint and downstream code
-# does not have to re-derive it. Keep the two in sync by hand for
-# now (Step 4 ships exactly two entries).
+# Phase 6 / Step 4 introduced this small whitelist used to mark audit
+# details with ``rollback_supported=True`` for the operations the
+# recovery assistant can actually execute against. Single source of
+# truth lives in :mod:`onec_platform.recovery`; this helper-side
+# mirror exists only so the audit row carries a stable hint and
+# downstream code does not have to re-derive it. Keep the two in
+# sync by hand (Track F / Step 4 expanded this to six entries — keep
+# identical to ``_AUTOMATIC_RECOVERY_SUPPORTED`` in
+# ``onec_platform.recovery``).
 _ROLLBACK_SUPPORTED_OPERATIONS: frozenset[str] = frozenset(
     {
         "add_catalog_attribute",
         "add_document_attribute",
+        "add_form_attribute",
+        "add_form_element",
+        "append_module_method",
+        "replace_module_method_body",
     }
 )
 

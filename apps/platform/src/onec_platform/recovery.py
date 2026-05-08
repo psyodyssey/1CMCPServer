@@ -127,6 +127,10 @@ _AUTOMATIC_RECOVERY_SUPPORTED: frozenset[str] = frozenset(
     {
         "add_catalog_attribute",
         "add_document_attribute",
+        "add_form_attribute",
+        "add_form_element",
+        "append_module_method",
+        "replace_module_method_body",
     }
 )
 
