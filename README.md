@@ -26,10 +26,9 @@
 > через honest operator-supplied gap (на operator machine
 > отсутствуют 1С minor families помимо `8.3.27`); это **не**
 > «поддержка всех версий», **не** full QA program и **не**
-> blanket multi-version support claim. Активный трек сейчас —
-> Parallel Track F — Rollback Whitelist Expansion; после
-> Step 4 `_AUTOMATIC_RECOVERY_SUPPORTED` whitelist расширен с
-> 2 до 6 tools (`add_catalog_attribute`,
+> blanket multi-version support claim. И Parallel Track F —
+> rollback whitelist expansion: `_AUTOMATIC_RECOVERY_SUPPORTED`
+> расширен с 2 до 6 tools (`add_catalog_attribute`,
 > `add_document_attribute` уже были; добавлены
 > `add_form_attribute`, `add_form_element`,
 > `append_module_method`, `replace_module_method_body`).
@@ -40,7 +39,7 @@
 > categorical exclusions (`create_*` family,
 > `apply_config_from_files`,
 > `update_database_configuration`) остаются вне whitelist'а
-> by design.
+> by design. Активного трека сейчас нет.
 
 ### Системные требования
 
@@ -605,7 +604,7 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 ## Closed parallel tracks
 
 После закрытия Phase 6 были последовательно открыты и
-закрыты пять post-phase completion track'ов:
+закрыты шесть post-phase completion track'ов:
 
 - **Parallel Track A — Full Real 1cv8-backed Write Path** —
   закрыт на Step 7 (final integration pass and Track A
@@ -622,59 +621,162 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 - **Parallel Track E — Multi-Version 1C Smoke Matrix** —
   закрыт на Step 6 (final integration pass and Track E
   closure).
+- **Parallel Track F — Rollback Whitelist Expansion** —
+  закрыт на Step 6 (final integration pass and Track F
+  closure).
 
 ## Active parallel track
 
-После closure'а Track E открыт шестой post-phase track —
-**Parallel Track F — Rollback Whitelist Expansion**. Цель —
-узко и контролируемо расширить `_AUTOMATIC_RECOVERY_SUPPORTED`
-whitelist за пределы текущих двух tools (`add_catalog_attribute`,
-`add_document_attribute`) для нескольких file-based mutating
-tools, чьи inverse semantics уже честно покрываются existing
-`restore_dump_file_from_snapshot` mechanism'ом. Это **не**
-universal rollback, **не** «rollback теперь есть везде», **не**
-public `delete_*` write-tools, **не** multi-file / DB schema
-rollback, **не** AST-based semantic reverse engine, **не** новый
-MCP surface, **не** execution-core rewrite. Платформа
-архитектурно остаётся при том же подходе: rollback идёт через
-public write-tool по `run_write_flow` дисциплине; Track F
-расширяет **whitelist configuration**, не mechanism.
+Активного parallel-трека сейчас нет. После closure'а Track E
+был открыт шестой post-phase трек — **Parallel Track F —
+Rollback Whitelist Expansion** — и закрыт на Step 6 (final
+integration pass and Track F closure). См. «Track F detail
+(закрыт)» ниже. Открытие следующего трека — отдельное
+operator-решение.
 
-Track F сейчас на **Step 1 (planning)** — ship'нуты только
-два planning-документа
-([`docs/architecture/track-f-rollback-whitelist-expansion-plan.md`](docs/architecture/track-f-rollback-whitelist-expansion-plan.md),
-[`docs/architecture/track-f-rollback-whitelist-expansion-step-map.md`](docs/architecture/track-f-rollback-whitelist-expansion-step-map.md));
-никаких code changes Step 1 не делал, registries
-`read=15 / write=25 / intelligence=16` без drift'а; никаких
-запусков 1cv8.exe; никаких реальных credentials в repo / docs /
-commit messages.
+## Track F detail (закрыт)
 
-Что **не** входит в Track F (повтор для ясности): universal /
-arbitrary rollback для любого write-tool, AST-based semantic
-reverse engine, broad policy engine rewrite, public `delete_*`
-write-tools (categorically out-of-scope — semantics удаления в
-1С undecided), multi-file / full filesystem snapshot-restore,
-rollback для `apply_config_from_files` (multi-file impact —
-violates eligibility criterion (a)) и
-`update_database_configuration` (DB schema migration — violates
-criterion (b)), rollback для `create_*` family (Tier 3
-categorical exclusion — inverse = delete; нет inverse semantics
-через snapshot restore), новые MCP tools, изменения
-`restore_dump_file_from_snapshot` API, изменения audit row
-format, execution-core rewrite, transport / UI / packaging work,
-enterprise governance / policy track, web UI, multi-version 1С
-matrix expansion (Track E территория), 1cv8.exe runs.
+**Цель Track F** была — узко и контролируемо расширить
+`_AUTOMATIC_RECOVERY_SUPPORTED` whitelist
+(`apps/platform/src/onec_platform/recovery.py:126-133`) за
+пределы Phase-6 / Step-4 baseline'а в 2 tools для нескольких
+file-based mutating tools, чьи inverse semantics уже честно
+покрываются existing `restore_dump_file_from_snapshot`
+mechanism'ом. Это **не** universal rollback, **не** «rollback
+теперь есть везде», **не** public `delete_*` write-tools,
+**не** multi-file / DB schema rollback, **не** AST-based
+semantic reverse engine, **не** новый MCP surface, **не**
+execution-core rewrite. Платформа архитектурно осталась при
+том же подходе: rollback идёт через public write-tool по
+`run_write_flow` дисциплине; Track F расширил **whitelist
+configuration**, не mechanism. Шесть шагов; production-код
+Track F правил **только два** boundary'а в одном Step 4
+commit'е.
 
-Следующий шаг по Track F — **Step 2 (rollback baseline audit
-and candidate selection, docs-only)**: новый short audit-документ
-с per-tool evaluation против existing eligibility criteria
-(`recovery.py:118-125`), Tier 1 / 2 / 3 / 4 разделение, resolve
-Q2 (точный target set Step 4). Production-код Step 2 не правит.
-Никаких real credentials. **GitHub remote push — operator
-action, не часть трека.**
+- **Step 1 (planning)** — два planning-документа
+  ([`docs/architecture/track-f-rollback-whitelist-expansion-plan.md`](docs/architecture/track-f-rollback-whitelist-expansion-plan.md),
+  [`docs/architecture/track-f-rollback-whitelist-expansion-step-map.md`](docs/architecture/track-f-rollback-whitelist-expansion-step-map.md)):
+  назначение трека, целевой результат, gap statement, 10
+  acceptance criteria, открытые вопросы Q1–Q7. Никакого code
+  change. Commit `351278b`.
+- **Step 2 (rollback baseline audit and candidate selection)** —
+  новый documentation-only audit-документ
+  ([`docs/architecture/track-f-rollback-baseline-audit.md`](docs/architecture/track-f-rollback-baseline-audit.md),
+  637 строк): per-tool evaluation 12 mutating tools (Group
+  C/D/E из 25 registry) против criteria a/b/c с manual code
+  review evidence (file/line + payload key для каждого);
+  **Tier 4** (already, 2 tools), **Tier 1** (strong
+  candidates, 4 tools), **Tier 2** (deferred — `update_module_code`
+  payload key gap), **Tier 3** (categorically excluded — 5
+  tools: 3 `create_*` family + `apply_config_from_files` +
+  `update_database_configuration`); resolve **Q2** —
+  exact Step 4 target set. Никакого code change. Commit
+  `e9725b2`.
+- **Step 3 (rollback eligibility contract)** — новый
+  prescriptive normative document
+  ([`docs/architecture/track-f-rollback-eligibility-contract.md`](docs/architecture/track-f-rollback-eligibility-contract.md),
+  633 строки) с RFC 2119-style MUST / MUST NOT / SHALL / MAY
+  wording (64 normative keyword usages): formal eligibility
+  criteria 4.A–4.F (payload shape via `_RELATIVE_PATH_KEYS`,
+  restore semantics, verification, sync discipline,
+  non-expansion, implementation surface), 9 categorical
+  exclusions, exact Step 4 implementation boundary с per-tool
+  sanity check anchors, escape clause без silent target-set
+  drift, backward compatibility statement. Никакого code
+  change. Commit `45ad2b2`.
+- **Step 4 (narrow rollback whitelist expansion)** —
+  единственный шаг Track F с production code change. Narrow
+  two-file expansion 2 → 6 entries: расширены
+  `apps/platform/src/onec_platform/recovery.py:_AUTOMATIC_RECOVERY_SUPPORTED`
+  и
+  `apps/mcp-write-server/src/mcp_write_server/runtime/flow.py:_ROLLBACK_SUPPORTED_OPERATIONS`
+  identical content'ом — добавлены `add_form_attribute`,
+  `add_form_element`, `append_module_method`,
+  `replace_module_method_body` (alphabetically). Plus minor
+  sync-comment wording update в `flow.py:97-103` (allowed per
+  Step 3 contract Section 6.3.1). Per-tool sanity check
+  anchors зафиксированы в commit message с
+  `tools.py` line numbers (3512-3520 / 2680-2687 / 2833-2838 /
+  2994-2999). Никаких изменений в `tools.py`,
+  `_RELATIVE_PATH_KEYS`, `_extract_relative_path`, audit
+  shape, registries. Commit `cd95627`.
+- **Step 5 (operator docs and rollback coverage alignment)** —
+  8 точечных wording-edits в трёх operator-facing docs:
+  `apps/platform/README.md` (5 правок: RECOVERY_MODES
+  executed-mode wording; section heading «Почему пуст» →
+  «исторически был пуст и как он расширялся»; «Что rollback
+  UX не делает» bullet; Phase 6 / Step 4 historical section
+  + новая «Track F / Step 4 — расширение whitelist до 6
+  tools» subsection), `README.md` (2 правки: Quickstart
+  Track F open + Track A detail honest constraints bullet),
+  `docs/release-handoff.md` (1 правка: «Limited rollback
+  coverage» Known limitations bullet). Никакого code change.
+  Commit `60f1761`.
+- **Step 6 (final integration pass and Track F closure)** —
+  этот closure: `pyproject.toml` version bumped
+  `0.2.0` → `0.3.0` (Q5 = ДА; Track F / Step 4 ship'нул real
+  code change с functional delta — backward-compatible new
+  functionality classifying as MINOR bump per SemVer);
+  README + PROJECT-STATUS + CHANGELOG обновлены под Track F
+  closed.
+
+Что Track F **реально закрыл** (на основе Steps 1–5
+deliverables):
+
+- расширение `_AUTOMATIC_RECOVERY_SUPPORTED` whitelist'а
+  с 2 до 6 entries identical в обеих mirror frozenset'ах
+  (recovery.py + flow.py); `automatic_recovery_supported=True`
+  теперь runtime-достижим для 4 дополнительных tool families
+  (XML form-edit ops + BSL module-edit ops);
+- formal normative eligibility contract (RFC 2119-style)
+  определяющий что считается eligible (payload shape +
+  restore semantics + verification + sync discipline +
+  non-expansion + implementation surface) — единая reference
+  для будущих whitelist expansion attempts;
+- per-tool descriptive audit с manual code review evidence
+  (file/line + payload key) для всех 12 mutating tools
+  registry surface;
+- aligned operator-facing docs (`apps/platform/README.md`,
+  `README.md`, `docs/release-handoff.md`) под фактический
+  whitelist size 6 — все говорят one truth: coverage broader
+  but still narrow, no blanket reversibility claim, Tier 3
+  categorical exclusions remain.
+
+Что Track F **не делает** «полным rollback'ом всего» после
+closure (honest constraints, никаких скрытых гэпов):
+
+- никакого universal / arbitrary rollback для любого
+  write-tool — whitelist остаётся ограничен exact 6 entries;
+- никакого AST-based semantic reverse engine для BSL / XML;
+- никакого public `delete_*` write-tools (semantics удаления
+  в 1С остаётся undecided);
+- никакого multi-file / full filesystem snapshot-restore —
+  single-file `restore_dump_file_from_snapshot` остаётся
+  exclusive mutating mechanism;
+- никакого rollback для `apply_config_from_files`
+  (multi-file impact violates criterion (a));
+- никакого rollback для `update_database_configuration`
+  (DB schema migration violates criteria (a)/(b)/(c));
+- никакого rollback для `create_*` family (`create_catalog`,
+  `create_common_module`, `create_managed_form` — Tier 3
+  categorical exclusion: inverse = delete; snapshot
+  pre-create не содержит file для restore);
+- coverage breadth: 6 of 25 mutating registry tools = 24%
+  mutating surface; 19 mutating tools остаются manual
+  snapshot-restore territory by design.
+
+Registry-инвариант сохранён точно на всём треке: `read=15 /
+write=25 / intelligence=16`, `selfcheck_status=ok`. Никаких
+реальных credentials ни в одном из шести Track F commit'ов.
+Никаких 1cv8.exe runs ни на одном шаге Track F (Track F
+работает на whitelist configuration уровне, не на 1cv8
+binary surface). **GitHub remote push** не часть Track F —
+repo готов к выкладке, но пушить — operator action.
 
 Документы трека: `docs/architecture/track-f-rollback-whitelist-expansion-plan.md`,
-`docs/architecture/track-f-rollback-whitelist-expansion-step-map.md`.
+`docs/architecture/track-f-rollback-whitelist-expansion-step-map.md`,
+`docs/architecture/track-f-rollback-baseline-audit.md`,
+`docs/architecture/track-f-rollback-eligibility-contract.md`.
 
 ## Track E detail (закрыт)
 

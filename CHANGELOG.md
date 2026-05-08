@@ -6,6 +6,170 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
+## 0.3.0 — Parallel Track F — Rollback Whitelist Expansion
+
+This release closes **Parallel Track F — Rollback Whitelist
+Expansion**, the sixth post-phase parallel track. Track F
+narrowly extended the existing `_AUTOMATIC_RECOVERY_SUPPORTED`
+whitelist (and its mirror `_ROLLBACK_SUPPORTED_OPERATIONS` in
+the write-server runtime) from 2 to 6 entries, strictly inside
+the existing snapshot-restore-based rollback model. **No new
+MCP tools.** **No changes to recovery API, audit row details
+shape, or registries.** Six steps total; production code was
+touched in only one step (Step 4) and only in two files
+(`recovery.py` + `flow.py`); all other steps were
+documentation-only.
+
+The version bump `0.2.0` → `0.3.0` (Q5 resolved YES) reflects
+that Track F / Step 4 shipped a real production code change
+with observable runtime behaviour delta:
+`automatic_recovery_supported=True` is now runtime-reachable
+for 4 additional tool families through `run_rollback_assistant`.
+This is backward-compatible new functionality classifying as a
+classic MINOR bump per SemVer.
+
+### Per-step outcomes
+
+- **Step 1 (planning rollback whitelist expansion)** — two
+  planning documents under `docs/architecture/track-f-*` (plan
+  + step-map). 10 acceptance criteria; 7 open questions Q1–Q7.
+  No code changes. Commit `351278b`.
+- **Step 2 (rollback baseline audit and candidate selection)** —
+  one new descriptive documentation-only document
+  (`track-f-rollback-baseline-audit.md`, 637 lines). Manual
+  code review of full mcp-write-server registry (25 tools)
+  with per-tool tier breakdown: **Tier 4** (already, 2 tools);
+  **Tier 1** (strong candidates, 4 tools — `add_form_attribute`,
+  `add_form_element`, `append_module_method`,
+  `replace_module_method_body` — verified payload-key match
+  against `flow.py:_RELATIVE_PATH_KEYS`); **Tier 2** (deferred,
+  1 tool — `update_module_code` payload key naming mismatch);
+  **Tier 3** (categorically excluded, 5 tools — `create_*`
+  family + `apply_config_from_files` +
+  `update_database_configuration` with per-criterion violation
+  citation). Q2 resolved: Step 4 target set fixed at the four
+  Tier 1 tools. Critical finding documented: whitelist lives in
+  TWO mirror frozensets that must stay synchronized
+  (`recovery.py:_AUTOMATIC_RECOVERY_SUPPORTED` +
+  `flow.py:_ROLLBACK_SUPPORTED_OPERATIONS`). Commit `e9725b2`.
+- **Step 3 (rollback eligibility contract)** — one new
+  prescriptive normative document
+  (`track-f-rollback-eligibility-contract.md`, 633 lines)
+  using RFC 2119-style MUST / MUST NOT / SHALL / MAY wording
+  (64 normative keyword usages). Six eligibility criteria
+  4.A–4.F (payload shape, restore semantics, verification,
+  sync discipline, non-expansion, implementation surface);
+  9 categorical exclusions; exact Step 4 implementation
+  boundary with per-tool sanity check anchors and escape
+  clause; backward compatibility statement. Q3 (no
+  `restore_dump_file_from_snapshot` API change) and Q4 (no
+  audit `details` shape change) resolved YES. Commit
+  `45ad2b2`.
+- **Step 4 (narrow rollback whitelist expansion)** — the only
+  step with production code change. Two-file narrow expansion
+  2 → 6 entries: `apps/platform/src/onec_platform/recovery.py`
+  `_AUTOMATIC_RECOVERY_SUPPORTED` extended; mirror
+  `apps/mcp-write-server/src/mcp_write_server/runtime/flow.py`
+  `_ROLLBACK_SUPPORTED_OPERATIONS` extended with identical
+  6-entry content; minor sync-comment wording update in
+  `flow.py:97-103` (allowed per Step 3 contract Section 6.3.1).
+  Per-tool sanity check anchors cited in commit message with
+  `tools.py` line numbers (3512-3520 / 2680-2687 / 2833-2838 /
+  2994-2999) and payload keys for each. No changes to
+  `tools.py`, `_RELATIVE_PATH_KEYS`, `_extract_relative_path`,
+  audit `details` shape, public API signatures, or registries.
+  Diff: 2 files, +17 / -7. Commit `cd95627`.
+- **Step 5 (operator docs and rollback coverage alignment)** —
+  eight point-edits across three operator-facing docs
+  realigning wording with the actual post-Step-4 state:
+  `apps/platform/README.md` (5 edits in RECOVERY_MODES /
+  «Почему пуст» / «Что не делает» / Phase 6 historical /
+  «Что Phase 6 / Step 4 НЕ делал» sections + new «Track F /
+  Step 4 — расширение whitelist до 6 tools» subsection),
+  `README.md` (2 edits: Quickstart Track F open + Track A
+  detail honest constraints bullet), `docs/release-handoff.md`
+  (1 edit: Known limitations rollback bullet). Unified support
+  statement now consistent across the three modified docs:
+  whitelist 2 → 6, broader but still narrow, no blanket
+  reversibility claim. SECURITY.md untouched (qualitative
+  «small, deliberate set» wording remains accurate). Commit
+  `60f1761`.
+- **Step 6 (final integration pass and Track F closure)** —
+  this closure: `pyproject.toml` version bumped 0.2.0 → 0.3.0
+  (Q5 = YES); `README.md`, `PROJECT-STATUS.md`, and
+  `CHANGELOG.md` aligned with Track F closed status. Read-only
+  final integration check green: linear Step 1 → 6 history,
+  all Step 1–5 deliverables present on disk, identical 6-entry
+  sets in both mirror frozensets verified, registries without
+  drift, `verify-release.ps1` GREEN on 8 checks, no real
+  credentials anywhere in the six Track F commits, no
+  1cv8.exe runs at any Track F step.
+
+### Final whitelist after Track F closure
+
+Both `_AUTOMATIC_RECOVERY_SUPPORTED` (in `recovery.py`) and
+`_ROLLBACK_SUPPORTED_OPERATIONS` (mirror in `flow.py`) contain
+exactly six identical entries:
+
+```
+add_catalog_attribute        # already (Phase 6 / Step 4)
+add_document_attribute       # already (Phase 6 / Step 4)
+add_form_attribute           # added (Track F / Step 4)
+add_form_element             # added (Track F / Step 4)
+append_module_method         # added (Track F / Step 4)
+replace_module_method_body   # added (Track F / Step 4)
+```
+
+Coverage: 6 of 25 mutating registry tools = 24% mutating
+surface. 19 mutating tools remain manual snapshot-restore
+territory by design (Tier 3 categorical exclusions:
+`create_*` family — inverse = delete with no public `delete_*`
+semantics; `apply_config_from_files` — multi-file impact;
+`update_database_configuration` — DB schema migration;
+multi-file ops in general).
+
+### Registry invariant carried through Track F
+
+- `mcp-read-server` — 15 public tools.
+- `mcp-write-server` — 25 public tools.
+- `mcp-intelligence-server` — 16 public tools.
+
+No MCP surface drift through Track F.
+
+### Honest constraints update under Track F closure
+
+- **No universal rollback.** Whitelist remains a narrow
+  6-entry list; everything outside falls back to manual
+  snapshot-restore via operator-side discipline.
+- **No public `delete_*` write-tools.** Semantics of deletion
+  in 1С remains undecided; Track F deliberately did not
+  introduce them. `create_*` family inverse semantics
+  therefore stays unimplemented (Tier 3 categorical
+  exclusion).
+- **No multi-file restore.** `restore_dump_file_from_snapshot`
+  remains the exclusive single-file mutating mechanism for
+  rollback.
+- **No DB schema rollback.** `update_database_configuration`
+  inverse remains operator-side external-DB-backup territory.
+- **No AST semantic inversion.** File-byte-restore only; no
+  BSL / XML semantic understanding for inverse computation.
+- **No transactional rollback.** Multi-step chains
+  (apply + updatedb sequence) have no atomic rollback.
+- **All other 0.2.0 honest constraints carry forward
+  unchanged** (DESIGNER credentials via `${ENV:NAME}`
+  substitution; 8th hygiene check in `verify-release.ps1`).
+- **All 0.1.0 honest constraints carry forward unchanged**
+  (no production-grade MCP transport, no installer ecosystem,
+  no full enterprise super-set, no hot reload, no full AST
+  parser, no full rollback / delete coverage — Track F
+  expanded coverage but not to full).
+
+### Active work
+
+None. No parallel track is currently open after Track F
+closure. Phase 7 as a linear phase is not planned. Opening
+the next parallel track is an explicit operator decision.
+
 ## 0.2.0 — Parallel Track D — Operator Credentials Hardening
 
 This release closes **Parallel Track D — Operator Credentials
@@ -243,14 +407,17 @@ No MCP surface drift through Track E.
   rollback / delete coverage) also carry forward
   unchanged.
 
-### Active work
+### Active work (at the end of 0.2.0)
 
-None. No parallel track is currently open after Track E
-closure. Track E was opened and closed within the `0.2.0`
-release line as a documentation / scaffolding follow-up,
+At the end of the 0.2.0 release line: Track E was opened and
+closed within 0.2.0 as a documentation / scaffolding follow-up
 without a minor version bump (Q5 = NO; no functional delta).
-Phase 7 as a linear phase is not planned. Opening the next
-parallel track is an explicit operator decision.
+**Parallel Track F — Rollback Whitelist Expansion** was opened
+afterwards and closed in 0.3.0 with a minor bump (Q5 = YES;
+real production code change with functional delta — see
+0.3.0 release notes above). Phase 7 as a linear phase remains
+not planned. Opening the next parallel track is an explicit
+operator decision.
 
 ## 0.1.0 — initial public snapshot
 

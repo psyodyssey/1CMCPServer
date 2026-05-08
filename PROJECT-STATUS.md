@@ -2,28 +2,53 @@
 
 ## Текущий шаг
 
-**Parallel Track F / Step 1 — planning Rollback Whitelist
-Expansion (in progress / documentation only).** Phase 1–6 закрыты
-ранее; пять post-phase parallel track'ов (A, B, C, D, E) полностью
-закрыты. Track F — шестой post-phase parallel track, открыт после
-closure'а Track E; цель — узко и контролируемо расширить
-`_AUTOMATIC_RECOVERY_SUPPORTED` whitelist
-(`apps/platform/src/onec_platform/recovery.py:126-131`) за
-пределы текущих двух tools (`add_catalog_attribute`,
-`add_document_attribute`) для нескольких file-based mutating
-tools, чьи inverse semantics уже честно покрываются existing
-`restore_dump_file_from_snapshot` mechanism'ом. Step 1 — два
-planning-документа без code changes.
+**Активного шага нет.** Phase 1–6 закрыты ранее; все шесть
+post-phase parallel track'ов (A, B, C, D, E, F) закрыты. Track F —
+**Rollback Whitelist Expansion** — закрыт на Step 6 (final
+integration pass and Track F closure); `pyproject.toml` version
+bumped `0.2.0` → `0.3.0` (Q5 = ДА; Track F / Step 4 ship'нул real
+production code change с functional delta — backward-compatible
+new functionality, classic MINOR bump per SemVer). Открытие
+следующего трека — отдельное operator-решение.
 
 ## Статус
 
-`in progress` (для Parallel Track F / Step 1 как
-documentation-only opening — два planning-документа
-ship'нуты, никаких code changes, никаких изменений
-registry, никаких новых MCP tool'ов, никаких запусков
-1cv8.exe в этом шаге; никаких реальных credentials в
-repo / docs / commit message; Track F / Step 2 —
-следующий шаг и не открывается в этом же заходе).
+`closed` (для всего Parallel Track F — Steps 1–6 закрыты
+последовательно; пять meaningful commit'ов в `main`:
+`351278b` (Step 1 — planning rollback whitelist
+expansion), `e9725b2` (Step 2 — rollback baseline audit
+and candidate selection), `45ad2b2` (Step 3 — rollback
+eligibility contract), `cd95627` (Step 4 — narrow rollback
+whitelist expansion, единственный шаг с production code
+change), `60f1761` (Step 5 — operator docs and rollback
+coverage alignment), плюс closure commit Step 6 фиксирует
+обновлённые README/PROJECT-STATUS/CHANGELOG +
+`pyproject.toml` version bump `0.2.0` → `0.3.0`.
+Production-код Track F правил **только два** boundary'а в
+одном Step 4 commit'е —
+`apps/platform/src/onec_platform/recovery.py`
+(`_AUTOMATIC_RECOVERY_SUPPORTED` 2 → 6 entries) и
+`apps/mcp-write-server/src/mcp_write_server/runtime/flow.py`
+(`_ROLLBACK_SUPPORTED_OPERATIONS` mirror 2 → 6 identical +
+minor sync-comment wording update); все остальные шаги
+(1, 2, 3, 5) — documentation-only. Финальный whitelist:
+6 entries identical в обеих mirror frozenset'ах
+(`add_catalog_attribute`, `add_document_attribute`,
+`add_form_attribute`, `add_form_element`,
+`append_module_method`, `replace_module_method_body`).
+Coverage = 6 of 25 mutating registry tools = 24% surface;
+19 mutating tools остаются manual snapshot-restore
+territory by design (Tier 3 categorical exclusions:
+`create_*` family, `apply_config_from_files`,
+`update_database_configuration`, multi-file ops).
+Registry-инвариант `read=15 / write=25 / intelligence=16`
+без drift'а на всём треке; `selfcheck_status=ok`.
+Никаких реальных credentials ни в одном из шести Track F
+commit'ов. Никаких 1cv8.exe runs ни на одном шаге Track F
+(трек работает на whitelist configuration уровне, не на
+1cv8 binary surface). **No blanket reversibility claim**
+unified across SECURITY/release-handoff/README/
+apps/platform/README/CHANGELOG).
 
 `closed` (для всего Parallel Track E — Steps 1–6 закрыты
 последовательно; пять meaningful commit'ов в `main`:
@@ -225,40 +250,37 @@ Registry-инвариант `read=15 / write=25 / intelligence=16`
 ни в одном из шести Track E commit'ов. **GitHub remote
 push не часть трека — operator action.**
 
-После closure'а Track E открыт шестой post-phase track —
-**Parallel Track F — Rollback Whitelist Expansion**. Track F
-сейчас documentation-only (Step 1 planning). Цель — узко и
-контролируемо расширить `_AUTOMATIC_RECOVERY_SUPPORTED`
-whitelist (`apps/platform/src/onec_platform/recovery.py:126-131`)
-за пределы текущих двух tools (`add_catalog_attribute`,
-`add_document_attribute`) для нескольких file-based mutating
-tools, чьи inverse semantics уже честно покрываются existing
-`restore_dump_file_from_snapshot` mechanism'ом. Это **не**
-universal rollback, **не** «rollback теперь есть везде»,
-**не** public `delete_*` write-tools, **не** multi-file / DB
-schema rollback, **не** AST-based semantic reverse engine,
-**не** новый MCP surface. Платформа архитектурно остаётся
-при том же подходе: rollback идёт через public write-tool
-по `run_write_flow` дисциплине; Track F расширяет
-**whitelist configuration**, не mechanism. Никаких изменений
-в `apps/`, `packages/`, `scripts/`, `pyproject.toml`,
-`.github/`, `.editorconfig`, `.python-version`, `.gitignore`,
-`examples/`, `LICENSE`, `SECURITY.md`, `CHANGELOG.md`,
-`docs/release-handoff.md`, `docs/operator-manual.md`,
-`docs/administrator-manual.md`, `docs/developer-manual.md`,
-`docs/runbooks/*`, `apps/platform/README.md` после Step 1.
-Production-код Track F будет тронут **только на Step 4** и
-**только** в одном файле —
-`apps/platform/src/onec_platform/recovery.py` (расширение
-frozenset'а `_AUTOMATIC_RECOVERY_SUPPORTED`); никаких
-изменений в write-server / read-server / intelligence-server
-/ packages не планируется. Track F / Step 2 (rollback
-baseline audit and candidate selection, docs-only) —
-следующий шаг. **GitHub remote push явно НЕ часть трека** —
-это operator action. Никаких запусков 1cv8.exe в Step 1;
-1cv8.exe не запускается ни на одном шаге Track F (трек
-работает на whitelist configuration уровне, не на 1cv8
-binary surface).
+После closure'а Track E был открыт шестой post-phase track —
+**Parallel Track F — Rollback Whitelist Expansion** — и
+закрыт на Step 6 (final integration pass and Track F
+closure). Track F расширил `_AUTOMATIC_RECOVERY_SUPPORTED`
+whitelist в `apps/platform/src/onec_platform/recovery.py` и
+mirror `_ROLLBACK_SUPPORTED_OPERATIONS` в
+`apps/mcp-write-server/src/mcp_write_server/runtime/flow.py`
+с 2 до 6 identical entries — добавлены `add_form_attribute`,
+`add_form_element`, `append_module_method`,
+`replace_module_method_body`. **Это не** universal rollback,
+**не** «rollback теперь есть везде», **не** public
+`delete_*` write-tools, **не** multi-file / DB schema
+rollback, **не** AST-based semantic reverse engine, **не**
+новый MCP surface. Coverage = 6 of 25 mutating registry tools
+= 24% surface; 19 mutating tools остаются manual
+snapshot-restore territory by design. Платформа архитектурно
+осталась при том же подходе: rollback идёт через public
+write-tool по `run_write_flow` дисциплине; Track F расширил
+**whitelist configuration**, не mechanism. Production-код
+Track F правил **только два** boundary'а в одном Step 4
+commit'е (`recovery.py` + `flow.py` synchronized); шаги
+1, 2, 3, 5 — documentation-only. **Q5 resolved** на Step 6 =
+**ДА**: `pyproject.toml` version bumped `0.2.0` → `0.3.0`
+(Track F / Step 4 ship'нул real code change с functional
+delta = backward-compatible new functionality classifying
+as MINOR bump per SemVer; precedent — Track D `0.1.0 → 0.2.0`).
+Registry-инвариант `read=15 / write=25 / intelligence=16`
+без drift'а на всём треке; никаких реальных credentials ни
+в одном из шести Track F commit'ов; никаких 1cv8.exe runs
+ни на одном шаге Track F. **GitHub remote push не часть
+трека — operator action.**
 
 ## Что сделано
 
@@ -10463,21 +10485,291 @@ read/write/intelligence-серверов, с честно
   registries `read=15 / write=25 / intelligence=16`,
   `selfcheck_status=ok`. Track F / Step 1 не правил
   production-кода — drift'а нет.
-- **Следующий шаг.** **Parallel Track F / Step 2 —
-  rollback baseline audit and candidate selection
-  (docs-only).** Step 2 включает: новый short audit-документ
-  `docs/architecture/track-f-rollback-baseline-audit.md`
-  (per-tool evaluation `_KNOWN_WRITE_TOOL_FAMILIES` плюс
-  `add_form_attribute` против criteria a/b/c, Tier 1 / 2 /
-  3 / 4 breakdown с per-tool rationale, manual code review
-  artifact для каждого Tier 1 кандидата подтверждающий
-  operation_payload single `relative_path` shape), resolve
-  Q2 (точный target set Step 4). **Никаких изменений** в
-  `apps/`, `packages/`, `scripts/`, `pyproject.toml`,
-  `SECURITY.md`, `docs/release-handoff.md`,
-  `docs/operator-manual.md`. Production-код не правится.
-  Никакого реального rollback run. Step 2 я открываю
-  отдельным заходом, не в этом.
+- **Следующий шаг (на момент закрытия Step 1).**
+  **Parallel Track F / Step 2 — rollback baseline audit and
+  candidate selection (docs-only).** Step 2 / 3 / 4 / 5 / 6
+  последовательно пройдены — см. секции ниже.
+
+### Parallel Track F / Step 2 — rollback baseline audit and candidate selection (завершён)
+
+- **Цель шага.** Read-only manual code review текущего
+  rollback baseline + per-tool evaluation полного write-surface
+  registry против eligibility criteria a/b/c + selection
+  exact Step 4 target set (Q2 resolution). Никакая
+  implementation. Никаких code changes. Никакого 1cv8.exe.
+- **Что реально появилось в Step 2.** Один новый
+  documentation-only документ:
+  `docs/architecture/track-f-rollback-baseline-audit.md` (637
+  строк). 9 sections: Purpose / scope; Current rollback
+  baseline (две mirror frozenset'ы — critical finding о sync
+  constraint в `flow.py:100-103`; `_RELATIVE_PATH_KEYS` 4-tuple;
+  `_extract_relative_path` lookup; runtime gates; existing
+  eligibility comment); Audited write surface (Group A/B/C/D/E/F
+  breakdown 25 tools); Tiered candidate classification с
+  per-tool manual code review evidence (file/line + payload
+  key) — **Tier 4** (already, 2: `add_catalog_attribute`
+  `catalog_relative_path` + `add_document_attribute`
+  `document_relative_path`); **Tier 1** (strong, 4:
+  `add_form_attribute` 3512-3520 `relative_path`,
+  `add_form_element` 2680-2687 `relative_path`,
+  `append_module_method` 2833-2838 `module_relative_path`,
+  `replace_module_method_body` 2994-2999
+  `module_relative_path`); **Tier 2** (deferred, 1:
+  `update_module_code` payload key `target` НЕ matches
+  `_RELATIVE_PATH_KEYS`); **Tier 3** (categorically excluded,
+  5: 3 `create_*` family + `apply_config_from_files` +
+  `update_database_configuration` с per-criterion violation
+  citation); **Exact Step 4 target set recommendation (Q2
+  resolution)**; Manual code review note (no runtime testing,
+  no 1cv8.exe runs); Honest non-goals; Step 3 handoff note;
+  Honest summary.
+- **Что НЕ сделано (намеренно).** Никаких изменений
+  production-кода. `recovery.py`, `flow.py`, `tools.py`,
+  registries — все untouched. README / PROJECT-STATUS /
+  CHANGELOG / SECURITY / release-handoff не тронуты (Step 5/6
+  deliverables). Никаких runtime testing.
+- **Q2 resolved.** Step 4 target set = 4 Tier 1 tools:
+  `add_form_attribute`, `add_form_element`,
+  `append_module_method`, `replace_module_method_body`.
+  Whitelist 2 → 6 (на верхней границе plan'а Q2 «max 4»).
+- **Selfcheck после Step 2.** Зелёный без правок: registries
+  `read=15 / write=25 / intelligence=16`,
+  `selfcheck_status=ok`. Track F / Step 2 не правил
+  production-кода — drift'а нет.
+- **Commit.** `e9725b2` (Track F / Step 2 — rollback
+  baseline audit and candidate selection).
+
+### Parallel Track F / Step 3 — rollback eligibility contract (завершён)
+
+- **Цель шага.** Formalize existing in-code eligibility
+  comment (`recovery.py:118-125`) в отдельный prescriptive
+  normative document. Никакого code change.
+- **Что реально появилось в Step 3.** Один новый
+  prescriptive normative document:
+  `docs/architecture/track-f-rollback-eligibility-contract.md`
+  (633 строки) с RFC 2119-style MUST / MUST NOT / SHALL /
+  MAY wording — 64 normative keyword usages. 9 sections:
+  Purpose / scope; Relationship to Step 2 audit (descriptive
+  vs normative split); Current rollback model recap;
+  **Eligibility criteria 4.A–4.F** (4.A payload shape via
+  `flow.py:_RELATIVE_PATH_KEYS`; 4.B restore semantics
+  single-file overwrite from snapshot; 4.C verification via
+  existing `diff_dump_fragment`; 4.D sync discipline across
+  both mirror frozenset'ов; 4.E non-expansion — exact Step 2
+  target set; 4.F implementation surface — только
+  `recovery.py` + `flow.py`); 9 categorical exclusions
+  (multi-file / DB / create_* / public delete_* / AST /
+  multi-file restore / new recovery API / audit shape
+  changes / new MCP surface); Exact Step 4 implementation
+  boundary с per-tool sanity check anchors + escape clause
+  без silent target-set drift + verification protocol;
+  Backward compatibility statement; Honest non-goals; Step 4
+  handoff note.
+- **Что НЕ сделано (намеренно).** Никакого code change.
+  `recovery.py`, `flow.py`, `tools.py`, registries —
+  untouched. Никаких изменений Step 2 audit'а или Step 2
+  target set без proven blocker'а. Step 3 contract MUST
+  NOT дублировать per-tool tier breakdown — это Step 2
+  audit territory.
+- **Resolved Q3, Q4.** Q3 (`restore_dump_file_from_snapshot`
+  API без изменений) = ДА; Q4 (audit row `details` format
+  без изменений) = ДА — оба явно зафиксированы в contract'е
+  как нормативные обязательства.
+- **Selfcheck после Step 3.** Зелёный: registries без
+  drift'а; selfcheck_status=ok.
+- **Commit.** `45ad2b2` (Track F / Step 3 — rollback
+  eligibility contract).
+
+### Parallel Track F / Step 4 — narrow rollback whitelist expansion (завершён)
+
+- **Цель шага.** Расширить `_AUTOMATIC_RECOVERY_SUPPORTED` +
+  `_ROLLBACK_SUPPORTED_OPERATIONS` mirror frozenset'ы до Step 2
+  / Q2 target set строго в рамках Step 3 contract. **Это
+  единственный шаг Track F с production code change.**
+- **Что реально появилось в Step 4.** Two-file narrow
+  expansion:
+  - `apps/platform/src/onec_platform/recovery.py:126-133` —
+    `_AUTOMATIC_RECOVERY_SUPPORTED` frozenset 2 → 6 entries
+    (added `add_form_attribute`, `add_form_element`,
+    `append_module_method`, `replace_module_method_body`
+    alphabetically). Eligibility comment lines 118-125
+    untouched per minimal-touch preference.
+  - `apps/mcp-write-server/src/mcp_write_server/runtime/flow.py:104-111`
+    — `_ROLLBACK_SUPPORTED_OPERATIONS` frozenset 2 → 6
+    identical entries. Plus minor sync-comment wording update
+    lines 97-103: «Step 4 ships exactly two entries» →
+    «Track F / Step 4 expanded this to six entries — keep
+    identical to `_AUTOMATIC_RECOVERY_SUPPORTED` in
+    `onec_platform.recovery`» (allowed per Step 3 contract
+    Section 6.3.1).
+- **Per-tool sanity check** в commit message с
+  `tools.py` line numbers: add_form_attribute 3512-3520
+  `relative_path`; add_form_element 2680-2687 `relative_path`;
+  append_module_method 2833-2838 `module_relative_path`;
+  replace_module_method_body 2994-2999 `module_relative_path`
+  — все members `flow.py:_RELATIVE_PATH_KEYS`.
+- **Что НЕ сделано (намеренно).** Никаких изменений
+  `tools.py` (write-tool definitions); `_RELATIVE_PATH_KEYS`,
+  `_extract_relative_path`, `_KNOWN_WRITE_TOOL_FAMILIES`,
+  audit row `details` shape, runtime gates в
+  `recovery.py:285,869`, `restore_dump_file_from_snapshot`
+  API — всё untouched. Никаких изменений в `mcp-read-server`,
+  `mcp-intelligence-server`, `apps/platform/` за пределами
+  `recovery.py`, `packages/`, `scripts/`, `pyproject.toml`
+  (это Step 6 territory если Q5 = ДА), `examples/`,
+  `SECURITY.md`, `CHANGELOG.md`, operator-facing docs (это
+  Step 5 territory). Никаких target-set drift'а; никаких
+  опportunistic «while here» additions; никаких 1cv8.exe runs.
+- **Verification.** verify-release.ps1 GREEN на 8 checks;
+  registries `read=15 / write=25 / intelligence=16` без
+  drift'а; selfcheck_status=ok. Identical 6-entry sets в
+  обеих frozenset'ах verified Python parse.
+- **Diff:** 2 files, +17 / -7 (recovery.py +4 / flow.py
+  +13 / -7).
+- **Commit.** `cd95627` (Track F / Step 4 — narrow rollback
+  whitelist expansion).
+
+### Parallel Track F / Step 5 — operator docs and rollback coverage alignment (завершён)
+
+- **Цель шага.** Точечно выровнять operator-facing и
+  project-facing docs под фактический post-Step-4 state
+  (whitelist 2 → 6). Не менять продукт, не менять mechanism,
+  не менять evidence — только wording alignment.
+- **Что реально появилось в Step 5.** 8 точечных
+  wording-edits в трёх docs:
+  - `apps/platform/README.md` (5 правок): RECOVERY_MODES
+    `executed`-mode wording (убрано stale «недостижимо: пуст»,
+    добавлен evolution Phase 5→6→Track F с явным списком 6
+    entries); section heading «Почему `_AUTOMATIC_RECOVERY_SUPPORTED`
+    пуст» → «исторически был пуст и как он расширялся» с
+    bridge paragraph про two-pass expansion + pointer на
+    Track F eligibility contract; «Что rollback / recovery /
+    audit UX сейчас НЕ делает» bullet «не выполняет ни для
+    одного» → «выполняет только для whitelisted tools» с
+    явным списком 6 entries; Phase 6 / Step 4 historical
+    «Whitelist жёстко зафиксирован» bullet расширен под
+    operationalized criterion (`_RELATIVE_PATH_KEYS`) +
+    Track F / Step 4 4-tool addition citation; «Что Phase 6
+    / Step 4 НЕ делал» bullets aligned + новая «Track F /
+    Step 4 — расширение whitelist до 6 tools» subsection с
+    rationale + invariants + Track F out-of-scope.
+  - `README.md` (2 правки): Quickstart Track F open
+    paragraph переписан под explicit «2 → 6 tools» с full
+    list; Track A detail honest constraints bullet «whitelist
+    остаётся на двух tool'ах» переписан под «расширен до 6
+    tools после Track F / Step 4 ... всё ещё narrow set».
+  - `docs/release-handoff.md` (1 правка): Known limitations
+    «Limited rollback coverage» bullet переписан под explicit
+    post-Track-F status с full 6-entry list + 24% surface
+    metric + pointers на Track F plan/audit/contract docs.
+- **Единый support statement** теперь aligned across 3
+  modified docs: whitelist расширен 2 → 6; coverage broader
+  but still narrow (24% mutating surface); not universal
+  rollback; Tier 3 categorical exclusions remain
+  out-of-scope.
+- **Что НЕ сделано (намеренно).** PROJECT-STATUS.md и
+  CHANGELOG.md не тронуты — closure deliverables Step 6.
+  SECURITY.md не тронут — wording «small, deliberate set»
+  остаётся качественно accurate (6 — still small set; 24%
+  surface — still limited coverage); no direct factual drift.
+  Никаких изменений в `apps/`, `packages/`, `scripts/`,
+  `pyproject.toml`, registries, Track F planning / audit /
+  contract docs, operator/admin/developer manuals,
+  runbooks/*. Никаких 1cv8.exe runs. Никаких real
+  credentials.
+- **Selfcheck после Step 5.** Зелёный: registries без
+  drift'а; verify-release.ps1 GREEN на 8 checks.
+- **Commit.** `60f1761` (Track F / Step 5 — operator docs
+  and rollback coverage alignment).
+
+### Parallel Track F / Step 6 — final integration pass and Track F closure (завершён)
+
+- **Цель шага.** Закрыть весь Track F как documented status.
+  Read-only final integration check уже закрытых Steps 1–5,
+  потом минимальные closure-docs/status updates +
+  `pyproject.toml` version bump (Q5 = ДА), потом final
+  closure commit. Никакого нового feature work, никаких
+  новых MCP tools, никакого remote push'а, никакого
+  1cv8.exe run.
+- **Read-only final integration check (pre-closure).**
+  - working tree clean перед началом — gate PASS;
+  - git history линейная Step 1 → 2 → 3 → 4 → 5 → 6 (все
+    commit'ы на месте: `351278b → e9725b2 → 45ad2b2 →
+    cd95627 → 60f1761 → этот closure`);
+  - все Step 1–5 deliverables на диске: planning + step-map
+    (358+326), audit (637), contract (633) docs;
+  - Step 4 production code change verified: identical
+    6-entry frozensets в обеих mirror locations (Python
+    parse `recovery.py size=6 flow.py size=6 IDENTICAL=True`);
+  - Step 5 operator-facing docs alignment confirmed: всех 3
+    modified docs упоминают «6 entries/tools»;
+  - registries `read=15 / write=25 / intelligence=16` без
+    drift'а;
+  - `verify-release.ps1 -AllowDirtyTree` GREEN на 8 checks
+    с full selfcheck;
+  - no real credentials в diff'ах ни одного из пяти Track F
+    commit'ов;
+  - никаких 1cv8.exe runs ни на одном шаге Track F.
+- **Q5 resolved (closure decision) = ДА.** Version bump
+  `0.2.0` → `0.3.0`. Reasoning: Track F / Step 4 ship'нул
+  real production code change с **observable runtime
+  behaviour delta** — `automatic_recovery_supported=True`
+  теперь runtime-достижим для 4 дополнительных tool families
+  через `run_rollback_assistant`. Это backward-compatible new
+  functionality (existing 2 whitelisted tools работают
+  identically; pre-Track-F audit rows backward-compat
+  `details=None` → `mode='unsupported'` honest degrade;
+  public API signatures preserved; audit `details` shape
+  preserved). По SemVer logic'у это classic MINOR bump.
+  Direct precedent — Track D `0.1.0 → 0.2.0` shipped
+  comparable scale functional delta (`binary_dispatch.py`
+  env-substitution + verify-release check 8); Track F
+  shipped analogous (`recovery.py` + `flow.py` mirror
+  frozenset extension). Track E (scaffolding only, no
+  functional delta) → no bump; Track F (real code change)
+  → bump.
+- **Что реально изменено на Step 6 (closure-docs only).**
+  - `pyproject.toml` — version `0.2.0` → `0.3.0` (Q5 = ДА).
+  - `README.md` — Quickstart paragraph переписан под
+    «Активного трека сейчас нет»; «Closed parallel tracks»
+    list дополнен Track F bullet'ом (пять → шесть закрытых
+    треков); «Active parallel track» секция сжата под «нет
+    активного трека» с pointer'ом на Track F detail;
+    добавлена «Track F detail (закрыт)» секция полным
+    блоком симметрично Track A/B/C/D/E detail (per-step
+    bullets с commit hashes, что Track F реально закрыл,
+    что Track F **не делает** «полным rollback'ом всего»,
+    registry invariant).
+  - `PROJECT-STATUS.md` — header (Текущий шаг + Статус)
+    обновлён под Track F closed + Q5 = ДА явное упоминание +
+    5 commit hashes + factual whitelist size + 24% coverage
+    metric + Tier 3 exclusions; общий narrative-блок
+    переписан под closure; добавлены пять новых per-step
+    секций (Steps 2/3/4/5/6); устаревший «Следующий шаг —
+    Step 2» помечен как historical-snapshot.
+  - `CHANGELOG.md` — добавлен новый раздел `## 0.3.0 —
+    Parallel Track F — Rollback Whitelist Expansion` с
+    per-step outcomes, registry invariant, honest
+    constraints update (no blanket reversibility claim).
+- **Что НЕ изменено на Step 6 (закрытый scope).** `apps/`,
+  `packages/`, `scripts/`, `examples/`, `.github/`,
+  `.editorconfig`, `.python-version`, `.gitignore`,
+  `LICENSE`; `SECURITY.md` (Step 5 inventory подтвердил
+  «small, deliberate set» wording качественно accurate);
+  `docs/release-handoff.md` (Step 5 уже выровнял);
+  `apps/platform/README.md` (Step 5 уже выровнял);
+  Track F planning / audit / contract docs (frozen
+  Step 1/2/3 anchors); Track A/B/C/D/E docs; runbooks;
+  registries; `1cv8.exe` не запускался ни на одном шаге
+  Track F.
+- **Selfcheck после Step 6.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без drift'а;
+  selfcheck_status=ok; verify-release.ps1 GREEN на 8 checks;
+  никаких реальных credentials в Step 6 diff'е.
+- **Следующий шаг.** Активного шага нет. Track F полностью
+  закрыт. Phase 7 как линейная фаза не запланирована.
+  Открытие следующего parallel track'а — отдельное
+  operator-решение.
 
 ## Phase 6 закрыта
 
