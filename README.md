@@ -7,12 +7,13 @@
 
 > **Что это.** MCP-платформа для работы AI-агентов с конфигурацией и
 > инфобазами 1С:Предприятие. На сегодня закрыты Phases 1–6 (read /
-> write / metadata / intelligence / product layer / industrialization)
-> и Parallel Track A — full real binary-backed write path
+> write / metadata / intelligence / product layer / industrialization),
+> Parallel Track A — full real binary-backed write path
 > (DumpCfg → LoadConfigFromFiles → UpdateDBCfg), отработанный на
-> reference stand'е. Активный сейчас трек — Track B (productization
-> & delivery polish), результаты которого вы видите в трёх блоках
-> ниже.
+> reference stand'е, Parallel Track B — productization & delivery
+> polish, и Parallel Track C — packaging & installer delivery
+> (release-facing layout, verify path, release handoff document).
+> Активного трека сейчас нет.
 
 ### Системные требования
 
@@ -71,7 +72,7 @@ install fast path, не трогает инфобазу): [`scripts/dev/README.m
 - [`docs/runbooks/`](docs/runbooks/) — воспроизводимые сценарии,
   включая `track-a-reference-stand-round-trip.md`.
 - [`docs/architecture/`](docs/architecture/) — phase- и track-plans
-  + step maps (включая Track B planning).
+  + step maps (включая Track B и Track C planning).
 - [`PROJECT-STATUS.md`](PROJECT-STATUS.md) — детальный статус фаз
   и треков с per-step deliverables.
 
@@ -570,7 +571,7 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 ## Closed parallel tracks
 
 После закрытия Phase 6 были последовательно открыты и
-закрыты два post-phase completion track'а:
+закрыты три post-phase completion track'а:
 
 - **Parallel Track A — Full Real 1cv8-backed Write Path** —
   закрыт на Step 7 (final integration pass and Track A
@@ -578,50 +579,84 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 - **Parallel Track B — Productization & Delivery Polish** —
   закрыт на Step 6 (final integration pass and Track B
   closure).
+- **Parallel Track C — Packaging & Installer Delivery** —
+  закрыт на Step 6 (final integration pass and Track C
+  closure).
 
-## Active parallel track
+Активного трека сейчас нет. Открытие следующего parallel
+track'а — отдельное решение оператора; Phase 7 как линейная
+фаза не запланирована.
 
-После closure'а Track B открыт третий post-phase track —
-**Parallel Track C — Packaging & Installer Delivery**.
-Цель — довести продукт до состояния, в котором его удобно
-передать другому человеку как **packaged unit / process**:
-release-facing layout polish, reproducible install sequence
-checklist, pre-handoff sanity check, release handoff
-документация, единый release entrypoint map. Это **не**
-новый execution-core sprint, **не** enterprise track, **не**
-GUI installer wizard, **не** signed binary distribution,
-**не** package-manager publication.
+## Track C detail (закрыт)
 
-Track C сейчас на **Step 1 (planning)** — ship'нуты только
-два planning-документа
-(`docs/architecture/track-c-packaging-installer-delivery-plan.md`,
-`docs/architecture/track-c-packaging-installer-delivery-step-map.md`);
-никаких code changes Step 1 не делал, registries `read=15 /
-write=25 / intelligence=16` без drift'а.
+**Цель Track C** была — довести существующий продукт до
+состояния, в котором его удобно передать другому человеку
+как **packaged unit / process**: release-facing layout
+polish, reproducible install sequence checklist, pre-
+handoff sanity check, release handoff документация,
+единый release entrypoint map. Это **не** новый execution-
+core sprint, **не** enterprise track, **не** GUI installer
+wizard, **не** signed binary distribution, **не** package-
+manager publication. Шесть шагов; production-код Track C
+вообще **не правил**.
 
-Что **не** входит в Track C (повтор для ясности): GUI
-installer wizard, `.msi` / `.deb` / signed binary
-distribution, publication к package managers (PyPI /
-Chocolatey / winget / apt), systemd / Windows Service
-registration, hot reload, web-UI / dashboard frontend,
-полный enterprise super-set (SSO/RBAC, multi-tenant,
-secrets vault как сервис, federated audit storage,
-policy-as-code DSL, multi-instance HA), production-grade
-MCP transport, multi-version 1С matrix, полный AST-парсер
-XML/BSL, полная rollback/delete-вселенная, новые MCP tools,
-production code rewrite. Эти направления остаются
-другими parallel track'ами после Phase 6 / Track A /
-Track B / Track C.
+- **Step 1 (planning)** — два planning-документа
+  ([`docs/architecture/track-c-packaging-installer-delivery-plan.md`](docs/architecture/track-c-packaging-installer-delivery-plan.md),
+  [`docs/architecture/track-c-packaging-installer-delivery-step-map.md`](docs/architecture/track-c-packaging-installer-delivery-step-map.md)):
+  назначение трека, целевой результат, guardrails,
+  10 acceptance criteria, явный список «что НЕ входит»;
+  commit `af2d7f4`.
+- **Step 2 (release-facing verify path and layout polish)** —
+  [`scripts/release/verify-release.ps1`](scripts/release/verify-release.ps1)
+  как pre-handoff sanity check (read-only: проверяет
+  наличие entry points, dev-check workflow, planning docs,
+  printing concise human-readable report); расширение
+  [`scripts/release/README.md`](scripts/release/README.md)
+  под трёх-entrypoint surface (install / verify / dev
+  launch). Production-код не правил; commit `ef087c8`.
+- **Step 3 (packaging-facing install flow honest review)** —
+  честный review `pyproject.toml`: добавлен явный
+  block-комментарий о том, что
+  `[tool.hatch.build.targets.wheel] packages = []` —
+  намеренный no-op (Phase 6 продукт не предназначен для
+  publication как single Python wheel из-за multi-app
+  monorepo shape); расширение release/README с
+  packaging story. Никакого фиктивного wheel build не
+  ввели; commit `a4f42f9`.
+- **Step 4 (release handoff documentation)** — новый
+  документ [`docs/release-handoff.md`](docs/release-handoff.md)
+  для receive-side оператора: что вы получили, system
+  prerequisites, reproducible install sequence, verify
+  sequence, known limitations honest table; commit
+  `7ca9b3f`.
+- **Step 5 (integration and handoff polish)** —
+  минимальный pointer на `docs/release-handoff.md` в
+  Quickstart-навигации root README; никакой broad docs
+  rewrite; commit `8ccecf6`.
+- **Step 6 (final integration pass and Track C closure)** —
+  этот closure: README + PROJECT-STATUS + CHANGELOG
+  обновлены под Track C closed.
 
-Следующий шаг по Track C — **Step 2 (release-facing
-`scripts/release/` layout полишинг)**: тонкое расширение
-existing release scripts слоя через `verify-release.ps1`
-(pre-handoff sanity check) + UPDATE
-`scripts/release/README.md`. **GitHub remote push —
-operator action, не часть трека.**
+Что Track C **не** делает «глубоким индустриальным
+продуктом» после closure (honest constraints, никаких
+скрытых гэпов): GUI installer wizard, `.msi` / `.deb` /
+signed binary distribution, publication к package
+managers (PyPI / Chocolatey / winget / apt), systemd /
+Windows Service registration, hot reload, web-UI /
+dashboard frontend, полный enterprise super-set (SSO/RBAC,
+multi-tenant, secrets vault как сервис, federated audit
+storage, policy-as-code DSL, multi-instance HA),
+production-grade MCP transport, multi-version 1С matrix,
+полный AST-парсер XML/BSL, полная rollback/delete-
+вселенная, новые MCP tools, production code rewrite. Эти
+направления остаются за пределами Track A + Track B +
+Track C — открытие отдельных тематических parallel
+track'ов под них — operator decision.
 
-Документы трека: `docs/architecture/track-c-packaging-installer-delivery-plan.md`,
-`docs/architecture/track-c-packaging-installer-delivery-step-map.md`.
+Registry-инвариант сохранён точно на всём треке: `read=15 /
+write=25 / intelligence=16`, `selfcheck_status=ok`. **GitHub
+remote push** не часть Track C — repo готов к выкладке, но
+пушить — operator action.
 
 ## Track B detail (закрыт)
 

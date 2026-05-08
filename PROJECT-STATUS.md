@@ -2,17 +2,26 @@
 
 ## Текущий шаг
 
-**Parallel Track C / Step 1 — planning Packaging & Installer
-Delivery (in progress / documentation only).** Track A и
-Track B полностью закрыты ранее.
+**Активного шага нет.** Parallel Track C полностью закрыт
+на Step 6 (final integration pass and Track C closure).
+Track A и Track B закрыты ранее. Открытие следующего
+parallel track'а — отдельное решение оператора.
 
 ## Статус
 
-`in progress` (для Parallel Track C / Step 1 как
-documentation-only opening — два planning-документа
-ship'нуты, никаких code changes, никаких изменений
-registry, никаких новых MCP tool'ов; Track C / Step 2 —
-следующий шаг и не открывался).
+`closed` (для всего Parallel Track C — Steps 1–6 закрыты
+последовательно; шесть meaningful commit'ов в `main`:
+`af2d7f4` (Step 1 — planning packaging and installer
+delivery), `ef087c8` (Step 2 — release-facing verify path
+and layout polish), `a4f42f9` (Step 3 — packaging-facing
+install flow honest review), `7ca9b3f` (Step 4 — release
+handoff documentation), `8ccecf6` (Step 5 — integration
+and handoff polish), плюс closure commit Step 6 фиксирует
+обновлённые README/PROJECT-STATUS/CHANGELOG; production-
+код Track C **не правил вообще ни разу** — все
+deliverables это release-facing скрипты, документация и
+honest pyproject limitation; registries без drift'а на
+всём треке; `selfcheck_status=ok`).
 
 `closed` (для всего Parallel Track B — Steps 1–6 закрыты
 последовательно; четыре meaningful commit'а в `main`:
@@ -101,15 +110,15 @@ product/intelligence; нет back-door write channel'а;
 нет `shell=True`; audit append-only; fail-closed по
 умолчанию) **сохраняются без изменений**).
 
-Track B сейчас documentation-only. Никаких изменений в
-`apps/`, `packages/`, `scripts/`, `pyproject.toml`,
-`.github/`, `.editorconfig`, `.python-version`,
-`.gitignore`, `examples/` после Step 1. Track B / Step 2
-(repo hygiene + legal layer: `git init`, `.gitignore`
-расширение, `LICENSE`, `CHANGELOG.md`, `SECURITY.md`,
-первый осмысленный initial commit) — следующий шаг.
-**GitHub remote push явно НЕ часть трека** — это
-operator action.
+После closure'а Track C активного трека нет. Track A,
+Track B и Track C закрыты последовательно как post-phase
+completion track'и. Phase 7 как линейная фаза не
+запланирована. Возможные следующие parallel track'и
+перечислены в конце Track B Step 6 секции (operator
+credentials hardening, multi-version 1С matrix, full
+rollback whitelist) — это **только recommendations**, без
+авто-открытия. **GitHub remote push** не часть Track C —
+repo готов к выкладке, но пушить — operator action.
 
 ## Что сделано
 
@@ -9181,6 +9190,220 @@ read/write/intelligence-серверов, с честно
   sealed) и в `scripts/dev/launch.ps1` (Track B /
   Step 4 sealed). Production-код не правится.
   Step 2 я открываю отдельным заходом, не в этом.
+
+### Parallel Track C / Step 2 — release-facing verify path and layout polish (завершён)
+
+- **Цель шага.** Расширить existing `scripts/release/`
+  слой одним новым read-only entrypoint'ом —
+  `verify-release.ps1` (pre-handoff sanity check над
+  уже существующими entry points) — и UPDATE
+  `scripts/release/README.md` под трёх-entrypoint
+  surface (`install.ps1` + `verify-release.ps1` +
+  `launch.ps1`). Никакого расширения write-поверхности,
+  никаких изменений в `install.ps1` или `launch.ps1`,
+  никакого production-кода.
+- **Что реально появилось.**
+  - `scripts/release/verify-release.ps1` — read-only
+    pre-handoff sanity check: проверяет наличие
+    install entrypoint'ов, dev-check workflow, planning
+    docs, печатает компактный human-readable отчёт.
+    Никаких subprocess'ов 1cv8, никаких side effects.
+  - `scripts/release/README.md` — расширен под
+    объяснение verify-release.ps1 и трёх-entrypoint
+    surface'а. Existing install-секции не переписаны.
+- **Что НЕ сделано (намеренно).** `apps/`, `packages/`,
+  `pyproject.toml`, `scripts/release/install.ps1`,
+  `scripts/dev/launch.ps1`, `docs/architecture/`,
+  registries — без изменений. Никакого нового MCP
+  surface'а; никакого нового write path'а.
+- **Commit.** `ef087c8` — `Track C / Step 2 — release-
+  facing verify path and layout polish`.
+
+### Parallel Track C / Step 3 — packaging-facing install flow honest review (завершён)
+
+- **Цель шага.** Честный review packaging-facing части
+  `pyproject.toml`: явно зафиксировать, что Phase 6
+  продукт **намеренно** не предназначен для publication
+  как single Python wheel из-за multi-app monorepo
+  shape. Никакого фиктивного wheel build'а; никакого
+  package-manager publication'а.
+- **Что реально появилось.**
+  - `pyproject.toml` — добавлен явный block-комментарий
+    рядом с `[tool.hatch.build.targets.wheel]
+    packages = []`: это намеренный no-op, операторы
+    устанавливают продукт через `scripts/release/install.ps1`
+    (Phase 6 boundary `run_install_fast_path`), а не
+    через `pip install`. Версия 0.1.0 без bump'а.
+  - `scripts/release/README.md` — небольшая secция
+    «Packaging story», которая ссылается на
+    pyproject-комментарий и явно отвергает GUI
+    installer wizard / signed binary distribution /
+    package-manager publication как out-of-scope.
+- **Что НЕ сделано (намеренно).** Никакого fix'а
+  hatch wheel target'а, никакого отдельного `setup.py`,
+  никаких GitHub Releases, никаких Docker images,
+  никаких `.msi` / `.deb`. Это **review**, не
+  packaging-фиксация.
+- **Commit.** `a4f42f9` — `Track C / Step 3 — packaging-
+  facing install flow honest review`.
+
+### Parallel Track C / Step 4 — release handoff documentation (завершён)
+
+- **Цель шага.** Зафиксировать **один** release handoff
+  документ для receive-side оператора. Никакой broad
+  docs rewrite; никакого переписывания operator/
+  administrator/developer manual'ов; ничего из Phase 6
+  / Step 7 manual'ов не дублировать.
+- **Что реально появилось.**
+  - `docs/release-handoff.md` — новый документ,
+    адресованный receive-side оператору, который
+    получил репозиторий проекта: что вы получили,
+    system prerequisites (Windows + PowerShell + Python
+    3.11; `1cv8.exe` опционально и только для real
+    write path), reproducible install sequence
+    (verify-release.ps1 → install.ps1 preview →
+    install.ps1 -Confirm), verify sequence (dev launch
+    selfcheck), known limitations honest table
+    (production-grade transport / GUI installer /
+    enterprise super-set / multi-version matrix —
+    out of scope). Без новых обещаний.
+- **Что НЕ сделано (намеренно).** `apps/`, `packages/`,
+  `scripts/`, `pyproject.toml`, `README.md`,
+  `PROJECT-STATUS.md`, `CHANGELOG.md`,
+  `docs/architecture/`, `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks*` — без
+  изменений. Только один новый файл.
+- **Commit.** `7ca9b3f` — `Track C / Step 4 — release
+  handoff documentation`.
+
+### Parallel Track C / Step 5 — integration and handoff polish (завершён)
+
+- **Цель шага.** Минимально и честно интегрировать
+  `docs/release-handoff.md` в верхнеуровневую
+  навигацию проекта: receive-side handoff story должна
+  стать discoverable из root README, без раздувания
+  документации.
+- **Что реально появилось.**
+  - `README.md` — четырёхстрочный pointer на
+    `docs/release-handoff.md` добавлен в Quickstart
+    раздел «Куда идти дальше». Существующая
+    структура Quickstart не переписана.
+- **Что НЕ сделано (намеренно).** Никакого
+  переписывания `docs/release-handoff.md`, никакого
+  переписывания `scripts/release/README.md`, никакого
+  трогания `PROJECT-STATUS.md`, никакого broad docs
+  cleanup. Этот шаг — single high-leverage navigation
+  edit.
+- **Commit.** `8ccecf6` — `Track C / Step 5 —
+  integration and handoff polish`.
+
+### Parallel Track C / Step 6 — final integration pass and Track C closure (завершён)
+
+- **Цель шага.** Закрыть весь Track C как documented
+  status. Read-only final integration check уже
+  закрытых Steps 1–5, потом минимальные closure-docs/
+  status updates, потом final closure commit.
+- **Read-only final integration check.**
+  - Working tree clean перед началом
+    (`git status` пуст).
+  - Git history линейная и читаемая: `af2d7f4`
+    (Step 1) → `ef087c8` (Step 2) → `a4f42f9` (Step 3)
+    → `7ca9b3f` (Step 4) → `8ccecf6` (Step 5).
+  - Все Step 1 deliverables на диске
+    (`docs/architecture/track-c-*`); Step 2 deliverables
+    на диске (`scripts/release/verify-release.ps1`,
+    обновлённый `scripts/release/README.md`); Step 3
+    deliverables на диске (honest comment в
+    `pyproject.toml`, packaging story в release/README);
+    Step 4 deliverable на диске (`docs/release-handoff.md`,
+    331 строка); Step 5 deliverable на диске (pointer
+    в Quickstart README:62-65).
+  - Production-код вообще не тронут на всём треке —
+    подтверждено отсутствием `apps/` / `packages/` в
+    diff'ах ни одного из пяти Track C commit'ов.
+- **Что сделано в этом шаге.** Только closure
+  docs/status updates (минимальный scope):
+  - `README.md` — Quickstart intro обновлён под
+    «Активного трека сейчас нет»; «Active parallel
+    track» заменён добавлением Track C в «Closed
+    parallel tracks» list; новая секция «Track C
+    detail (закрыт)» с per-step описанием Steps 1–6
+    и явным списком «что Track C НЕ делает
+    индустриальным продуктом»; pointer на planning
+    docs обновлён («включая Track B и Track C
+    planning»).
+  - `PROJECT-STATUS.md` — header (Текущий шаг +
+    Статус) обновлён под Track C closed; stale
+    параграф «Track B сейчас documentation-only»
+    заменён на post-Track-C closure narrative;
+    добавлены пять новых per-step секций (Steps
+    2/3/4/5/6).
+  - `CHANGELOG.md` — entry `## 0.1.0` дополнен
+    bullet'ом про Parallel Track C closed (Steps
+    1–6); honest constraints и registry invariant
+    остались без изменений (Track C их не меняет);
+    «Active work: None» остаётся корректным после
+    Track C closure.
+  - Commit `Track C / Step 6 — final integration
+    pass and track closure` зафиксирует closure
+    event в git history.
+- **Что НЕ сделано.** Никакого нового feature work,
+  никаких production-правок, никаких новых MCP
+  tool'ов, никакого remote push'а. `apps/`,
+  `packages/`, `scripts/`, `examples/`,
+  `docs/architecture/`, `docs/runbooks/`,
+  `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks.md`,
+  `docs/release-handoff.md`,
+  `pyproject.toml`, `.github/`, `.editorconfig`,
+  `.python-version`, `.gitignore`, `LICENSE`,
+  `SECURITY.md` — **не тронуты** в этом шаге.
+- **Что Track C в сумме дал проекту.**
+  - Release-facing entrypoint surface стал
+    трёх-частным (`install.ps1` + `verify-release.ps1`
+    + `launch.ps1`) с человеко-читаемым
+    `scripts/release/README.md`.
+  - `pyproject.toml` packaging limitation теперь
+    явно задокументирована inline комментарием —
+    больше не выглядит как «забытый no-op».
+  - Receive-side оператор имеет один entry document
+    (`docs/release-handoff.md`) с reproducible
+    install/verify sequence и honest known
+    limitations.
+  - Root README quickstart честно ведёт на
+    receive-side handoff story (Step 5 pointer).
+  - Production-код не трогали ни разу за весь
+    Track C. Registry-инвариант сохранён точно
+    `read=15 / write=25 / intelligence=16`.
+- **Honest constraints, оставшиеся после closure
+  Track C.** Track C **не сделал** проект «глубоким
+  индустриальным продуктом». По-прежнему отсутствуют:
+  GUI installer wizard, `.msi` / `.deb` / signed
+  binary distribution, publication к package
+  managers (PyPI / Chocolatey / winget / apt),
+  systemd / Windows Service registration, hot reload,
+  web-UI / dashboard frontend, полный enterprise
+  super-set (SSO/RBAC, multi-tenant, secrets vault
+  как сервис, federated audit storage, policy-as-code
+  DSL, multi-instance HA), production-grade MCP
+  transport, multi-version 1С matrix, полный
+  AST-парсер XML/BSL, полная rollback/delete-
+  вселенная, новые MCP tools, production code
+  rewrite. Эти направления остаются за пределами
+  Track A + Track B + Track C.
+- **Следующий шаг.** Активного трека нет. Открытие
+  следующего parallel track'а — **отдельное решение
+  оператора проекта**; Phase 7 как линейная фаза не
+  запланирована. Possible candidates (только
+  recommendations, без авто-открытия): operator
+  credentials hardening track (env-substitution или
+  OS keychain integration); multi-version 1С smoke
+  track; полный rollback whitelist track. Менее
+  рекомендуемые — full enterprise super-set, web-UI,
+  packaging ecosystem (более широкий scope, выше
+  риск).
 
 ## Phase 6 закрыта
 

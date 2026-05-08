@@ -44,6 +44,34 @@ matches `pyproject.toml`.
   - Step 6 (final integration pass and Track B closure) — this
     closure: README + PROJECT-STATUS + CHANGELOG aligned with
     Track B closed status.
+- **Parallel Track C — Packaging & Installer Delivery** — closed on
+  Step 6 (final integration pass and Track C closure). Six steps
+  total; production code untouched throughout the track. Per-step
+  outcomes:
+  - Step 1 (planning) — two planning documents under
+    `docs/architecture/track-c-*`.
+  - Step 2 (release-facing verify path and layout polish) —
+    `scripts/release/verify-release.ps1` as a read-only
+    pre-handoff sanity check; updated `scripts/release/README.md`
+    for the three-entrypoint surface (`install` / `verify` /
+    `launch`).
+  - Step 3 (packaging-facing install flow honest review) —
+    inline block comment in `pyproject.toml` documenting why
+    `[tool.hatch.build.targets.wheel] packages = []` is an
+    intentional no-op (multi-app monorepo shape; install via
+    `scripts/release/install.ps1`, not `pip install`); short
+    "Packaging story" section in `scripts/release/README.md`.
+  - Step 4 (release handoff documentation) — new
+    `docs/release-handoff.md` for the receive-side operator:
+    what you received, system prerequisites, reproducible
+    install sequence, verify sequence, honest known
+    limitations table.
+  - Step 5 (integration and handoff polish) — minimal pointer
+    to `docs/release-handoff.md` from the Quickstart "Куда
+    идти дальше" navigation in this README.
+  - Step 6 (final integration pass and Track C closure) — this
+    closure: README + PROJECT-STATUS + CHANGELOG aligned with
+    Track C closed status.
 
 ### Registry invariant carried into 0.1.0
 
@@ -51,7 +79,7 @@ matches `pyproject.toml`.
 - `mcp-write-server` — 25 public tools.
 - `mcp-intelligence-server` — 16 public tools.
 
-No MCP surface drift through Track A or Track B.
+No MCP surface drift through Track A, Track B, or Track C.
 
 ### Honest constraints carried into 0.1.0
 
