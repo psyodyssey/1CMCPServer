@@ -2,25 +2,45 @@
 
 ## Текущий шаг
 
-**Parallel Track E / Step 1 — planning Multi-Version 1C Smoke
-Matrix (in progress / documentation only).** Phase 1–6 закрыты
-ранее; четыре post-phase parallel track'а (A, B, C, D) полностью
-закрыты. Track E — пятый post-phase parallel track, открыт после
-closure'а Track D; цель — расширить evidence base с **одного**
-reference stand'а / **одной** 1С версии (`8.3.27.1859`) на узкую
-documented smoke matrix из нескольких 1С версий по одному и тому
-же узкому сценарию. Step 1 — два planning-документа без code
-changes.
+**Активного шага нет.** Phase 1–6 закрыты ранее; все пять
+post-phase parallel track'ов (A, B, C, D, E) закрыты. Track E —
+**Multi-Version 1C Smoke Matrix** — закрыт на Step 6 (final
+integration pass and Track E closure); никакого `pyproject.toml`
+version bump (Q5 = НЕТ; Track E ship'нул scaffolding +
+docs alignment без functional delta — production code
+вообще не правился). Открытие следующего трека — отдельное
+operator-решение.
 
 ## Статус
 
-`in progress` (для Parallel Track E / Step 1 как
-documentation-only opening — два planning-документа
-ship'нуты, никаких code changes, никаких изменений
-registry, никаких новых MCP tool'ов, никаких запусков
-1cv8.exe в этом шаге; никаких реальных credentials в
-repo / docs / commit message; Track E / Step 2 —
-следующий шаг и не открывается в этом же заходе).
+`closed` (для всего Parallel Track E — Steps 1–6 закрыты
+последовательно; пять meaningful commit'ов в `main`:
+`1b233ce` (Step 1 — planning multi-version 1C smoke
+matrix), `630f837` (Step 2 — current evidence audit and
+smoke scenario freeze), `7c08cae` (Step 3 — matrix
+scaffolding and operator runbook), `f962d78` (Step 4 —
+operator-driven smoke execution and matrix update,
+закрыт через PATH B / honest operator-supplied gap —
+никаких 1cv8.exe runs, никаких additional evidence
+rows), `78d5956` (Step 5 — support statement and docs
+alignment), плюс closure commit Step 6 фиксирует
+обновлённые README/PROJECT-STATUS/CHANGELOG; production-
+код Track E **не правил вообще ни разу** — все
+deliverables это planning / audit / scaffolding /
+operator runbook / status alignment. Step 4 закрыт
+честно через PATH B: на operator machine отсутствуют
+1С minor families помимо `8.3.27` (`8.3.27.1859/x64`
+reference + `8.3.27.1936/x86` same-family disqualified
+per Step 2 §2.2); ENV-substitution credentials не были
+выставлены в session. Никаких новых evidence rows в
+`docs/version-support-matrix.md` помимо reference row,
+зафиксированной copy-only из existing Track A / Step 6
+evidence; никаких имитированных additional rows.
+Registry-инвариант `read=15 / write=25 /
+intelligence=16` без drift'а на всём треке;
+`selfcheck_status=ok`. Никаких реальных credentials ни в
+одном из шести Track E commit'ов. **No blanket
+multi-version support claim**).
 
 `closed` (для всего Parallel Track D — Steps 1–6 закрыты
 последовательно; пять meaningful commit'ов в `main`:
@@ -163,31 +183,35 @@ format / production-grade MCP transport. Registry-инвариант
 никаких реальных credentials ни в одном из шести Track D
 commit'ов. **GitHub remote push не часть трека — operator action.**
 
-После closure'а Track D открыт пятый post-phase track —
-**Parallel Track E — Multi-Version 1C Smoke Matrix**. Track E
-сейчас documentation-only (Step 1 planning). Цель —
-расширить доказательную базу с **одного** reference stand'а /
-**одной** 1С версии (`8.3.27.1859`, evidence Track A / Step 6)
-на узкую documented smoke matrix из нескольких 1С версий по
-одному и тому же узкому сценарию (default candidate —
-cut-down `create_dump_snapshot` через `/DumpConfigToFiles`).
-Платформа по-прежнему **не делает** version-sniffing — оператор
-сам выбирает binary path в config'е; Track E добавляет
-evidence-уровень и docs, не архитектуру. Никаких изменений в
-`apps/`, `packages/`, `scripts/`, `pyproject.toml`, `.github/`,
-`.editorconfig`, `.python-version`, `.gitignore`, `examples/`,
-`LICENSE`, `SECURITY.md`, `CHANGELOG.md`,
-`docs/release-handoff.md`, `docs/operator-manual.md`,
-`docs/administrator-manual.md`, `docs/developer-manual.md`,
-`docs/runbooks/*` после Step 1. Track E / Step 2
-(current evidence baseline audit + version selection criteria
-+ smoke scenario freeze, docs-only) — следующий шаг.
-**GitHub remote push явно НЕ часть трека** — это operator
-action. Никаких запусков 1cv8.exe в Step 1; реальный
-operator-driven прогон smoke matrix — это Step 4
-(operator gate). Это **не** «поддержка всех версий», **не**
-full QA program, **не** performance / stress / fuzzing
-track, **не** enterprise certification.
+После closure'а Track D был открыт пятый post-phase track —
+**Parallel Track E — Multi-Version 1C Smoke Matrix** — и
+закрыт на Step 6 (final integration pass and Track E
+closure). Track E ship'нул frozen narrow smoke scenario
+`frozen-smoke-v1` (cut-down `create_dump_snapshot` через
+`/DumpConfigToFiles` only — read-only из перспективы 1С
+базы), operator runbook
+(`docs/runbooks/track-e-multi-version-smoke-matrix.md`) и
+matrix-table doc (`docs/version-support-matrix.md`) с
+12-column frozen contract'ом и reference row на
+`8.3.27.1859`, заполненной copy-only из existing Track A /
+Step 6 evidence (без новых 1cv8.exe runs). Step 4 закрыт
+через **PATH B (honest operator-supplied gap)**: на
+operator machine отсутствуют 1С minor families помимо
+`8.3.27`; никаких additional evidence rows не добавлено,
+никакого 1cv8.exe не запускалось. Step 5 выровнял
+operator-facing docs (SECURITY / release-handoff / README)
+под фактический evidence-уровень: reference есть, matrix
+scaffolding есть, additional rows нет, **no blanket
+multi-version support claim**. Платформа архитектурно
+остаётся multi-version-friendly: оператор сам выбирает
+binary path в config'е; Track E добавил evidence-уровень
+и docs, **не** архитектуру. Это **не** «поддержка всех
+версий», **не** full QA program, **не** performance /
+stress / fuzzing track, **не** enterprise certification.
+Registry-инвариант `read=15 / write=25 / intelligence=16`
+без drift'а на всём треке; никаких реальных credentials
+ни в одном из шести Track E commit'ов. **GitHub remote
+push не часть трека — operator action.**
 
 ## Что сделано
 
@@ -9962,20 +9986,307 @@ read/write/intelligence-серверов, с честно
   registries `read=15 / write=25 / intelligence=16`,
   `selfcheck_status=ok`. Track E / Step 1 не правил
   production-кода — drift'а нет.
-- **Следующий шаг.** **Parallel Track E / Step 2 —
-  current evidence baseline audit + version selection
-  criteria + smoke scenario freeze (docs-only).** Step 2
-  включает: новый short audit-документ
-  `docs/architecture/track-e-current-evidence-audit.md`
-  (что доказано на reference version, что не доказано,
-  архитектурный context), новый short документ
-  `docs/architecture/track-e-smoke-scenario.md` (frozen
-  smoke scenario + acceptance / failure verdicts).
-  **Никаких изменений** в `apps/`, `packages/`, `scripts/`,
-  `pyproject.toml`, `SECURITY.md`, `docs/release-handoff.md`,
-  `docs/operator-manual.md`. Production-код не правится.
-  Никакого реального прогона 1cv8.exe. Step 2 я открываю
-  отдельным заходом, не в этом.
+- **Следующий шаг (на момент закрытия Step 1).**
+  **Parallel Track E / Step 2 — current evidence baseline
+  audit + version selection criteria + smoke scenario freeze
+  (docs-only).** Step 2 / 3 / 4 / 5 / 6 последовательно
+  пройдены — см. секции ниже.
+
+### Parallel Track E / Step 2 — current evidence audit and smoke scenario freeze (завершён)
+
+- **Цель шага.** Честно описать **существующую**
+  single-version evidence base, зафиксировать
+  **principle-based criteria** отбора target версий, и
+  **freeze'нуть** узкий smoke scenario для будущих
+  comparable runs. Никакая implementation. Никаких code
+  changes. Никакого 1cv8.exe.
+- **Что реально появилось в Step 2.**
+  - **Новый documentation-only документ:**
+    `docs/architecture/track-e-current-evidence-audit.md`
+    (descriptive — что доказано на reference version
+    `8.3.27.1859`: full Track A round-trip + physical
+    artifacts; чего пока **нет** — additional version rows,
+    matrix-table, comparable smoke evidence; почему
+    single-version evidence недостаточен — argv-grammar
+    drift между versions, install layout dependency,
+    stand-shape dependency; strict separation
+    proven / inferred / not-yet-run / operator-supplied
+    future inputs).
+  - **Новый documentation-only документ:**
+    `docs/architecture/track-e-smoke-scenario.md`
+    (prescriptive **FROZEN** — scenario name
+    `frozen-smoke-v1`; what it does — cut-down
+    `create_dump_snapshot` через `/DumpConfigToFiles` only,
+    read-only из перспективы 1С базы; what it does NOT do;
+    operator-side preconditions; principle-based version
+    selection criteria — one newer + one older
+    `8.3.<minor>` family beyond reference; build-level
+    diffs внутри одной minor НЕ additional evidence;
+    pre-8.3 / pre-release / server-mode stands out-of-scope;
+    12-column matrix shape; PASS / FAIL / NOT RUN semantics
+    с явными conditions; required evidence fields;
+    non-goals; Step 4 execution boundary).
+- **Что НЕ сделано (намеренно).** Никаких изменений
+  production-кода. `apps/`, `packages/`, `scripts/`,
+  `pyproject.toml`, `SECURITY.md`, `CHANGELOG.md`,
+  `docs/release-handoff.md`, `docs/operator-manual.md`,
+  `docs/runbooks/*` — без изменений на Step 2 (alignment
+  operator-facing docs — это Step 5).
+- **Selfcheck после Step 2.** Зелёный без правок:
+  registries `read=15 / write=25 / intelligence=16`,
+  `selfcheck_status=ok`. Step 2 не правил production-кода —
+  drift'а нет.
+- **Commit.** `630f837` (Track E / Step 2 — current
+  evidence audit and smoke scenario freeze).
+
+### Parallel Track E / Step 3 — matrix scaffolding and operator runbook (завершён)
+
+- **Цель шага.** Создать operator-facing scaffolding для
+  будущего Step 4: operator runbook + matrix-table doc,
+  чтобы multi-version smoke matrix можно было заполнять
+  по одному и тому же frozen scenario'ю без переизобретения
+  формата и без новых запусков 1cv8.exe на этом шаге.
+- **Что реально появилось в Step 3.**
+  - **Новый operator runbook:**
+    `docs/runbooks/track-e-multi-version-smoke-matrix.md`
+    (484 строки) — Windows-first; preconditions (repo
+    state / install / credentials через Track D / Step 3
+    env-substitution / tooling); explicit list «what
+    runbook does NOT do»; frozen scenario reference (no
+    extension); required operator inputs (7-row table);
+    step-by-step execution procedure (config / env vars /
+    PYTHONPATH / pre-check / run / post-run / cleanup);
+    what to record after each run (12-column contract);
+    PASS / FAIL / NOT RUN handling с явными conditions;
+    evidence capture rules (что в repo, что НЕ в repo);
+    common stop conditions; honest constraints; Step 4
+    closure boundary.
+  - **Новый matrix-table doc:**
+    `docs/version-support-matrix.md` (top-level, 258
+    строк) — short intro «evidence table != blanket support
+    claim»; column contract (12 frozen colonкол copy 1:1
+    из Step 2 scenario doc); **Reference Row 1**
+    (`8.3.27` / `1859` / `x64` / file-based InfoBase6 /
+    `stronger-than-frozen-smoke-v1` / `PASS` / 2 mutating
+    audit rows + snapshot trees) заполнена copy-only из
+    existing Track A / Step 6 evidence без новых 1cv8.exe
+    runs; никаких имитированных additional rows.
+- **Что НЕ сделано (намеренно).** Никаких изменений
+  production-кода. `apps/`, `packages/`, `scripts/`,
+  `pyproject.toml`, `SECURITY.md`, `CHANGELOG.md`,
+  `docs/release-handoff.md`, `README.md`, Track A runbook,
+  Track E planning/audit/scenario docs — без изменений на
+  Step 3. Никакого 1cv8.exe run.
+- **Selfcheck после Step 3.** Зелёный: registries без
+  drift'а; selfcheck_status=ok; никаких credentials в
+  diff'е.
+- **Commit.** `7c08cae` (Track E / Step 3 — matrix
+  scaffolding and operator runbook).
+
+### Parallel Track E / Step 4 — operator-driven smoke execution and matrix update (завершён, PATH B)
+
+- **Цель шага.** Прогнать `frozen-smoke-v1` на доступных
+  у operator'а дополнительных 1С версиях и заполнить
+  evidence rows; либо честно зафиксировать operator-supplied
+  gap без имитации evidence. **Это единственный шаг Track
+  E, где допускались real 1cv8.exe runs.**
+- **Что реально показал operator-side inventory.**
+  - `C:/Program Files/1cv8/8.3.27.1859/bin/1cv8.exe` —
+    minor family `8.3.27`, build `1859`, x64 — **reference,
+    already represented**.
+  - `C:/Program Files (x86)/1cv8/8.3.27.1936/bin/1cv8.exe` —
+    minor family `8.3.27`, build `1936`, x86 — **same minor
+    family** as reference, **disqualified** as additional
+    evidence per Step 2 §2.2 (build-level разница внутри
+    одной minor family ≠ additional evidence).
+  - Прочие typical install paths (`C:/Tools/1cv8`,
+    `C:/1cv8`, `D:/1cv8`, `D:/Program Files/1cv8`) —
+    **absent** на этой машине.
+  - ENV-substitution credentials
+    (`ONEC_DESIGNER_USER` / `ONEC_DESIGNER_PASSWORD`) —
+    NOT SET в session; даже на reference run frozen-smoke-v1
+    был бы render-fail before subprocess start.
+- **Decision: PATH B (honest operator-supplied gap).** Per
+  Track E plan Q4 + step-map Step 4: «если operator
+  additional versions не предоставит — Track E закрывается
+  с явным operator-supplied gap, без имитации evidence».
+  Это **не** track failure; это honest closure под
+  фактический evidence-уровень.
+- **Что реально появилось в Step 4.**
+  `docs/version-support-matrix.md` дополнен новой
+  подсекцией `#### Track E / Step 4 closure note —
+  operator-supplied gap` под `### Additional rows`:
+  inventory-таблица operator-side окружения (3 строки:
+  reference, disqualified same-family x86, absent typical
+  paths); explicit list «что отсутствует на operator side
+  для PATH A»; explicit list «что Step 4 сознательно не
+  делал» (6 пунктов: no run на same-family x86, no rerun
+  reference, no scenario expansion, no contract changes,
+  no fabricated rows, no real credentials); explanation
+  почему PATH B honest closure не failure;
+  operator next-action option post-closure.
+- **Что НЕ сделано (намеренно).** Никаких 1cv8.exe runs.
+  Никаких additional evidence rows. Никакого rerun
+  reference. Никакого scenario expansion. Reference row
+  preserved unchanged (copy-only из Track A). 12-column
+  contract intact. Никаких изменений в `apps/`,
+  `packages/`, `scripts/`, `pyproject.toml`, `SECURITY.md`,
+  `CHANGELOG.md`, `docs/release-handoff.md`, `README.md`,
+  Track E planning/audit/scenario/runbook docs.
+- **Verification.** `verify-release.ps1 -AllowDirtyTree`
+  GREEN на 8 checks; registries `read=15 / write=25 /
+  intelligence=16` без drift'а; credential template hygiene
+  PASS.
+- **Commit.** `f962d78` (Track E / Step 4 — operator-driven
+  smoke execution and matrix update).
+
+### Parallel Track E / Step 5 — support statement and docs alignment (завершён)
+
+- **Цель шага.** Выровнять operator-facing и
+  status-adjacent docs под фактический Step 4 PATH B
+  результат. Не менять продукт, не менять сценарий, не
+  менять evidence — только wording alignment там, где он
+  должен отражать уже известный результат.
+- **Что реально появилось в Step 5.** Пять точечных
+  правок в трёх operator-facing docs:
+  - `SECURITY.md`: bullet «Single-version 1С evidence»
+    переименован в «Single-version 1С evidence (with
+    multi-version scaffolding)» с pointer'ом на
+    `docs/version-support-matrix.md`, mention
+    `frozen-smoke-v1` + operator runbook, Track E / Step 4
+    PATH B context, и «no blanket multi-version support
+    claim» disclaimer.
+  - `docs/release-handoff.md`: Known limitations bullet
+    «No multi-version 1С smoke matrix» переписан под
+    «Multi-version 1С smoke matrix — scaffolding only»
+    с pointers на matrix doc и operator runbook + Step 4
+    PATH B context. Companion «Single-version 1С
+    coverage» bullet расширен matrix-doc pointer'ом как
+    single source of truth.
+  - `README.md`: Quickstart paragraph переписан — убрано
+    stale «planning-only, Step 1»; убрана broad «matrix
+    из нескольких 1С версий» implication; новый honest
+    snapshot (scaffolding + reference row + honest
+    operator-supplied gap) + matrix-doc pointer. «Куда
+    идти дальше» navigation обогащён: existing
+    `docs/runbooks/` bullet расширен Track E operator
+    runbook mention; новый bullet на
+    `docs/version-support-matrix.md`; existing
+    `docs/architecture/` bullet расширен Track E mention.
+- **Единый support statement** (теперь aligned across
+  SECURITY / release-handoff / README): reference
+  single-version evidence есть; matrix scaffolding
+  существует; additional rows нет; Step 4 PATH B honest
+  gap; `docs/version-support-matrix.md` — single source of
+  truth; **no blanket multi-version support claim**.
+- **Что НЕ сделано (намеренно).** `PROJECT-STATUS.md`
+  и `CHANGELOG.md` не тронуты — closure deliverables
+  Step 6 (Track A/B/C/D pattern: header alignment и
+  CHANGELOG entry — не intermediate-step concerns).
+  Никаких изменений в `apps/`, `packages/`, `scripts/`,
+  `pyproject.toml`, registries, Track E planning /
+  audit / scenario / runbook docs (factual anchors,
+  уже точны после Step 4), `docs/version-support-matrix.md`
+  (точен после Step 4 PATH B note), `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks.md`.
+- **Selfcheck после Step 5.** Зелёный: registries без
+  drift'а; selfcheck_status=ok; verify-release.ps1 GREEN
+  на 8 checks; никаких 1cv8.exe runs; никаких real
+  credentials.
+- **Commit.** `78d5956` (Track E / Step 5 — support
+  statement and docs alignment).
+
+### Parallel Track E / Step 6 — final integration pass and Track E closure (завершён)
+
+- **Цель шага.** Закрыть весь Track E как documented
+  status. Read-only final integration check уже закрытых
+  Steps 1–5, потом минимальные closure-docs/status
+  updates, потом final closure commit. Никакого нового
+  feature work, никаких новых MCP tools, никакого remote
+  push'а, никакого 1cv8.exe run, никакого «дожимания»
+  Step 4 задним числом.
+- **Read-only final integration check (pre-closure).**
+  - working tree clean перед началом — gate PASS;
+  - git history линейная Step 1 → 2 → 3 → 4 → 5 → 6
+    (все commit'ы на месте);
+  - все 6 Step 1–5 deliverables на диске:
+    `track-e-multi-version-smoke-matrix-plan.md` (328
+    строк), `track-e-multi-version-smoke-matrix-step-map.md`
+    (324), `track-e-current-evidence-audit.md` (292),
+    `track-e-smoke-scenario.md` (436),
+    `docs/runbooks/track-e-multi-version-smoke-matrix.md`
+    (484), `docs/version-support-matrix.md` (258 строк
+    с reference row + Step 4 PATH B note);
+  - Step 4 PATH B closure note на месте в matrix doc
+    (lines 129–178);
+  - Step 5 alignment confirmed в SECURITY +
+    release-handoff;
+  - registries `read=15 / write=25 / intelligence=16`
+    без drift'а;
+  - `verify-release.ps1 -AllowDirtyTree` GREEN на
+    8 checks;
+  - no real credentials в diff'ах ни одного из пяти
+    Track E commit'ов.
+- **Q5 resolved (closure decision).** Version bump
+  0.2.0 → 0.3.0 — **НЕТ.** Track E ship'нул scaffolding +
+  status alignment без functional delta (production code
+  untouched, registries без drift'а, никаких evidence rows
+  beyond reference). По SemVer logic'у MINOR bump
+  оправдан для backward-compatible new functionality;
+  Track E — pure documentation/process maturity track
+  без functional change. Track E логически закрывается
+  под существующим 0.2.0 как closure follow-up
+  (симметрично pattern'у Track A/B/C под 0.1.0).
+- **Что реально изменено на Step 6 (closure-docs only).**
+  - `README.md` — Quickstart paragraph переписан под
+    «Активного трека сейчас нет»; «Closed parallel
+    tracks» list дополнен Track E bullet'ом
+    (четыре → пять закрытых треков); «Active parallel
+    track» секция сжата под «нет активного трека» с
+    pointer'ом на Track E detail; добавлена «Track E
+    detail (закрыт)» секция полным блоком симметрично
+    Track A/B/C/D detail блокам (per-step bullets с
+    commit hashes, что Track E реально закрыл, что
+    Track E **не делает** «полной совместимостью»
+    после closure, registry invariant).
+  - `PROJECT-STATUS.md` — header (Текущий шаг + Статус)
+    обновлён под Track E closed; общий narrative-блок
+    переписан под closure; добавлены пять новых
+    per-step секций (Steps 2/3/4/5/6); устаревший
+    «Следующий шаг — Step 2» помечен как
+    historical-snapshot.
+  - `CHANGELOG.md` — добавлен новый «Parallel Track E
+    follow-up — Multi-Version 1C Smoke Matrix» subsection
+    под существующий 0.2.0 раздел с per-step outcomes,
+    registry invariant note, honest constraints update;
+    «Active work» в 0.2.0 секции обновлён под Track E
+    closure («Track E was opened and closed within 0.2.0
+    as a documentation/scaffolding follow-up, without a
+    minor version bump»).
+- **Что НЕ изменено на Step 6 (закрытый scope).**
+  `pyproject.toml` (Q5 = НЕТ, version `0.2.0` сохраняется);
+  `apps/`, `packages/`, `scripts/`, `examples/`, `.github/`,
+  `.editorconfig`, `.python-version`, `.gitignore`,
+  `LICENSE`; `SECURITY.md` (Step 5 уже выровнял);
+  `docs/release-handoff.md` (Step 5 уже выровнял);
+  `docs/version-support-matrix.md` (точен после Step 4);
+  Track E planning/audit/scenario docs (frozen);
+  `docs/runbooks/track-e-multi-version-smoke-matrix.md`
+  (Step 3 deliverable, точен);
+  `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks/*`
+  (не задеты Track E); registries; `1cv8.exe` не
+  запускался ни на одном шаге Track E.
+- **Selfcheck после Step 6.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без drift'а;
+  selfcheck_status=ok; verify-release.ps1 GREEN на
+  8 checks; никаких реальных credentials в Step 6 diff'е.
+- **Следующий шаг.** Активного шага нет. Track E
+  полностью закрыт. Phase 7 как линейная фаза не
+  запланирована. Открытие следующего parallel track'а —
+  отдельное operator-решение.
 
 ## Phase 6 закрыта
 

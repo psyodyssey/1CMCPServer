@@ -118,9 +118,137 @@ No MCP surface drift through Track D.
   no full enterprise super-set, no hot reload, no full AST
   parser, no full rollback / delete coverage).
 
+### Parallel Track E follow-up — Multi-Version 1C Smoke Matrix (closure under 0.2.0)
+
+After Track D closure, **Parallel Track E — Multi-Version 1C
+Smoke Matrix** was opened as the fifth post-phase parallel
+track and closed within the same `0.2.0` release line as a
+documentation / scaffolding follow-up, **without** a minor
+version bump (Q5 resolved: NO bump). Track E shipped no
+functional delta — production code untouched throughout the
+track, registries `read=15 / write=25 / intelligence=16`
+without drift, no new MCP tools, no `1cv8.exe` runs at any
+step. Six steps total.
+
+#### Per-step outcomes
+
+- **Step 1 (planning multi-version 1C smoke matrix)** — two
+  planning documents under `docs/architecture/track-e-*` (plan
+  + step-map). No code changes. Commit `1b233ce`.
+- **Step 2 (current evidence audit and smoke scenario freeze)** —
+  two new documentation-only documents:
+  `track-e-current-evidence-audit.md` (descriptive — what is
+  proven on reference `8.3.27.1859`, physical artifacts on
+  disk, what is not yet evidenced, why single-version is
+  insufficient; strict separation proven / inferred /
+  not-yet-run / operator-supplied future inputs) and
+  `track-e-smoke-scenario.md` (prescriptive **frozen** —
+  scenario name `frozen-smoke-v1`, cut-down
+  `create_dump_snapshot` via `/DumpConfigToFiles` only,
+  principle-based version selection criteria,
+  12-column matrix shape, PASS / FAIL / NOT RUN semantics,
+  required evidence fields, Step 4 execution boundary).
+  Commit `630f837`.
+- **Step 3 (matrix scaffolding and operator runbook)** — two
+  new operator-facing documents:
+  `docs/runbooks/track-e-multi-version-smoke-matrix.md`
+  (operator runbook for running `frozen-smoke-v1` on an
+  operator-supplied 1С version) and
+  `docs/version-support-matrix.md` (top-level evidence
+  table with frozen 12-column shape; reference Row 1 for
+  `8.3.27.1859` filled copy-only from existing Track A /
+  Step 6 evidence, scenario field explicitly marked as
+  `stronger-than-frozen-smoke-v1`; no fabricated additional
+  rows). No `1cv8.exe` run. Commit `7c08cae`.
+- **Step 4 (operator-driven smoke execution and matrix update)** —
+  closed via **PATH B (honest operator-supplied gap)**. No
+  `1cv8.exe` runs were executed; no additional evidence rows
+  were added. Operator-side inventory found only the `8.3.27`
+  minor family installed locally (builds `1859/x64` reference
+  + `1936/x86` same-family disqualified per Step 2 §2.2);
+  no `8.3.<other minor>` family was available; ENV-substitution
+  credentials were not set in the work session. Per Track E
+  plan Q4 + step-map Step 4, this is honest closure, not
+  track failure. `docs/version-support-matrix.md` gained a
+  closure note subsection enumerating the actual operator-side
+  inventory and an explicit list of what Step 4 deliberately
+  did not do (no run on same-family x86 build, no rerun of
+  reference, no scenario expansion, no matrix contract
+  changes, no fabricated rows, no real credentials).
+  Commit `f962d78`.
+- **Step 5 (support statement and docs alignment)** — five
+  point-edits across three operator-facing docs to align
+  wording with the actual Step 4 PATH B outcome: `SECURITY.md`
+  (single-version evidence bullet renamed to "Single-version
+  1С evidence (with multi-version scaffolding)" with pointer
+  to matrix doc + Track E PATH B context + "no blanket
+  multi-version support claim"), `docs/release-handoff.md`
+  ("No multi-version 1С smoke matrix" Known limitations
+  bullet rewritten as "Multi-version 1С smoke matrix —
+  scaffolding only" with pointers and PATH B context;
+  Single-version coverage bullet extended with matrix-doc
+  pointer), `README.md` (Quickstart paragraph rewritten to
+  remove stale "planning-only, Step 1" and broad
+  "matrix из нескольких 1С версий" implication; "Куда идти
+  дальше" navigation enriched with Track E runbook + matrix
+  doc + Track E architecture mentions). Unified support
+  statement now consistent across all three docs. Commit
+  `78d5956`.
+- **Step 6 (final integration pass and Track E closure)** —
+  this closure: `README.md`, `PROJECT-STATUS.md`, and
+  `CHANGELOG.md` aligned with Track E closed status. No
+  `pyproject.toml` change (Q5 = NO; Track E without
+  functional delta does not warrant a minor bump). Read-only
+  final integration check green: linear Step 1 → 6 history,
+  all Step 1–5 deliverables present on disk, registries
+  without drift, `verify-release.ps1` GREEN on 8 checks, no
+  real credentials anywhere in the six Track E commits.
+
+#### Registry invariant carried through Track E
+
+- `mcp-read-server` — 15 public tools.
+- `mcp-write-server` — 25 public tools.
+- `mcp-intelligence-server` — 16 public tools.
+
+No MCP surface drift through Track E.
+
+#### Honest constraints update under Track E closure
+
+- **Reference single-version evidence remains
+  single-version.** Track E shipped scaffolding (frozen
+  scenario + operator runbook + matrix-table doc) but did
+  not extend the actual evidence breadth. The reference
+  row in `docs/version-support-matrix.md` covers
+  `8.3.27.1859` only; no additional version evidence rows
+  were added.
+- **No blanket multi-version support claim.** The platform
+  remains multi-version-friendly architecturally (operator
+  selects the binary path), but evidence-level claims are
+  bounded by the reference row and the honest
+  operator-supplied gap notation in the matrix doc.
+- **`docs/version-support-matrix.md` is the single source
+  of truth** for the actual evidence level. Post-closure
+  additional evidence rows can be added through
+  documentation-only updates against the matrix doc by
+  following
+  `docs/runbooks/track-e-multi-version-smoke-matrix.md`,
+  without re-opening Track E.
+- All other 0.2.0 honest constraints (DESIGNER credentials
+  remain operator-managed via `${ENV:NAME}` substitution;
+  Check 8 is a narrow heuristic, not full DLP) carry
+  forward unchanged.
+- All 0.1.0 honest constraints (no production-grade MCP
+  transport, no installer ecosystem, no full enterprise
+  super-set, no hot reload, no full AST parser, no full
+  rollback / delete coverage) also carry forward
+  unchanged.
+
 ### Active work
 
-None. No parallel track is currently open after Track D closure.
+None. No parallel track is currently open after Track E
+closure. Track E was opened and closed within the `0.2.0`
+release line as a documentation / scaffolding follow-up,
+without a minor version bump (Q5 = NO; no functional delta).
 Phase 7 as a linear phase is not planned. Opening the next
 parallel track is an explicit operator decision.
 
