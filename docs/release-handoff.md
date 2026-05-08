@@ -327,9 +327,22 @@ as a single checklist so the receiver does not miss them.
   evidence-уровня —
   [`docs/version-support-matrix.md`](version-support-matrix.md).
 - **Limited rollback coverage** — the automatic rollback
-  whitelist is small and intentional. See
-  `apps/platform/README.md` and the Phase 6 / Step 4 history in
-  `PROJECT-STATUS.md`.
+  whitelist remains narrow and intentional. After Track F /
+  Step 4 (post-Phase-6 parallel track) it contains exactly
+  6 entries: `add_catalog_attribute`,
+  `add_document_attribute`, `add_form_attribute`,
+  `add_form_element`, `append_module_method`,
+  `replace_module_method_body`. That covers 6 of 25 mutating
+  registry tools = 24% mutating surface; the remaining
+  19 tools (incl. `create_*` family,
+  `apply_config_from_files`,
+  `update_database_configuration`, multi-file ops) stay
+  outside the rollback whitelist by design — there is no
+  blanket reversibility claim. See `apps/platform/README.md`,
+  `docs/architecture/track-f-rollback-whitelist-expansion-plan.md`,
+  `docs/architecture/track-f-rollback-baseline-audit.md`,
+  and `docs/architecture/track-f-rollback-eligibility-contract.md`
+  for full rationale and per-tool tier breakdown.
 - **No production-grade MCP transport.** Treat the servers as
   local development services, not as exposed network endpoints.
 - **No installer ecosystem.** See "What is NOT in this handoff"

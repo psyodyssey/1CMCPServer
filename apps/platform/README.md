@@ -762,8 +762,14 @@ Phase 3) под `<dump_path>/.audit/audit.jsonl`. Цель — не
 - **`preview`** — assistant прогнался успешно, ничего не
   исполнялось (`confirm_execute=False`).
 - **`executed`** — supported automatic recovery был
-  выполнен. На Step 6 **недостижимо**: whitelist
-  `_AUTOMATIC_RECOVERY_SUPPORTED` пуст.
+  выполнен. Достижим для tools в whitelist'е
+  `_AUTOMATIC_RECOVERY_SUPPORTED` (after Track F / Step 4 —
+  6 entries: `add_catalog_attribute`, `add_document_attribute`,
+  `add_form_attribute`, `add_form_element`,
+  `append_module_method`, `replace_module_method_body`).
+  Изначально (Phase 5 / Step 6) этот mode был недостижим
+  (whitelist пуст); Phase 6 / Step 4 расширил whitelist до
+  2 tools; Track F / Step 4 — до 6.
 - **`blocked`** — `confirm_execute=True`, но dashboard
   Step 4 не в `ready_for_workflows` состоянии. Preview
   всё равно построен — оператор видит, что хотел сделать
@@ -776,7 +782,7 @@ Phase 3) под `<dump_path>/.audit/audit.jsonl`. Цель — не
 - **`rejected`** — invalid input (пустой `operation_id`,
   битый product config, не-dict root, missing JSON file).
 
-### Почему `_AUTOMATIC_RECOVERY_SUPPORTED` пуст
+### Почему `_AUTOMATIC_RECOVERY_SUPPORTED` исторически был пуст и как он расширялся
 
 В платформе **нет** публичных `delete_*` write-tool'ов
 (нет `delete_catalog_attribute`,
@@ -788,18 +794,44 @@ Phase 3) под `<dump_path>/.audit/audit.jsonl`. Цель — не
 2. либо product layer самостоятельно отредактировал бы
    XML/BSL в `dump_path` — это **back-door write channel**
    мимо `run_write_flow`, audit, snapshots и verify.
-   Step 6 явно отказывается от этого.
+   Phase 5 / Step 6 явно отказывается от этого.
 
-Поэтому Step 6 ship'ит **advisory-only** rollback UX:
-preview всегда построен, `prepare_rollback_hint` подтянут,
-оператор видит точные snapshot-paths и осмысленный
-operator summary, но финальный шаг — **manual
-snapshot-restore** — оператор делает сам, осознанно.
+Поэтому исходно Phase 5 / Step 6 ship'ил **advisory-only**
+rollback UX: preview всегда построен,
+`prepare_rollback_hint` подтянут, оператор видит точные
+snapshot-paths и осмысленный operator summary, но финальный
+шаг — **manual snapshot-restore** — оператор делает сам,
+осознанно. На том этапе whitelist
+`_AUTOMATIC_RECOVERY_SUPPORTED` был оставлен в коде как
+frozenset с честным docstring'ом — будущий шаг должен был
+расширить его без изменения скелета assistant'а.
 
-Whitelist `_AUTOMATIC_RECOVERY_SUPPORTED` оставлен в коде
-как frozenset с честным docstring'ом — будущий шаг (или
-enhancement, когда появятся public delete_* tool'ы)
-расширит его без изменения скелета assistant'а.
+Этот «будущий шаг» уже состоялся в два прохода:
+
+- **Phase 6 / Step 4** перевёл whitelist из пустого
+  frozenset'а в набор из **2 tools**
+  (`add_catalog_attribute`, `add_document_attribute`) —
+  узкая полоса single-XML-file ops без расширения public
+  surface'а write-server'а; см. секцию
+  «Phase 6 / Step 4 — первый исполняемый rollback (узкая
+  полоса)» ниже.
+- **Track F / Step 4** (post-Phase-6 parallel track)
+  расширил whitelist до **6 tools** добавлением
+  `add_form_attribute`, `add_form_element`,
+  `append_module_method`, `replace_module_method_body`
+  — все Tier 1 candidates per Track F eligibility contract
+  (file-based mutating ops, single relative_path payload key
+  из `_RELATIVE_PATH_KEYS`, pre-state file всегда
+  существовал, inverse через single-file snapshot restore).
+
+Дальнейшее расширение по-прежнему — отдельный track. Tier
+3 categorical exclusions (`create_*` family,
+`apply_config_from_files`, `update_database_configuration`)
+остаются вне whitelist'а by design: их inverse semantics
+требует public `delete_*` tools / multi-file restore /
+DB-schema rollback, ничего из чего Track F **не** ship'ил.
+См. `docs/architecture/track-f-rollback-eligibility-contract.md`
+для нормативного contract'а.
 
 ### Behavioral discipline
 
@@ -827,15 +859,21 @@ enhancement, когда появятся public delete_* tool'ы)
 
 ### Что rollback / recovery / audit UX сейчас НЕ делает
 
-- **Не выполняет автоматический content-level rollback**
-  ни для одного write-tool'а (см. выше — отсутствие
-  public `delete_*`).
-- **Не исполняет filesystem snapshot-restore.** Snapshot
-  paths surface'ятся в `RollbackPlan.suggested_*_root`
-  и в operator summary, но `shutil.copytree`-обратное
-  копирование оператор делает руками. Это сознательно:
-  product layer не должен иметь write channel на
-  dump/base.
+- **Выполняет автоматический content-level rollback
+  только для whitelisted tools** (after Track F / Step 4 —
+  6 entries: `add_catalog_attribute`,
+  `add_document_attribute`, `add_form_attribute`,
+  `add_form_element`, `append_module_method`,
+  `replace_module_method_body`). Для любого write-tool вне
+  whitelist'а — `mode='unsupported'` honest fail; manual
+  snapshot-restore остаётся operator's responsibility.
+- **Не исполняет multi-file filesystem snapshot-restore.**
+  Single-file snapshot restore через
+  `restore_dump_file_from_snapshot` доступен whitelisted
+  tools'ам; multi-file copytree-обратное копирование
+  (`shutil.copytree`-style) оператор по-прежнему делает
+  руками. Это сознательно: product layer не должен иметь
+  multi-file write channel на dump/base.
 - **Не модифицирует audit JSONL.** История — append-only;
   Step 6 только читает.
 - **Не делает UI / web frontend / push subscription.**
@@ -867,10 +905,21 @@ frozenset'а в **whitelist из ровно двух tool'ов**:
   `details=None` явно вырезается из JSON. Reader-слой
   принимает оба формата.
 - **Whitelist жёстко зафиксирован.** В whitelist'е только
-  объекты, чьё содержание полностью описывается одним
-  XML-файлом и обратимо ровно копированием snapshot-копии
-  этого файла. Других tool'ов в Step 4 не добавляем — это
-  отдельный шаг Phase 6.
+  tools, чей `operation_payload` carries single
+  `relative_path` key (один из
+  `flow.py:_RELATIVE_PATH_KEYS`), pre-state file всегда
+  существовал, и inverse полностью покрывается single-file
+  snapshot restore. На Phase 6 / Step 4 это были два
+  XML-attribute tools'а (`add_catalog_attribute`,
+  `add_document_attribute`); Track F / Step 4 (post-Phase-6
+  parallel track) расширил whitelist до 6 entries
+  добавлением `add_form_attribute`, `add_form_element`
+  (XML form-edit ops) и `append_module_method`,
+  `replace_module_method_body` (BSL module-edit ops). См.
+  `docs/architecture/track-f-rollback-eligibility-contract.md`
+  для нормативного contract'а и
+  `docs/architecture/track-f-rollback-baseline-audit.md`
+  для per-tool sanity-check evidence.
 - **`automatic_recovery_supported=True` требует трёх
   условий одновременно:** имя tool'а в whitelist'е, в
   audit-строке есть `details`, и `details` содержат
@@ -906,16 +955,70 @@ frozenset'а в **whitelist из ровно двух tool'ов**:
   tool вне whitelist'а или audit row без details →
   unsupported. Никаких mutating effects в обоих случаях.
 
-Что Step 4 НЕ делает:
-- не расширяет whitelist дальше двух tool'ов;
-- не трогает Step 5 guided workflows и Step 7 real-stand
+Что Phase 6 / Step 4 НЕ делал:
+- не расширял whitelist дальше двух tool'ов (это было
+  следующим шагом — фактически выполнен Track F / Step 4
+  post-Phase-6, расширил whitelist до 6 tools, см. ниже);
+- не трогал Step 5 guided workflows и Step 7 real-stand
   smoke test;
-- не делает `delete_*` public write-tool'ы (их по-прежнему
+- не делал `delete_*` public write-tool'ы (их по-прежнему
   нет — потребовало бы отдельного решения по семантике
-  удаления в 1С);
-- не делает full filesystem snapshot-restore — Step 4 это
+  удаления в 1С; out-of-scope Track F тоже);
+- не делал full filesystem snapshot-restore — это
   **single-file** restore, выбираемый одной строкой
-  `relative_path`.
+  `relative_path` (Track F / Step 4 сохранил эту дисциплину
+  без изменений).
+
+### Track F / Step 4 — расширение whitelist до 6 tools
+
+Track F (post-Phase-6 parallel track «Rollback Whitelist
+Expansion») в своём Step 4 расширил
+`_AUTOMATIC_RECOVERY_SUPPORTED` (и его mirror
+`_ROLLBACK_SUPPORTED_OPERATIONS` в
+`apps/mcp-write-server/src/mcp_write_server/runtime/flow.py`)
+с 2 до **6 entries** добавлением:
+
+- **`add_form_attribute`** — XML DOM edit формы (Phase 6 /
+  Step 5 deliverable);
+- **`add_form_element`** — XML substring patch формы;
+- **`append_module_method`** — BSL append к module file;
+- **`replace_module_method_body`** — BSL signature-bounded
+  body edit.
+
+Все четыре tools проходят через тот же
+`run_write_flow` + `restore_dump_file_from_snapshot` +
+`diff_dump_fragment` post-rollback verify mechanism, что и
+исходные два whitelisted tools. Никаких изменений в
+recovery API, audit `details` shape, `_RELATIVE_PATH_KEYS`,
+`_extract_relative_path`, write-tool definitions
+(`tools.py`), registries (`read=15 / write=25 /
+intelligence=16` без drift'а на всём треке).
+
+Что Track F / Step 4 (и Track F в целом) **не** делает:
+
+- не ship'ит универсальный rollback для произвольного
+  write-tool'а;
+- не ship'ит multi-file restore framework;
+- не ship'ит public `delete_*` write-tools (semantics
+  удаления в 1С остаётся undecided — out-of-scope Track F);
+- не ship'ит DB / schema rollback
+  (`update_database_configuration` остаётся
+  external-DB-backup territory);
+- не ship'ит rollback для multi-file
+  `apply_config_from_files`;
+- не ship'ит rollback для `create_*` family — их inverse
+  semantics требует delete которого нет (Tier 3
+  categorical exclusion в Track F audit);
+- не ship'ит AST-based semantic inversion для BSL / XML;
+- не делает blanket reversibility claim — после Track F /
+  Step 4 covered 6 of 25 mutating registry tools = 24%
+  surface; 19 tools остаются manual snapshot-restore
+  territory by design.
+
+Детали — в
+`docs/architecture/track-f-rollback-whitelist-expansion-plan.md`,
+`track-f-rollback-baseline-audit.md`,
+`track-f-rollback-eligibility-contract.md`.
 
 ## Что такое real-stand / 1cv8 binary integration track (Step 7)
 

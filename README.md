@@ -27,11 +27,20 @@
 > отсутствуют 1С minor families помимо `8.3.27`); это **не**
 > «поддержка всех версий», **не** full QA program и **не**
 > blanket multi-version support claim. Активный трек сейчас —
-> Parallel Track F — Rollback Whitelist Expansion (planning-only,
-> Step 1; узкое расширение `_AUTOMATIC_RECOVERY_SUPPORTED` за
-> пределы текущих двух tools — не universal rollback, не public
-> `delete_*`, не multi-file restore, не AST-based semantic
-> reverse).
+> Parallel Track F — Rollback Whitelist Expansion; после
+> Step 4 `_AUTOMATIC_RECOVERY_SUPPORTED` whitelist расширен с
+> 2 до 6 tools (`add_catalog_attribute`,
+> `add_document_attribute` уже были; добавлены
+> `add_form_attribute`, `add_form_element`,
+> `append_module_method`, `replace_module_method_body`).
+> Coverage broader, но **по-прежнему узкий**: 6 of 25
+> mutating registry tools = 24% surface. **Не** universal
+> rollback, **не** public `delete_*`, **не** multi-file
+> restore, **не** AST-based semantic reverse. Tier 3
+> categorical exclusions (`create_*` family,
+> `apply_config_from_files`,
+> `update_database_configuration`) остаются вне whitelist'а
+> by design.
 
 ### Системные требования
 
@@ -1279,7 +1288,14 @@ production runbook ecosystem не построен
 installer / signed distribution не сделан,
 enterprise super-set не открыт, web-UI / dashboard
 frontend не сделан, полная rollback-вселенная не
-покрыта (whitelist остаётся на двух tool'ах),
+покрыта (whitelist расширен до 6 tools после
+Track F / Step 4 — `add_catalog_attribute`,
+`add_document_attribute`, `add_form_attribute`,
+`add_form_element`, `append_module_method`,
+`replace_module_method_body` — но это всё ещё
+narrow set, 6 of 25 mutating tools; multi-file /
+DB-schema / `create_*` / public `delete_*`
+остаются categorically out-of-scope),
 полный AST-парсер XML/BSL не написан. Это
 явные honest constraints, **не** скрытые гэпы.
 
