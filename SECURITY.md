@@ -17,11 +17,26 @@ hidden gaps.
 
 - **Pre-1.0 software.** No backwards-compatibility guarantees across
   versions yet.
-- **Operator credentials are out-of-band.** DESIGNER user / password for
-  live 1С infobases must be supplied by the operator at run time
-  (e.g. environment variables, OS keychain, or local-only config files
-  excluded from the repository via `.gitignore`). The platform does
-  **not** ship a secrets manager.
+- **Operator credentials are operator-managed.** DESIGNER user /
+  password for live 1С infobases are supplied by the operator at
+  run time. The recommended path (Track D / Step 3) is the
+  full-element token `${ENV:NAME}` inside any
+  `onec_*_command_template` argv element, e.g.
+  `"/P", "${ENV:ONEC_DESIGNER_PASSWORD}"`. The render layer
+  resolves the token from the process environment; missing,
+  empty, or partial / mixed forms are fail-closed
+  (`ok=False`, `command_preview=None`, no subprocess started).
+  Literal cleartext templates remain supported as a legacy
+  fallback for backward compatibility but are **not** the
+  recommended baseline. The `command_preview` field surfaced in
+  payload data and the audit row's `details` redacts the argv
+  element following `/P` / `/Pwd` (case-insensitive) to the
+  sentinel `<redacted>`; the actual subprocess argv stays
+  unredacted because the binary must authenticate. The platform
+  does **not** ship a secrets manager / vault / KMS / OS keychain
+  integration / encrypted-at-rest secrets file format. Operators
+  who need any of those pull values into env vars from their own
+  secrets infrastructure before invoking the platform.
 - **No production-grade MCP transport yet.** The three MCP servers are
   intended for local / controlled use. There is no built-in
   authentication, authorisation, multi-tenant isolation, or hardened

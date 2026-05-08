@@ -31,8 +31,13 @@ exercise** на reference stand'е.
 
 - Не разворачивает demo-инфобазу за оператора. Reference stand
   оператор готовит сам (см. prereq'ы ниже).
-- Не управляет credentials. Имя пользователя / пароль для DESIGNER
-  оператор хранит в своём secrets-механизме.
+- Не является secrets manager. Имя пользователя / пароль для
+  DESIGNER оператор хранит в своём secrets-механизме (env vars,
+  vault, OS keychain — на выбор оператора). После Track D / Step 3
+  платформа поддерживает full-element env-substitution token
+  `${ENV:NAME}` в `onec_*_command_template`, чтобы значения не
+  попадали в product-config литералом — но саму инфраструктуру
+  хранения secrets платформа **не** предоставляет.
 - Не делает rollback за оператора. Если что-то пошло не так на
   шаге UpdateDBCfg — это оперативная задача стенда, а не
   платформенная.
@@ -67,9 +72,49 @@ exercise** на reference stand'е.
 
 - Имя пользователя 1С с правами **Designer** на целевой
   инфобазе и пароль.
-- Не коммитьте credentials в product-config. Возможные
-  механизмы: переменные окружения, secret manager, ad hoc
-  CLI prompt при подготовке argv-template'а.
+- **Recommended default (после Track D / Step 3):** не
+  записывайте `<user>` / `<password>` литералом в
+  product-config. Вместо этого выставляйте их через env vars
+  и используйте full-element token формы `${ENV:NAME}` в
+  `onec_*_command_template`-массивах. Соглашение о именах,
+  применённое в примерах ниже:
+  - `${ENV:ONEC_DESIGNER_USER}` — DESIGNER username;
+  - `${ENV:ONEC_DESIGNER_PASSWORD}` — DESIGNER password.
+  Имена env-vars произвольные — их выбирает оператор; важна
+  только форма token'а в template.
+- Resolution семантика: token резолвится в render-time, на
+  per-element basis. Token занимает **весь** argv-элемент
+  целиком — partial / mixed / multi-token формы (например,
+  `prefix-${ENV:X}` или `${ENV:A}${ENV:B}`) fail-closed.
+  Missing или empty env var тоже fail-closed: tool возвращает
+  `ok=False`, `mode='binary-backed'`, `binary_invoked=False`,
+  `command_preview=None`. Это намеренно: оператор узнаёт о
+  конфигурационной ошибке **до** запуска subprocess'а,
+  никакого silent fallback'а на пустую строку нет.
+- **Legacy fallback:** literal cleartext `/P "<password>"`
+  в template продолжает работать (no breaking change). Это
+  поддерживается для миграции, но **не** рекомендуется как
+  основной путь — `command_preview` всё равно редактирует
+  password-position по `/P` / `/Pwd` (см. ниже), но сам
+  product-config остаётся cleartext-файлом на диске.
+- **Redaction note:** после Track D / Step 3 `command_preview`
+  в payload write-tool'ов и `details.command_preview` в audit
+  row'ях редактируют argv-элемент сразу после `/P` или `/Pwd`
+  (case-insensitive equality) на sentinel `<redacted>` —
+  независимо от того, пришёл ли value из env-token'а или из
+  literal-формы. Actual subprocess argv остаётся **unredacted**
+  (1cv8 binary должен получить реальный пароль для
+  аутентификации); это observation-side hardening, не
+  execution-side. OS-level argv tracing (`ps`, ETW,
+  process-audit подсистемы) видит реальный value — это
+  operator territory.
+- **Чего платформа не делает:** не интегрируется с vault /
+  KMS / Secrets Manager / Key Vault как baseline; не ходит в
+  OS keychain (Windows Credential Manager / macOS Keychain /
+  Linux Secret Service); не шифрует secrets at rest. Если
+  оператор хочет такой path — он сам экспортирует env vars из
+  своего vault'а (`vault kv get`, `op read`, `aws secretsmanager
+  get-secret-value` и т.д.) перед запуском.
 
 ### 4. Source dump tree для apply (если делается meaningful diff)
 
@@ -123,8 +168,8 @@ EnvironmentConfig (см. документацию пакета `onec-config`) и
           "{binary_path}",
           "DESIGNER",
           "/F", "{base_path}",
-          "/N", "Designer",
-          "/P", "<password>",
+          "/N", "${ENV:ONEC_DESIGNER_USER}",
+          "/P", "${ENV:ONEC_DESIGNER_PASSWORD}",
           "/DumpCfg", "{output_path}",
           "/DisableStartupMessages"
         ],
@@ -132,8 +177,8 @@ EnvironmentConfig (см. документацию пакета `onec-config`) и
           "{binary_path}",
           "DESIGNER",
           "/F", "{base_path}",
-          "/N", "Designer",
-          "/P", "<password>",
+          "/N", "${ENV:ONEC_DESIGNER_USER}",
+          "/P", "${ENV:ONEC_DESIGNER_PASSWORD}",
           "/LoadConfigFromFiles", "{input_path}",
           "/DisableStartupMessages"
         ],
@@ -141,8 +186,8 @@ EnvironmentConfig (см. документацию пакета `onec-config`) и
           "{binary_path}",
           "DESIGNER",
           "/F", "{base_path}",
-          "/N", "Designer",
-          "/P", "<password>",
+          "/N", "${ENV:ONEC_DESIGNER_USER}",
+          "/P", "${ENV:ONEC_DESIGNER_PASSWORD}",
           "/UpdateDBCfg",
           "-Server",
           "/DisableStartupMessages"
@@ -178,6 +223,18 @@ EnvironmentConfig (см. документацию пакета `onec-config`) и
 >
 > Любой неизвестный плейсхолдер — render-time `ok=False` **до**
 > старта `subprocess`'а. Это намеренно.
+
+> **Env-substitution token (Track D / Step 3).** Помимо
+> structural placeholder'ов выше, любой argv-элемент template'а
+> может **целиком** иметь форму `${ENV:NAME}` — token резолвится
+> в render-time из process environment'а. Применяется к **полному**
+> argv-элементу: partial формы (`prefix-${ENV:X}`),
+> multi-token формы (`${ENV:A}${ENV:B}`) и пустое имя
+> (`${ENV:}`) — render-time `ok=False` **до** старта
+> subprocess'а; missing или empty env var — тоже render-time
+> `ok=False`. Никакого silent fallback'а на пустую строку нет.
+> Token и structural placeholder в одном элементе несовместимы;
+> разделите на два argv-элемента.
 
 ### 7. Reference stand assumptions
 
@@ -417,9 +474,15 @@ print("mode:", op["mode"], "binary_invoked:", op["binary_invoked"],
   автоматически (Phase 6 / Step 4 ограничил executable
   rollback whitelist'ом из двух atomic-tool'ов;
   UpdateDBCfg вне этого whitelist'а — это by design).
-- Что credentials, передаваемые через `/N` `/P`, не
-  попадают в логи (`onec-process-runner` не санитайзит argv;
-  оператор сам отвечает за безопасное окружение).
+- Что credentials, передаваемые через `/N` `/P`, не попадают
+  ни в один лог во вселенной. Платформа после Track D / Step 3
+  редактирует argv-элемент сразу после `/P` / `/Pwd` в
+  `command_preview` payload'ов write-tool'ов и в
+  `details.command_preview` audit row'ей (sentinel
+  `<redacted>`), но `onec-process-runner` не санитайзит actual
+  subprocess argv (1cv8 binary должен получить реальный
+  пароль), и OS-level argv tracing (`ps`, ETW, process-audit
+  подсистемы) видит реальный value — это operator territory.
 
 ## Типовые failure cases
 
@@ -435,17 +498,31 @@ print("mode:", op["mode"], "binary_invoked:", op["binary_invoked"],
 до запуска шагов A.2–A.5. Шаги **не** должны запускаться,
 если prereq inventory красный.
 
-### F2. Unknown placeholder в template
+### F2. Unknown placeholder или unresolved env-token в template
 
 **Симптом:** `result.ok == False` **до** старта subprocess'а;
 `payload["data"]["binary_invoked"] == False`;
 `payload["data"]["command_preview"] is None`;
-`result.message` содержит unknown placeholder name.
+`result.message` содержит либо имя unknown structural
+placeholder'а, либо имя env-var'а, который не выставлен или
+пуст, либо явное сообщение про invalid env-substitution form
+(partial / mixed / multi-token).
 
-**Действие:** убрать unknown placeholder из template'а или
-заменить на whitelist-член. Это намеренная защита —
-платформа **не** добавляет неизвестные placeholder'ы в
-substitutions.
+**Действие:**
+
+- если это unknown structural placeholder — убрать или заменить
+  на whitelist-член;
+- если это missing / empty env — выставить env var в среде, из
+  которой запускается write-server, либо заменить token на
+  literal value (legacy fallback);
+- если это invalid env form — переписать argv-элемент так,
+  чтобы он был **либо** literal value, **либо** структурным
+  placeholder'ом, **либо** ровно `${ENV:NAME}` без префиксов /
+  суффиксов / других tokens.
+
+Это намеренная защита: платформа **не** добавляет неизвестные
+placeholder'ы в substitutions и **не** трактует пустую env как
+silent empty value.
 
 ### F3. Real binary non-zero exit
 

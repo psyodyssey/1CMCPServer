@@ -286,12 +286,23 @@ NOT touch a 1С infobase, does NOT replace the install fast path.
 Some of these have been called out above; they are repeated here
 as a single checklist so the receiver does not miss them.
 
-- **DESIGNER credentials are operator-managed and out-of-band.**
-  The platform does not ship a secrets manager. Any credential
-  needed for binary-backed write operations is supplied by the
-  operator at run time (typically through environment variables
-  or a local-only config file under `%TEMP%` excluded by
-  `.gitignore`).
+- **DESIGNER credentials are operator-managed.** Track D /
+  Step 3 added a documented safer input path: any argv element
+  inside `onec_*_command_template` may be the full-element token
+  `${ENV:NAME}`, which is resolved at render time from the
+  process environment (e.g.
+  `"/P", "${ENV:ONEC_DESIGNER_PASSWORD}"`). Missing or empty
+  env, and partial / mixed token forms, are fail-closed before
+  the subprocess starts. Literal cleartext templates remain
+  supported as a legacy fallback. `command_preview` in
+  write-tool payloads and the audit row's `details` redacts the
+  argv position following `/P` / `/Pwd` (case-insensitive) to
+  `<redacted>`; the actual subprocess argv is not redacted
+  (the 1С binary must authenticate). The platform still does
+  not ship a secrets manager, vault, KMS, OS keychain
+  integration, or encrypted-at-rest secrets file format —
+  operators feed env vars from their own secrets infrastructure
+  if they need that.
 - **Pre-1.0 software.** Backwards-compatibility guarantees
   across versions are not yet in place.
 - **Single-version 1С coverage** — `8.3.27.1859`. Other versions
