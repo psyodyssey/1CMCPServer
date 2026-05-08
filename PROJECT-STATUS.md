@@ -2,12 +2,19 @@
 
 ## Текущий шаг
 
-**Активного шага нет.** Parallel Track C полностью закрыт
-на Step 6 (final integration pass and Track C closure).
-Track A и Track B закрыты ранее. Открытие следующего
-parallel track'а — отдельное решение оператора.
+**Parallel Track D / Step 1 — planning Operator Credentials
+Hardening (in progress / documentation only).** Track A, Track B
+и Track C полностью закрыты ранее. Track D — четвёртый post-phase
+parallel track; Step 1 — два planning-документа без code changes.
 
 ## Статус
+
+`in progress` (для Parallel Track D / Step 1 как
+documentation-only opening — два planning-документа
+ship'нуты, никаких code changes, никаких изменений
+registry, никаких новых MCP tool'ов; никаких реальных
+credentials в repo / docs / commit message; Track D / Step 2 —
+следующий шаг и не открывается в этом же заходе).
 
 `closed` (для всего Parallel Track C — Steps 1–6 закрыты
 последовательно; шесть meaningful commit'ов в `main`:
@@ -110,15 +117,20 @@ product/intelligence; нет back-door write channel'а;
 нет `shell=True`; audit append-only; fail-closed по
 умолчанию) **сохраняются без изменений**).
 
-После closure'а Track C активного трека нет. Track A,
-Track B и Track C закрыты последовательно как post-phase
-completion track'и. Phase 7 как линейная фаза не
-запланирована. Возможные следующие parallel track'и
-перечислены в конце Track B Step 6 секции (operator
-credentials hardening, multi-version 1С matrix, full
-rollback whitelist) — это **только recommendations**, без
-авто-открытия. **GitHub remote push** не часть Track C —
-repo готов к выкладке, но пушить — operator action.
+После closure'а Track C открыт четвёртый post-phase track —
+**Parallel Track D — Operator Credentials Hardening**.
+Track D сейчас documentation-only (Step 1 planning).
+Никаких изменений в `apps/`, `packages/`, `scripts/`,
+`pyproject.toml`, `.github/`, `.editorconfig`,
+`.python-version`, `.gitignore`, `examples/`, `LICENSE`,
+`SECURITY.md`, `CHANGELOG.md`, `docs/release-handoff.md`,
+`docs/operator-manual.md`, `docs/administrator-manual.md`,
+`docs/developer-manual.md`, `docs/runbooks/*` после Step 1.
+Track D / Step 2 (credentials-flow audit and contract:
+docs-only audit + формальный contract на env-substitution
+`${ENV:NAME}`, fail-closed semantics, redaction discipline)
+— следующий шаг. **GitHub remote push явно НЕ часть
+трека** — это operator action.
 
 ## Что сделано
 
@@ -9404,6 +9416,145 @@ read/write/intelligence-серверов, с честно
   рекомендуемые — full enterprise super-set, web-UI,
   packaging ecosystem (более широкий scope, выше
   риск).
+
+### Parallel Track D / Step 1 — planning Operator Credentials Hardening (завершён)
+
+- **Цель шага.** Зафиксировать документационный вход в
+  **Parallel Track D — Operator Credentials Hardening**:
+  назначение трека, целевой результат, что закрывает
+  трек и что НЕ закрывает, чем отличается от Track A /
+  Track B / Track C, guardrails, явный список «что НЕ
+  входит», 10 acceptance criteria, открытые вопросы
+  Step 2+. Кода не писать. Никаких изменений registry.
+  Никаких новых MCP tool'ов. Никаких реальных credentials
+  в repo / docs / commit message.
+- **Назначение трека.** Track A закрыл execution layer,
+  Track B — базовую productization, Track C — delivery /
+  packaging / handoff. Самый узкий, окупаемый и честно
+  зафиксированный незакрытый разрыв — operator credentials
+  flow: DESIGNER credentials попадают в систему через
+  `onec_*_command_template`-массивы как литеральные
+  позиционные аргументы `/N "<user>"` `/P "<password>"`;
+  платформа не делает env-substitution в этих template'ах
+  (placeholder-движок поддерживает только whitelisted
+  structural placeholder'ы); cleartext literal — самый
+  прямой путь, описанный в runbook'е Track A;
+  «out-of-band» документирован как набор возможностей,
+  но сама платформа ни одной из них не реализует.
+  Track D переводит этот honest constraint в узкий
+  реализованный hardening-trek без enterprise-secrets
+  программы.
+- **Что реально появилось в Step 1.**
+  - **Один новый план трека:**
+    `docs/architecture/track-d-operator-credentials-hardening-plan.md`
+    — назначение Track D, целевой результат
+    (5-пунктовый narrative), что Track D **не**
+    закрывает (enterprise vault platform, cloud KMS /
+    Secrets Manager / Key Vault как baseline,
+    SSO/RBAC/multi-tenant identity, federated audit,
+    encrypted-at-rest secrets, OS keychain integration
+    как baseline, production-grade MCP transport,
+    multi-version 1С matrix, новые MCP tools, 1cv8
+    binary changes, remote push), guardrails (no real
+    credentials anywhere, no registry drift, backward-
+    compat для legacy cleartext template, fail-closed
+    на unresolved env, redaction-by-default в
+    `command_preview`), 10 acceptance criteria,
+    7 открытых вопросов (Q1—Q7), раздел «связь с
+    Phase 6 / Track A / Track B / Track C», honest
+    constraints после closure.
+  - **Один новый step-map:**
+    `docs/architecture/track-d-operator-credentials-hardening-step-map.md`
+    — шесть шагов: Step 1 (planning, этот),
+    Step 2 (credentials-flow audit + contract,
+    docs-only — два новых short документа audit +
+    contract), Step 3 (env-substitution implementation
+    + redaction в `binary_dispatch.render_command_template`
+    и `_assemble_command_preview`), Step 4 (operator
+    docs / migration / handoff alignment — runbook,
+    SECURITY, release-handoff, operator-manual),
+    Step 5 (release-verify credential-hygiene heuristic
+    — 8-й check в `verify-release.ps1`), Step 6 (final
+    integration pass and Track D closure). Каждый шаг
+    описан в формате Цель / Что меняем / Что НЕ
+    меняем / Результат.
+- **Что НЕ сделано (намеренно).**
+  - **Никаких изменений production-кода.** `apps/`,
+    `packages/`, `scripts/`, `pyproject.toml`,
+    `.github/`, `.editorconfig`, `.python-version`,
+    `.gitignore`, `examples/`, `LICENSE`,
+    `SECURITY.md`, `CHANGELOG.md`,
+    `docs/release-handoff.md`,
+    `docs/operator-manual.md`,
+    `docs/administrator-manual.md`,
+    `docs/developer-manual.md`,
+    `docs/runbooks/*` — без изменений.
+  - **Никаких изменений в `mcp-read-server`,
+    `mcp-write-server`, `mcp-intelligence-server`,
+    `apps/platform/`, `onec-policy-engine`,
+    `onec-audit`, `onec-health`,
+    `onec-process-runner`, `onec-troubleshooting`,
+    `mcp-common`, `onec-config`.** Track D / Step 1
+    это documentation-only.
+  - **Никакой env-substitution implementation.** Это
+    Step 3.
+  - **Никакой docs migration.** Это Step 4.
+  - **Никакого верификатор-расширения.** Это Step 5.
+  - **Никакого CHANGELOG update.** По симметрии с
+    Track B / Track C (CHANGELOG обновляется один раз
+    на closure трека).
+  - **Никаких реальных credentials** в созданных
+    docs / commit message — все примеры через
+    abstract placeholder forms (`<password>`,
+    `${ENV:ONEC_DESIGNER_PASSWORD}`, `<user>`).
+- **Что сказали явно в плане трека.**
+  - Track D **не** закрывает: enterprise vault platform,
+    cloud KMS / Secrets Manager / Key Vault как
+    baseline, SSO / RBAC / multi-tenant identity,
+    federated audit, encrypted-at-rest secrets format,
+    OS keychain integration (deliberately optional
+    research-only note, не implementation), production-
+    grade MCP transport, multi-version 1С matrix,
+    web-UI, GUI installer, signed distribution,
+    package-manager publication, новые MCP tools
+    (registries `read=15 / write=25 / intelligence=16`
+    без drift'а), 1cv8 binary changes, production code
+    rewrite за пределами locator'а env-substitution и
+    redaction discipline.
+  - **GitHub remote push** — operator action, не часть
+    трека.
+- **Открытые вопросы Step 2+.** Q1 (env-substitution
+  syntax — default `${ENV:NAME}`), Q2 (substitution
+  location — default render-time в `binary_dispatch`),
+  Q3 (redaction marker — default `/P` and `/Pwd`
+  case-insensitive), Q4 (legacy cleartext literal
+  semantics — default silent в payload, репортится
+  только Step 5 heuristic'ой), Q5 (OS keychain scope —
+  default research-only note), Q6 (CHANGELOG cadence —
+  default один update на closure), Q7 (`pyproject.toml`
+  version bump 0.1.0 → 0.2.0 на closure — resolve
+  финально в Step 6).
+- **Selfcheck после Step 1.** Зелёный без правок:
+  `imports_ok = true`, registries `read=15 /
+  write=25 / intelligence=16`, `selfcheck_status =
+  ok`. Track D / Step 1 не правил production-кода,
+  поэтому drift'а быть не должно — и его нет.
+- **Следующий шаг.** **Parallel Track D / Step 2 —
+  credentials-flow audit and contract (docs-only).**
+  Step 2 включает: новый short документ
+  `docs/architecture/track-d-credentials-flow-audit.md`
+  (где `/P "<password>"` физически появляется, какие
+  payload-поля видят rendered argv, что значит
+  «out-of-band» сейчас); новый short документ
+  `docs/architecture/track-d-credentials-contract.md`
+  (синтаксис env-substitution, resolution order,
+  fail-closed semantics, redaction contract,
+  backward-compat). **Никаких изменений** в
+  `apps/`, `packages/`, `scripts/`, `pyproject.toml`,
+  `SECURITY.md`, `docs/release-handoff.md`,
+  `docs/operator-manual.md`. Production-код не
+  правится. Step 2 я открываю отдельным заходом, не
+  в этом.
 
 ## Phase 6 закрыта
 

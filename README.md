@@ -13,7 +13,8 @@
 > reference stand'е, Parallel Track B — productization & delivery
 > polish, и Parallel Track C — packaging & installer delivery
 > (release-facing layout, verify path, release handoff document).
-> Активного трека сейчас нет.
+> Активный сейчас трек — Parallel Track D — Operator Credentials
+> Hardening (planning-only, Step 1; не enterprise security platform).
 
 ### Системные требования
 
@@ -72,7 +73,7 @@ install fast path, не трогает инфобазу): [`scripts/dev/README.m
 - [`docs/runbooks/`](docs/runbooks/) — воспроизводимые сценарии,
   включая `track-a-reference-stand-round-trip.md`.
 - [`docs/architecture/`](docs/architecture/) — phase- и track-plans
-  + step maps (включая Track B и Track C planning).
+  + step maps (включая Track B, Track C и Track D planning).
 - [`PROJECT-STATUS.md`](PROJECT-STATUS.md) — детальный статус фаз
   и треков с per-step deliverables.
 
@@ -583,9 +584,48 @@ version-matrix smoke, etc.). Phase 7 как отдельная
   закрыт на Step 6 (final integration pass and Track C
   closure).
 
-Активного трека сейчас нет. Открытие следующего parallel
-track'а — отдельное решение оператора; Phase 7 как линейная
-фаза не запланирована.
+## Active parallel track
+
+После closure'а Track C открыт четвёртый post-phase track —
+**Parallel Track D — Operator Credentials Hardening**. Цель —
+сделать `operator credentials` flow менее хрупким: ввести
+документированный env-substitution путь для DESIGNER credentials
+в `onec_*_command_template`, добавить redaction discipline в
+`command_preview` / audit excerpt'ы, перенести cleartext-password-
+literal из «нормального baseline'а» в legacy fallback, и расширить
+`verify-release.ps1` узкой credential-hygiene heuristic'ой. Это
+**не** enterprise security platform, **не** vault / KMS / SSO /
+RBAC track, **не** OS keychain integration as baseline и **не**
+production-grade MCP transport.
+
+Track D сейчас на **Step 1 (planning)** — ship'нуты только два
+planning-документа
+([`docs/architecture/track-d-operator-credentials-hardening-plan.md`](docs/architecture/track-d-operator-credentials-hardening-plan.md),
+[`docs/architecture/track-d-operator-credentials-hardening-step-map.md`](docs/architecture/track-d-operator-credentials-hardening-step-map.md));
+никаких code changes Step 1 не делал, registries `read=15 /
+write=25 / intelligence=16` без drift'а; никаких реальных
+credentials в repo / docs / commit messages.
+
+Что **не** входит в Track D (повтор для ясности): enterprise
+vault platform, cloud KMS / Secrets Manager / Key Vault как
+baseline, SSO / RBAC / multi-tenant identity, federated audit
+storage, production-grade MCP transport / auth, GUI installer
+wizard, signed binary distribution, package-manager publication,
+web-UI / dashboard, multi-version 1С matrix, AST-парсер, hot
+reload, новые MCP tools, OS keychain integration (deliberately
+optional research-only note), encrypted-at-rest secrets file
+format, remote push. Эти направления остаются за пределами Track
+A + Track B + Track C + Track D.
+
+Следующий шаг по Track D — **Step 2 (credentials-flow audit and
+contract)**: docs-only audit текущего credentials surface +
+формальный contract на env-substitution syntax (`${ENV:NAME}`),
+fail-closed semantics, redaction discipline. Production-код
+Step 2 не правит. **GitHub remote push — operator action, не
+часть трека.**
+
+Документы трека: `docs/architecture/track-d-operator-credentials-hardening-plan.md`,
+`docs/architecture/track-d-operator-credentials-hardening-step-map.md`.
 
 ## Track C detail (закрыт)
 
