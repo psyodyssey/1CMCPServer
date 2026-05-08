@@ -114,17 +114,82 @@ scenario doc и не должен меняться без bump до
 
 ### Additional rows
 
-> **Currently empty.** Additional version evidence rows
-> добавляются на Track E / Step 4 (operator gate). Step 3
-> deliberately ship'ит matrix scaffolding с **только** reference
-> row; никаких имитированных additional results, никаких
-> placeholder'ов «coming soon».
+**Currently empty.** Additional version evidence rows
+добавляются на Track E / Step 4 (operator gate); Step 3
+ship'ит matrix scaffolding с только reference row, без
+имитированных additional results и без placeholder'ов
+«coming soon».
 
 Если на момент чтения этой таблицы дополнительных rows нет —
 это означает буквально, что additional version evidence ещё не
 зарегистрирован. Это **не** означает, что другие версии не
 работают; это означает, что repo не делает claim про другие
 версии до фактического evidence.
+
+#### Track E / Step 4 closure note — operator-supplied gap
+
+> **Step 4 closed via PATH B (honest operator-supplied gap).**
+> Никаких новых evidence-row'ов добавлено не было; никаких
+> новых запусков `1cv8.exe` Step 4 не делал.
+
+**Что показал inventory operator-side окружения на момент Step 4
+closure:**
+
+| Path | Minor family | Build | Arch | Track E status |
+|---|---|---|---|---|
+| `C:/Program Files/1cv8/8.3.27.1859/bin/1cv8.exe` | `8.3.27` | `1859` | x64 | **reference** — уже представлена reference row выше; не пересчитывается |
+| `C:/Program Files (x86)/1cv8/8.3.27.1936/bin/1cv8.exe` | `8.3.27` | `1936` | x86 | **disqualified** as additional evidence — build-level разница **внутри одной и той же** minor family `8.3.27` (см. Step 2 frozen scenario doc, section 2.2: «Различные builds одной и той же minor family … Это **same** version family — не засчитывается за additional evidence») |
+| прочие typical install paths (`C:/Tools/1cv8`, `C:/1cv8`, `D:/...`) | — | — | — | **absent** на этой машине |
+
+**Что отсутствует на operator side для PATH A:**
+
+- любая minor family кроме `8.3.27` (нет `8.3.<26 или ниже>`,
+  нет `8.3.<28 или выше>`); единственная установленная
+  major-minor серия — `8.3.27`;
+- DESIGNER credentials через Track D / Step 3 env-substitution
+  не были выставлены в этой Step 4 work session
+  (`ONEC_DESIGNER_USER` / `ONEC_DESIGNER_PASSWORD` отсутствуют),
+  что в любом случае дало бы render-fail до старта subprocess'а;
+- никакого throwaway test-base подходящего shape'а под другую
+  minor family у operator'а не подготовлено (нет alternate
+  binary → нет смысла готовить alternate base).
+
+**Что Step 4 сознательно не делал:**
+
+- не запускал `frozen-smoke-v1` на `8.3.27.1936` x86 как
+  «additional row» — это было бы прямым нарушением Step 2 §2.2
+  (build-level разница внутри одной minor family ≠ additional
+  evidence). Запись такой row была бы фальсификацией
+  frozen contract'а;
+- не перезапускал reference `8.3.27.1859` «just to have
+  activity» — это явно out-of-scope per Step 4 contract;
+- не расширял `frozen-smoke-v1` (по-прежнему cut-down
+  `create_dump_snapshot` через `/DumpConfigToFiles` only);
+- не трогал reference row выше — она остаётся copy-only из
+  Track A / Step 6 evidence;
+- не менял 12-column contract;
+- не выдумывал rows.
+
+**Почему PATH B — это честный исход Track E / Step 4:**
+плановый scope трека уже допускал именно этот сценарий
+(см. `track-e-multi-version-smoke-matrix-plan.md` Q4 +
+`track-e-multi-version-smoke-matrix-step-map.md` Step 4):
+«если operator additional versions не предоставит — Track E
+закрывается с явным operator-supplied gap, без имитации
+evidence». Это **не** track failure. Track E после Step 4
+имеет: scaffolding (runbook + matrix template + reference
+row + frozen-smoke-v1 contract) + явное disclosure об
+отсутствии дополнительной evidence. Будущие additional rows
+могут быть добавлены post-closure как documentation-only
+update против этого файла, без re-open Track E
+(см. plan Q7).
+
+**Operator next action (опционально, post-closure Track E):**
+если у operator'а появится доступ к binary другой minor
+family (`8.3.<other>`), evidence row может быть добавлен
+без re-open трека — следуя
+`docs/runbooks/track-e-multi-version-smoke-matrix.md`
+по тому же frozen-smoke-v1 contract'у.
 
 ---
 
