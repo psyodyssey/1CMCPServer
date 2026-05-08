@@ -48,10 +48,29 @@ Failure model:
 - All other helpers are pure dict / value transformations and do
   not raise unless the caller passes structurally-broken input
   (which is a programming error, not a runtime condition).
+
+Track D / Step 3 additions:
+
+- :func:`render_command_template` now also resolves full-element
+  env-substitution tokens of the shape ``${ENV:NAME}`` against the
+  process environment. Missing / empty / mixed / partial forms are
+  fail-closed via :class:`ValueError` (same boundary discipline as
+  unknown structural placeholders). See
+  ``docs/architecture/track-d-credentials-contract.md`` for the
+  normative contract.
+- :func:`binary_backed_start_failure_fields` and
+  :func:`binary_backed_payload_fields` now build
+  ``command_preview`` through :func:`_redact_password_args`, which
+  replaces the argv element immediately following ``/P`` / ``/Pwd``
+  (case-insensitive) with the sentinel ``"<redacted>"``. The actual
+  argv passed to the subprocess runner is **not** modified —
+  redaction is observation-side only.
 """
 
 from __future__ import annotations
 
+import os
+import re
 from typing import Any
 
 from onec_process_runner import ProcessRunResult
@@ -112,6 +131,66 @@ class PlaceholderProxy(dict):
         raise UnknownPlaceholderError(key)
 
 
+# ---------------------------------------------------------------------------
+# Track D / Step 3 — env-substitution token (${ENV:NAME}).
+# ---------------------------------------------------------------------------
+#
+# Operator may write a full-element token of the shape ``${ENV:NAME}``
+# in any argv position of the template. The render step resolves the
+# token against ``os.environ`` and substitutes the value into the
+# rendered argv list passed to the subprocess runner. Missing or
+# empty env, or a partial / mixed token (anything other than the
+# full-element regex below), is fail-closed via :class:`ValueError`
+# — the same boundary discipline as unknown structural placeholders.
+#
+# Per Track D / Step 2 contract, env tokens and structural
+# placeholders never coexist in one element (mixing is fail-closed).
+# We therefore dispatch by element-entry inspection: an element that
+# contains the ``${ENV:`` substring goes through the env resolver;
+# any other element goes through ``str.format_map`` for structural
+# substitution. Without this dispatch, ``format_map`` would
+# misinterpret ``${ENV:NAME}`` as a structural ``{ENV:NAME}``
+# placeholder named ``ENV`` with format-spec ``NAME``, defeating
+# the env path.
+_ENV_TOKEN_SUBSTRING: str = "${ENV:"
+_ENV_TOKEN_RE: re.Pattern[str] = re.compile(
+    r"^\$\{ENV:([A-Za-z_][A-Za-z0-9_]*)\}$"
+)
+
+
+def _resolve_env_token(value: str, *, template_field_name: str) -> str:
+    """Resolve a full-element env-substitution token against the
+    process environment, fail-closed on any non-full-element form
+    or missing / empty value.
+
+    Returns ``value`` unchanged when it does not contain the
+    ``${ENV:`` substring at all (the literal / structural-only
+    path). Raises :class:`ValueError` when the substring is present
+    but the element is not a full-element token, or when the named
+    env var is missing or empty.
+    """
+    if _ENV_TOKEN_SUBSTRING not in value:
+        return value
+    match = _ENV_TOKEN_RE.match(value)
+    if match is None:
+        raise ValueError(
+            f"{template_field_name} entry contains an invalid "
+            f"env-substitution form; only a full-element token of "
+            f"the shape ${{ENV:NAME}} is supported (no substring "
+            f"mixing, no partial concatenation, no multi-token in "
+            f"one element)."
+        )
+    name = match.group(1)
+    resolved = os.environ.get(name)
+    if not resolved:
+        raise ValueError(
+            f"{template_field_name} references env var '{name}' "
+            f"which is not set or is empty; set it before rendering, "
+            f"or replace the token with a literal value."
+        )
+    return resolved
+
+
 def render_command_template(
     template: list[str],
     *,
@@ -120,17 +199,29 @@ def render_command_template(
     template_field_name: str,
 ) -> list[str]:
     """Render an operator-declared argv template with whitelisted
-    placeholders.
+    placeholders and full-element env-substitution tokens.
 
-    Substitution is per-item, no shell. Each ``{name}`` reference
-    must appear in ``allowed_placeholders``; otherwise a
-    :class:`ValueError` is raised so the boundary can fail-closed.
-    Bare ``{`` / ``}`` (i.e. literal braces in the operator argv)
-    is intentionally not supported on this slice — operators who
-    really need a literal brace in a 1cv8 argv should escape it
-    via their own pre-rendering, since 1cv8 itself does not require
-    curly braces in any documented flag of the supported flows
-    (DumpCfg, LoadConfigFromFiles, UpdateDBCfg).
+    Substitution is per-item, no shell. Each element is dispatched
+    by inspection:
+
+    - if the element contains the ``${ENV:`` substring, it is
+      treated as a full-element env-substitution token and resolved
+      via :func:`_resolve_env_token` (fail-closed on partial /
+      mixed forms and missing / empty env);
+    - otherwise the element is treated as a structural template and
+      passed through :meth:`str.format_map` with
+      :class:`PlaceholderProxy`. Each ``{name}`` reference must
+      appear in ``allowed_placeholders``; otherwise a
+      :class:`ValueError` is raised so the boundary can fail-closed.
+
+    Per Track D / Step 2 contract, env tokens and structural
+    placeholders never coexist in one element. Bare ``{`` / ``}``
+    (i.e. literal braces in the operator argv) is intentionally
+    not supported on this slice — operators who really need a
+    literal brace in a 1cv8 argv should escape it via their own
+    pre-rendering, since 1cv8 itself does not require curly braces
+    in any documented flag of the supported flows (DumpCfg,
+    LoadConfigFromFiles, UpdateDBCfg).
 
     The ``template_field_name`` argument names the
     ``EnvironmentConfig`` field whose template is being rendered
@@ -147,16 +238,77 @@ def render_command_template(
             raise ValueError(
                 f"{template_field_name} entry is not a string."
             )
-        try:
-            value = raw.format_map(PlaceholderProxy(substitutions))
-        except UnknownPlaceholderError as exc:
-            raise ValueError(
-                f"Unknown placeholder {{{exc.name}}} in "
-                f"{template_field_name}; allowed placeholders are: "
-                f"{sorted(allowed_placeholders)}."
-            ) from None
+        if _ENV_TOKEN_SUBSTRING in raw:
+            value = _resolve_env_token(
+                raw, template_field_name=template_field_name
+            )
+        else:
+            try:
+                value = raw.format_map(PlaceholderProxy(substitutions))
+            except UnknownPlaceholderError as exc:
+                raise ValueError(
+                    f"Unknown placeholder {{{exc.name}}} in "
+                    f"{template_field_name}; allowed placeholders are: "
+                    f"{sorted(allowed_placeholders)}."
+                ) from None
         rendered.append(value)
     return rendered
+
+
+# ---------------------------------------------------------------------------
+# Track D / Step 3 — preview redaction for password-position argv.
+# ---------------------------------------------------------------------------
+#
+# 1С DESIGNER CLI takes the password as a positional argument
+# immediately following ``/P`` or ``/Pwd`` (case-insensitive).
+# The actual argv list passed to ``subprocess`` carries the real
+# value (otherwise the binary would not authenticate); however,
+# every observable copy that lands in the ``command_preview``
+# payload field — which is in turn surfaced to the MCP client and
+# to the audit row's ``details`` — goes through
+# :func:`_redact_password_args` and has the password-position
+# value replaced with the sentinel ``"<redacted>"``.
+#
+# Redaction is positional only — no pattern-matching on the value
+# itself. The sentinel applies regardless of whether the original
+# value came from a literal cleartext template (legacy path) or
+# from an env-substitution token resolved at render time. Username
+# (``/N``) is *not* redacted: usernames have lower sensitivity and
+# redacting them would give a false sense of security at the
+# observation layer while the (more important) password redaction
+# still relies on the same positional rule.
+_PASSWORD_FLAG_TOKENS: frozenset[str] = frozenset({"/P", "/PWD"})
+_REDACTION_SENTINEL: str = "<redacted>"
+
+
+def _redact_password_args(argv: list[str]) -> list[str]:
+    """Return a copy of ``argv`` with password-position values
+    replaced by the redaction sentinel.
+
+    Walks the argv list; whenever an element compares
+    case-insensitive-equal to ``/P`` or ``/Pwd``, the element
+    immediately following it (if any) is replaced by
+    :data:`_REDACTION_SENTINEL` in the returned list. The input
+    list is not modified — the actual subprocess argv stays
+    unredacted.
+
+    A trailing ``/P`` / ``/Pwd`` with no following element is
+    surfaced as-is; redaction has nothing to substitute and is
+    silent in that pathological case.
+    """
+    redacted: list[str] = []
+    n = len(argv)
+    i = 0
+    while i < n:
+        elem = argv[i]
+        redacted.append(elem)
+        if isinstance(elem, str) and elem.upper() in _PASSWORD_FLAG_TOKENS:
+            if i + 1 < n:
+                redacted.append(_REDACTION_SENTINEL)
+                i += 2
+                continue
+        i += 1
+    return redacted
 
 
 # ---------------------------------------------------------------------------
@@ -251,15 +403,17 @@ def binary_backed_start_failure_fields(
     the runner — missing binary, etc).
 
     ``binary_invoked`` is ``False`` because no PID was produced.
-    ``command_preview`` is the rendered argv (we have it; render
-    succeeded; only the spawn failed), so the operator can read
-    exactly what we tried to run.
+    ``command_preview`` is the rendered argv with password-position
+    values redacted (Track D / Step 3) — we have the rendered argv
+    because render succeeded and only the spawn failed; the operator
+    can read exactly what we tried to run, while any
+    ``/P`` / ``/Pwd`` value is replaced by the redaction sentinel.
     """
     return {
         "mode": "binary-backed",
         "binary_invoked": False,
         "exit_code": None,
-        "command_preview": list(command),
+        "command_preview": _redact_password_args(command),
         "stdout_excerpt": None,
         "stderr_excerpt": None,
     }
@@ -276,15 +430,19 @@ def binary_backed_payload_fields(
     ``completed`` is added as a 7th field beyond the unified six —
     it is what the tool-specific verify step uses to decide
     success / failure (see :func:`is_binary_subprocess_successful`).
-    Tool-specific extras (``snapshot_path``, ``source_dump_path``,
-    …) are merged in by the caller.
+    ``command_preview`` is built through :func:`_redact_password_args`
+    (Track D / Step 3) so that any password-position argv element
+    is surfaced as the redaction sentinel rather than the actual
+    value; the input ``command`` list (the real subprocess argv) is
+    not modified. Tool-specific extras (``snapshot_path``,
+    ``source_dump_path``, …) are merged in by the caller.
     """
     return {
         "mode": "binary-backed",
         "binary_invoked": True,
         "exit_code": process_result.exit_code,
         "completed": process_result.completed,
-        "command_preview": list(command),
+        "command_preview": _redact_password_args(command),
         "stdout_excerpt": excerpt(process_result.stdout),
         "stderr_excerpt": excerpt(process_result.stderr),
     }
