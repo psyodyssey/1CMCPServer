@@ -32,13 +32,16 @@ success / help; делегированный `$LASTEXITCODE` для `selfcheck` 
 `run`; `64` — unknown command или missing args.
 
 `launch.ps1` сознательно **не** делает: не стартует MCP-серверы
-(Track G / Step 4 ship'нул отдельные local stdio entrypoint'ы —
-`python -m mcp_read_server`, `python -m mcp_write_server`,
-`python -m mcp_intelligence_server`; transport — local-stdio only,
-без network / auth; запуск делается оператором отдельно, не
-через umbrella), не запускает pytest (нет test suite'а), не делает
-install fast path (см. `scripts/release/install.ps1`,
-Track B / Step 3), не трогает 1С-инфобазу.
+(каждый сервер запускается оператором отдельно через
+`python -m <pkg>`; Track G / Step 4 ship'нул local stdio baseline,
+Track H / Step 4 добавил narrow HTTP/1.1 `/mcp` endpoint c static
+bearer authentication — `--transport stdio` для local subprocess
+deployment без auth или `--transport http --bind HOST:PORT
+--auth-token-env VARNAME` для trusted-network deployment behind
+operator's reverse proxy; in-process TLS не предоставляется), не
+запускает pytest (нет test suite'а), не делает install fast path
+(см. `scripts/release/install.ps1`, Track B / Step 3), не трогает
+1С-инфобазу.
 
 ### `bootstrap_paths.ps1`
 

@@ -37,25 +37,58 @@ hidden gaps.
   integration / encrypted-at-rest secrets file format. Operators
   who need any of those pull values into env vars from their own
   secrets infrastructure before invoking the platform.
-- **Local stdio MCP transport only.** Track G / Step 4 ship'нул
-  узкий operational baseline: три canonical entrypoint'а
-  (`python -m mcp_read_server` / `python -m mcp_write_server` /
-  `python -m mcp_intelligence_server`), minimum-viable stdio
-  JSON-RPC 2.0 transport (line-delimited, stdlib-only), minimal CLI
-  surface (`--help`, `--config-path`, `--transport`, `--log-level`),
-  и `[project.scripts]` console entries в `pyproject.toml`. Это
-  закрывает factual gap «MCP servers cannot start at all» в
-  trusted local environment. Threat model = local trusted stdio
-  boundary (operator-owned process), **не** adversarial network.
-  По-прежнему нет: built-in authentication / authorisation,
-  multi-tenant isolation, hardened network transport
-  (HTTP / WebSocket / SSE / TCP / named pipe), token / mTLS /
-  OAuth / SAML / RBAC, supervisor daemon / systemd unit /
-  Windows Service registration. Treat the servers as you would
-  any local development service. Network exposure требует
-  отдельного post-Track-G transport track'а; Track G **не**
-  претендует на production-readiness для adversarial network
-  deployment.
+- **Local stdio plus narrow HTTP+bearer transport baseline.** Two
+  transports are now supported on each of the three MCP servers:
+  - **`--transport stdio`** (default; Track G / Step 4) — line-
+    delimited JSON-RPC 2.0 over stdin/stdout. Threat model =
+    local trusted stdio boundary (operator-owned subprocess);
+    auth is intentionally absent because the channel is not
+    network-exposed.
+  - **`--transport http`** (Track H / Step 4) — HTTP/1.1 single
+    `/mcp` endpoint, POST only, `application/json`, 1 MiB body
+    cap, line-delimited single JSON-RPC message per body, no
+    SSE / batch / streaming. Authentication is **static bearer
+    token** in the `Authorization` header (scheme accepted
+    case-insensitively per RFC 6750; token compared byte-exactly
+    via `hmac.compare_digest`). Tokens are declared either
+    through `ProductConfig.auth.tokens` (each entry MUST be
+    `${ENV:NAME}` env-substitution; literal cleartext rejected
+    at config-load) or through the `--auth-token-env <VARNAME>`
+    CLI flag (CLI wins, replace not merge). Missing `--bind`,
+    missing token source, or unresolvable env var → fail-closed
+    startup with a single operator-readable stderr line and no
+    Python traceback. Token values are never logged in any form
+    (no value, no length, no prefix, no suffix, no hash, no
+    fingerprint).
+  - Threat model for HTTP = **trusted-network deployment** behind
+    an operator-owned reverse proxy that terminates TLS. The
+    listener itself binds plain HTTP/1.1; in-process TLS is not
+    provided. Operator SHOULD bind the listener to a loopback or
+    private interface and front-proxy it.
+  - **Still NOT shipped:** TLS / HTTPS termination in process,
+    mTLS / client certificate authentication, JWT / OAuth 2.0 /
+    OIDC / SAML / SCIM, RBAC / ABAC / per-tool ACL / per-tenant
+    isolation, token rotation endpoint or refresh tokens, session
+    cookies, rate limiting, WebSocket / Server-Sent Events / TCP
+    / Unix domain socket / named pipe transports, supervisor
+    daemon / systemd unit / Windows Service registration / hot
+    reload, web UI / dashboard / observability stack. These are
+    explicit Track H non-goals; subsequent post-Track-H tracks
+    can address them. Track H does not claim production
+    readiness for adversarial-internet deployment.
+  - **Known limitation in install fast path round-trip.**
+    `apps/platform/src/onec_platform/installer.py:_config_to_dict`
+    does not yet emit the new `auth` section, so configs round-
+    tripped through `scripts/release/install.ps1 ... -Confirm`
+    silently lose their `auth.tokens` declarations. Operators
+    using `--transport http` against a round-tripped config
+    therefore get a clean fail-closed startup line ("`--transport
+    http requires --auth-token-env or auth.tokens in product
+    config`") and either re-add the section by hand or use
+    `--auth-token-env <VARNAME>` to bypass the config. A future
+    post-Track-H fix to `_config_to_dict` belongs to the same
+    family as the Phase 6 / Step 9 service-level + enterprise
+    round-trip fix.
 - **Single-version 1С evidence (with multi-version scaffolding).** Real
   binary-backed round-trip evidence has been exercised on `8.3.27.1859`
   (Windows x64, file-based reference stand) — see Track A / Step 6 in

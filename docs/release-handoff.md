@@ -75,15 +75,31 @@ The operator-facing surface you are receiving:
 - One **reference-stand runbook** for the real binary-backed
   write round-trip
   (`docs/runbooks/track-a-reference-stand-round-trip.md`).
-- A **local stdio MCP transport baseline** for the three MCP
-  servers (Track G / Step 4): `python -m mcp_read_server`,
-  `python -m mcp_write_server`,
-  `python -m mcp_intelligence_server` start a line-delimited
-  JSON-RPC 2.0 stdio loop with a minimal CLI (`--help`,
-  `--config-path`, `--transport`, `--log-level`); the same
-  three names are also declared as `[project.scripts]`
-  console entries in `pyproject.toml`. **Local / trusted-stdio
-  use only** — no network listener, no auth.
+- A **two-transport MCP baseline** for the three MCP servers:
+  - **`--transport stdio`** (default; Track G / Step 4) —
+    `python -m mcp_read_server`, `python -m mcp_write_server`,
+    `python -m mcp_intelligence_server` start a line-delimited
+    JSON-RPC 2.0 stdio loop. Trusted local subprocess use only;
+    no network listener; no auth (the channel is not network-
+    exposed).
+  - **`--transport http`** (Track H / Step 4) — single `/mcp`
+    HTTP/1.1 endpoint, POST only, `application/json`, 1 MiB
+    body cap, static bearer authentication
+    (`Authorization: <case-insensitive-Bearer> <token>`,
+    constant-time compare). Required CLI flags when http:
+    `--bind <HOST>:<PORT>` (no default; binding must be
+    explicit) and a token source — either
+    `--auth-token-env <VARNAME>` (CLI flag wins over config)
+    or `auth.tokens` in product config (each entry MUST be
+    `${ENV:NAME}` env-substitution; literal cleartext
+    rejected). Trusted-network deployment behind an operator-
+    owned reverse proxy that terminates TLS; the listener
+    itself binds plain HTTP/1.1.
+  - The three names are also declared as `[project.scripts]`
+    console entries in `pyproject.toml`. The CLI flag set
+    (`--help`, `--config-path`, `--transport {stdio,http}`,
+    `--log-level`, `--bind`, `--auth-token-env`) is identical
+    across all three servers.
 - **Per-track planning documents** under `docs/architecture/`
   for Track A, Track B, Track C.
 - **Standalone manuals** under `docs/`:
@@ -109,22 +125,36 @@ they are intentional limits of the current scaffolding.
   distribution.**
 - **No publication to package managers** (PyPI / Chocolatey /
   winget / apt).
-- **Local stdio MCP transport only — no network / auth /
-  service story.** Track G / Step 4 ship'нул узкий
-  operational baseline (three `python -m <server>`
-  entrypoints + minimal stdio JSON-RPC transport + four CLI
-  flags + `[project.scripts]` console entries). It does not
-  add authentication, authorisation, multi-tenant isolation,
-  hardened network transport (HTTP / WebSocket / SSE /
-  TCP / named pipe), or any supervisor / systemd unit /
-  Windows Service registration. The three MCP servers are
-  intended for local / trusted-stdio use, not as exposed
-  network endpoints. The wheel build remains empty
+- **Stdio + narrow HTTP+bearer transport baseline; no
+  hostile-network / enterprise-identity story.** Two
+  transports are shipped (Track G / Step 4 stdio, Track H /
+  Step 4 HTTP+bearer; see "What is in this handoff" above).
+  Threat model = trusted-local-stdio for stdio, trusted-
+  network behind an operator-owned reverse proxy for HTTP.
+  Specifically NOT in this handoff: TLS / HTTPS termination
+  in process; mTLS / client certificate authentication; JWT
+  / OAuth 2.0 / OIDC / SAML / SCIM; RBAC / ABAC / per-tool
+  ACL / per-tenant isolation; token rotation endpoint /
+  refresh tokens / session cookies; rate limiting; WebSocket
+  / SSE / TCP / Unix-socket / named-pipe transports;
+  supervisor daemon / systemd unit / Windows Service
+  registration / hot reload; multi-tenant identity stack.
+  The wheel build remains empty
   (`[tool.hatch.build.targets.wheel] packages = []`), so
   the `[project.scripts]` console entries materialise as
   installable binaries only when a future packaging track
   ships an actual wheel — meanwhile the documented
-  invocation is `python -m <server>`.
+  invocation is `python -m <server>`. **Known install fast
+  path limitation:** `installer.py:_config_to_dict` does
+  not yet emit the new `auth` section, so a config round-
+  tripped through `scripts/release/install.ps1 ... -Confirm`
+  silently loses its `auth.tokens` declarations. Operators
+  using `--transport http` against a round-tripped config
+  get a clean fail-closed startup and either re-add the
+  section by hand or use `--auth-token-env <VARNAME>` to
+  bypass the config. Future post-Track-H fix is analogous
+  to the Phase 6 / Step 9 service-level + enterprise
+  round-trip fix.
 - **No web UI / dashboard frontend.**
 - **No enterprise super-set** (SSO/RBAC, multi-tenant, secrets
   vault as a service, federated audit storage, policy-as-code
@@ -314,10 +344,16 @@ When to use which switch:
 It deliberately does NOT start the MCP servers — those are
 launched separately via `python -m mcp_read_server` /
 `python -m mcp_write_server` /
-`python -m mcp_intelligence_server` (Track G / Step 4 stdio
-entrypoints; trusted-local-stdio only, no network, no auth).
-It also does NOT run pytest (no test suite yet), does NOT
-touch a 1С infobase, does NOT replace the install fast path.
+`python -m mcp_intelligence_server`. Each server accepts
+`--transport stdio` (default; Track G / Step 4) or
+`--transport http` (Track H / Step 4, additionally requires
+`--bind <HOST>:<PORT>` and a bearer-token source —
+`--auth-token-env <VARNAME>` or `auth.tokens` in product
+config). Threat model = trusted-local-stdio for stdio,
+trusted-network behind an operator-owned reverse proxy for
+HTTP; in-process TLS is not provided. It also does NOT run
+pytest (no test suite yet), does NOT touch a 1С infobase,
+does NOT replace the install fast path.
 
 
 ## Known limitations
@@ -368,14 +404,21 @@ as a single checklist so the receiver does not miss them.
   `docs/architecture/track-f-rollback-baseline-audit.md`,
   and `docs/architecture/track-f-rollback-eligibility-contract.md`
   for full rationale and per-tool tier breakdown.
-- **Local stdio MCP transport only.** Track G / Step 4 ship'нул
-  three `python -m <server>` entrypoints + minimum-viable stdio
-  JSON-RPC transport + four CLI flags +
-  `[project.scripts]` console entries — narrow operational
-  baseline for local / trusted-stdio use. No auth, no network
-  listener, no supervisor / systemd / Windows Service
-  registration; not an exposed network endpoint. See
-  `SECURITY.md` "Honest constraints" for the full statement.
+- **Stdio + narrow HTTP+bearer transport baseline.** Track G
+  / Step 4 ship'нул the local stdio JSON-RPC 2.0 transport;
+  Track H / Step 4 added a single HTTP/1.1 `/mcp` endpoint
+  with static bearer authentication on top of the existing
+  `list_tools()` / `get_tool(name)` boundary. Threat model =
+  trusted-local-stdio for stdio, trusted-network behind an
+  operator-owned reverse proxy for HTTP. No in-process TLS;
+  no mTLS / OAuth / JWT / SAML / SCIM / RBAC / multi-tenant;
+  no WebSocket / SSE / TCP / pipe transports; no supervisor /
+  systemd / Windows Service registration; no hot reload; no
+  web UI; no token rotation endpoint. See `SECURITY.md`
+  "Honest constraints" for the full per-transport statement
+  including the install fast path round-trip limitation
+  (`installer.py:_config_to_dict` does not yet emit the new
+  `auth` section).
 - **No installer ecosystem.** See "What is NOT in this handoff"
   above.
 

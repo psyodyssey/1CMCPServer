@@ -10,12 +10,21 @@
 #
 # What this wrapper deliberately does NOT do:
 #   - it does NOT start MCP read / write / intelligence servers.
-#     Track G / Step 4 ship'нул local stdio entrypoints -
-#     `python -m mcp_read_server`, `python -m mcp_write_server`,
-#     `python -m mcp_intelligence_server` (also declared as
-#     [project.scripts] console entries). They are launched
-#     separately as a deliberate scope choice of this umbrella;
-#     transport itself is local-stdio only, not network;
+#     Each server is launched separately via `python -m <pkg>`
+#     (also declared as [project.scripts] console entries).
+#     Two transports are supported on each server:
+#       * --transport stdio (default; Track G / Step 4) - local
+#         JSON-RPC 2.0 over stdin/stdout; trusted local
+#         subprocess only; no auth (the channel is not network-
+#         exposed);
+#       * --transport http (Track H / Step 4) - HTTP/1.1 /mcp
+#         endpoint with static bearer authentication; requires
+#         --bind <HOST>:<PORT> and --auth-token-env <VARNAME>
+#         (or auth.tokens in product config); trusted-network
+#         deployment behind operator's reverse proxy; in-
+#         process TLS is not provided.
+#     Launching the servers from this wrapper is a deliberate
+#     scope choice that this umbrella does NOT take;
 #   - it does NOT run pytest (there is no test suite yet);
 #   - it does NOT run the install fast path
 #     (use scripts\release\install.ps1 for that);
@@ -63,12 +72,17 @@ Usage:
 What this wrapper deliberately does NOT do:
 
   - It does NOT start the MCP read / write / intelligence servers.
-    Track G / Step 4 ship'nul local stdio entrypoints. Launch
-    them separately, e.g.:
+    Launch them separately, e.g.:
         python -m mcp_read_server --help
         python -m mcp_write_server --help
         python -m mcp_intelligence_server --help
-    Transport is local-stdio only (no network, no auth).
+    Each accepts --transport stdio (default; Track G / Step 4
+    local subprocess use, no auth) or --transport http
+    (Track H / Step 4 HTTP/1.1 /mcp endpoint with static
+    bearer authentication; requires --bind HOST:PORT and
+    a token source via --auth-token-env VARNAME or
+    auth.tokens in product config; trusted-network
+    deployment, no in-process TLS).
   - It does NOT run pytest (no test suite yet).
   - It does NOT run the install fast path. Use
     scripts\release\install.ps1 for that (Track B / Step 3).

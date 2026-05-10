@@ -39,36 +39,45 @@
 > categorical exclusions (`create_*` family,
 > `apply_config_from_files`,
 > `update_database_configuration`) остаются вне whitelist'а
-> by design. И Parallel Track G — Production-Grade MCP
+> by design. Parallel Track G — Production-Grade MCP
 > Transport and CLI: три canonical `__main__.py`
 > entrypoint'а (`python -m mcp_read_server`,
 > `python -m mcp_write_server`,
 > `python -m mcp_intelligence_server`), minimum-viable
-> stdio JSON-RPC 2.0 transport (line-delimited,
-> stdlib-only, no third-party SDK), minimal CLI surface
-> (`--help`, `--config-path`, `--transport`, `--log-level`),
+> stdio JSON-RPC 2.0 transport (line-delimited, stdlib-only,
+> no third-party SDK), original CLI surface (`--help`,
+> `--config-path`, `--transport`, `--log-level`),
 > `[project.scripts]` console entries в `pyproject.toml`.
-> Threat model = local trusted stdio boundary
-> (operator-owned process). Это **не** network transport
-> (HTTP / WebSocket / SSE / TCP / named pipe), **не**
-> authentication / authorization (token / mTLS / OAuth /
-> RBAC / multi-tenant), **не** supervisor daemon (systemd
-> unit / Windows Service / hot reload / automatic restart),
-> **не** web UI, **не** packaging ecosystem (`.msi` /
+> И Parallel Track H — Network-Grade MCP Transport and
+> Authentication Boundary: добавлен второй transport family
+> поверх того же `list_tools()` / `get_tool(name)`
+> boundary — single HTTP/1.1 `/mcp` endpoint, POST only,
+> `application/json`, 1 MiB body cap, static bearer
+> authentication (`Authorization: <case-insensitive-Bearer>
+> <token>`, constant-time compare, fail-closed on
+> missing/empty/malformed/invalid), token sources via
+> `ProductConfig.auth.tokens` (`${ENV:NAME}` env-substitution
+> only, literal cleartext rejected at config-load) или
+> `--auth-token-env <VARNAME>` CLI flag (CLI wins, replace
+> not merge); two new CLI flags `--bind <HOST>:<PORT>` и
+> `--auth-token-env <VARNAME>`. Threat model = local trusted
+> stdio для `--transport stdio`; trusted-network behind
+> operator-owned reverse proxy для `--transport http`.
+> Это **не** in-process TLS / HTTPS termination, **не**
+> mTLS / client certificate auth, **не** JWT / OAuth 2.0 /
+> OIDC / SAML / SCIM, **не** RBAC / ABAC / per-tool ACL /
+> per-tenant isolation / multi-tenant, **не** WebSocket /
+> SSE / TCP / Unix-socket / named-pipe transports, **не**
+> supervisor daemon / systemd unit / Windows Service
+> registration / hot reload / restart watcher, **не** web
+> UI / dashboard, **не** packaging ecosystem (`.msi` /
 > `.deb` / GUI installer / signed distribution / wheel
 > publication beyond `[project.scripts]` declarations),
-> **не** standalone `apps/platform` entrypoint. Активный
-> трек сейчас — **Parallel Track H — Network-Grade MCP
-> Transport and Authentication Boundary** (planning-only,
-> Step 1; следующий слой зрелости поверх Track G — добавит
-> один network MCP transport family + один minimum auth
-> baseline на network surface, оставляя existing local
-> stdio Track G surface preserved; **не** full enterprise
-> identity stack (SSO / SAML / OIDC / RBAC / multi-tenant),
-> **не** zero-trust mesh, **не** web UI, **не** packaging
-> ecosystem beyond `[project.scripts]` declarations, **не**
-> service management ecosystem (systemd / Windows Service /
-> HA / hot reload), **не** новые MCP tools).
+> **не** standalone `apps/platform` entrypoint, **не**
+> новые MCP tools (registries `read=15 / write=25 /
+> intelligence=16` invariant carried through). Активный
+> шаг сейчас — Track H / Step 5 (operator/security docs
+> alignment, docs-only); Track H ещё **не** закрыт.
 
 ### Системные требования
 
@@ -143,20 +152,32 @@ install fast path, не трогает инфобазу): [`scripts/dev/README.m
 Этот entry — про **локальный** install и check. Track G / Step 4
 ship'нул узкий local stdio MCP transport baseline (три
 `python -m <server>` entrypoint'а + minimum-viable JSON-RPC 2.0
-loop + четыре CLI флага + `[project.scripts]` console entries;
-треч ещё **не** закрыт — текущий шаг Step 5). Этот baseline —
-**не** network-grade MCP transport (HTTP / WebSocket / SSE / TCP /
-named pipe), **не** authentication / authorisation (token / mTLS /
-OAuth / RBAC), **не** installer ecosystem (`.msi` / `.deb` / GUI
-wizard / signed binary distribution / wheel publication beyond
+stdio loop). Track H / Step 4 добавил **второй transport family**
+поверх того же registry boundary: single HTTP/1.1 `/mcp` endpoint
+с static bearer authentication (case-insensitive scheme,
+constant-time compare, fail-closed on missing/invalid token,
+required-when-`--transport http` startup gate), плюс два новых
+CLI флага (`--bind <HOST>:<PORT>` + `--auth-token-env <VARNAME>`).
+Этот совокупный baseline (stdio + narrow HTTP+bearer) — **не**
+in-process TLS / HTTPS termination (operator's reverse proxy
+ответственен за TLS termination перед HTTP listener'ом), **не**
+mTLS / client certificate authentication, **не** JWT / OAuth 2.0
+/ OIDC / SAML / SCIM (token introspection / refresh / rotation
+endpoints из этого набора тоже out-of-scope), **не** RBAC / ABAC
+/ per-tool ACL / multi-tenant isolation, **не** WebSocket / SSE /
+TCP / Unix-socket / named-pipe transports, **не** session cookies
+/ rate limiting, **не** installer ecosystem (`.msi` / `.deb` /
+GUI wizard / signed binary distribution / wheel publication beyond
 `[project.scripts]` declarations — wheel build по-прежнему пуст
 по Track C honest constraint), **не** web UI / dashboard frontend,
 **не** enterprise-ready deployment (SSO/RBAC, multi-tenant,
 secrets vault, federated audit storage, multi-instance HA), **не**
 hot reload / OS-level service supervision (systemd unit / Windows
 Service / automatic restart watcher), **не** standalone
-`apps/platform` entrypoint. Эти направления — out of scope
-активных треков; см. honest constraints в
+`apps/platform` entrypoint. Threat model HTTP transport — **trusted-
+network deployment** behind operator-owned reverse proxy; не
+hostile-internet zero-trust posture. Эти направления — out of
+scope активных треков; см. honest constraints в
 [`SECURITY.md`](SECURITY.md), [`CHANGELOG.md`](CHANGELOG.md) и
 [`docs/architecture/`](docs/architecture/).
 
@@ -700,51 +721,144 @@ Track H ship'ит **дополнительный transport / auth layer
 artefacts (3 `__main__.py` entrypoints, `_stdio_transport.py`
 helper, `[project.scripts]` block) preserved.
 
-Track H сейчас на **Step 1 (planning, docs-only)** —
-ship'нуты только два planning-документа
-([`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md),
-[`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md));
-никаких code changes Step 1 не делал; registries
-`read=15 / write=25 / intelligence=16` без drift'а;
-никаких 1cv8.exe runs (трек работает на process /
-transport / auth layer, не на 1cv8 binary surface);
-никаких реальных credentials в repo / docs / commit
-messages.
+Track H сейчас на **Step 5 (operator/security docs
+alignment, docs-only)**. Закрытые шаги:
 
-Что **не** входит в Track H (повтор для ясности): full
-enterprise identity stack (SSO / SAML / OIDC federation /
-SCIM / RBAC platform / multi-tenant policy engine), full
-zero-trust perimeter (mTLS everywhere / service mesh /
-KMS / vault / secret rotation platform как mandatory
-baseline), web UI / dashboard frontend, packaging
-ecosystem (`.msi` / `.deb` / signed distribution / GUI
-installer / wizard / PyPI publication / wheel publication),
-service management ecosystem (systemd / Windows Service /
-`launchd` / auto-update / orchestration templates / HA /
-clustering / load balancing / hot reload / background
-watchers / supervisor daemon), новые MCP tools
-(registries без drift'а), 1cv8 work, rollback / AST /
-multi-version 1С matrix expansion, standalone
-`apps/platform` entrypoint, distributed tracing /
-observability stack, real MCP client integration test as
-closure gate, remote push.
+- **Step 1 (planning, docs-only, commit `563b27b`)** —
+  ship'нуты два planning-документа
+  ([`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md),
+  [`track-h-...-step-map.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md)).
+- **Step 2 (transport / auth baseline audit, docs-only,
+  commit `3c74564`; follow-up commit `0628f4c` removed
+  literal credential-leak-guard pattern strings to keep
+  the audit doc outside `verify-release.ps1` Check 7's
+  match set)** — ship'нут
+  [`track-h-transport-and-auth-baseline-audit.md`](docs/architecture/track-h-transport-and-auth-baseline-audit.md);
+  resolved Q1 (HTTP-based), Q2 (exactly one), Q3 (static
+  bearer + constant-time compare), Q4
+  (`ProductConfig.auth.tokens` + `${ENV:NAME}` +
+  `--auth-token-env` CLI override).
+- **Step 3 (network transport / auth contract, docs-only,
+  commit `2e76061`)** — ship'нут
+  [`track-h-network-transport-and-auth-contract.md`](docs/architecture/track-h-network-transport-and-auth-contract.md)
+  (1650 lines, 293 RFC 2119 keyword usages: 199 MUST,
+  74 MUST NOT, 17 MAY, 2 SHOULD, 1 SHALL); 18 sections
+  pinning every transport / auth / config / CLI /
+  integration / verification rule for Step 4.
+- **Step 4 (narrow HTTP transport and bearer auth
+  boundary, единственный шаг с production code change,
+  commit `5814041`)** — PATH A (per Step 3 contract
+  §11). Ship'нуто 5 файлов (+877/-35):
+  - `packages/mcp-common/src/mcp_common/_network_transport.py`
+    (новый, 549 LOC, underscore-prefixed private,
+    **NOT** в `mcp_common/__init__.py`'s `__all__`,
+    pure stdlib `http.server.ThreadingHTTPServer` +
+    `hmac.compare_digest`); содержит handler для
+    `/mcp` POST endpoint (GET → 405+`Allow:POST`;
+    non-`/mcp` → 404; wrong Content-Type → 415+`-32600`;
+    body > 1 MiB → 413+`-32600`; multiple Authorization
+    headers → 400+`-32600`; case-insensitive Bearer
+    scheme; constant-time token compare; failure-
+    equivalence 401+`WWW-Authenticate`+JSON-RPC `-32001`
+    для missing/empty/malformed/invalid token;
+    notifications → 204; complete redaction discipline);
+    unified `run_main_http(...)` с одним argparser'ом
+    для обоих transport'ов (stdio path делегирует в
+    existing `_stdio_transport._serve_stdio` byte-
+    identically).
+  - 3 `__main__.py` (modified) — switched import
+    `_stdio_transport.run_main` → `_network_transport.run_main_http`;
+    `SERVER_VERSION` 0.3.0→0.4.0; module docstrings
+    updated; `main() -> int` signature preserved.
+  - `apps/platform/src/onec_platform/models.py`
+    (modified) — добавлен новый `ProductAuthSettings`
+    dataclass с `tokens: list[str]` + `auth` field на
+    `ProductConfig` с `default_factory`.
+  - `apps/platform/src/onec_platform/loader.py`
+    (modified) — новый `_AUTH_ENV_TOKEN_RE` regex
+    byte-identical к Track D pattern; новый
+    `_parse_auth(auth_raw)` с unknown-keys reject,
+    list-of-strings validation, env-substitution regex
+    enforce per entry, literal cleartext fail-closed
+    at config-load time.
 
-Следующий шаг по Track H — **Step 2 (transport / auth
-baseline audit, docs-only)**: новый short audit-документ
-с per-server / per-package / per-pyproject inventory
-current state + concrete missing pieces + 4-class
-breakdown + resolve Q1 (transport family — default HTTP-
-based), Q2 (transport family count — default exactly
-one), Q3 (auth baseline — default static bearer token),
-Q4 (auth config home — default existing config model
-с `${ENV:NAME}` env-substitution из Track D pattern).
-Production-код Step 2 не правит. Никаких real
-credentials. **GitHub remote push — operator action, не
-часть трека.**
+После Step 4 фактически работают:
+
+```powershell
+python -m mcp_read_server --transport stdio --help
+python -m mcp_read_server --transport http --bind 127.0.0.1:8765 --auth-token-env MCP_TOKEN --help
+```
+
+(и аналогично для двух остальных серверов). Каждый сервер
+поддерживает оба transport'а через единый
+`list_tools()` / `get_tool(name)` boundary; `run_write_flow`
+discipline для write-tools и read-only-by-construction
+discipline intelligence-сервера preserved unchanged на
+обоих transport'ах. Step 4 verification — 51 / 51 PASS
+(per-server `--help` exit 0; HTTP startup negative tests:
+missing `--bind`, missing token source, unresolved env;
+HTTP positive smoke на всех 3 servers; **byte-identical
+401 fail-closed** для no-Authorization vs wrong-token;
+case-insensitive scheme через {`Bearer`, `bearer`,
+`BEARER`, `BeArEr`}; GET 405; non-`/mcp` 404; malformed
+JSON 400+`-32700`; wrong Content-Type 415+`-32600`;
+unknown method 200+`-32601`; multiple Authorization
+400+`-32600`; notification 204; `tools/call ping` 200;
+cross-transport parity stdio = HTTP tool-name set).
+
+Registries `read=15 / write=25 / intelligence=16` без
+drift'а; никаких новых MCP tools; никаких новых runtime
+dependencies (implementation pure stdlib); никаких
+1cv8.exe runs ни на одном шаге трека; никаких реальных
+credentials в repo / docs / commit messages.
+
+Что **не** входит в Track H (повтор для ясности после
+Step 4): in-process TLS / HTTPS termination, mTLS /
+client certificate authentication, JWT / OAuth 2.0 /
+OIDC / SAML / SCIM, RBAC / ABAC / per-tool ACL /
+per-tenant isolation / multi-tenant policy engine,
+token rotation endpoint / refresh tokens / session
+cookies, rate limiting, WebSocket / SSE / TCP /
+Unix-socket / named-pipe transports, supervisor daemon
+/ systemd unit / Windows Service registration /
+`launchd` plist / auto-update / orchestration templates
+/ HA / clustering / load balancing / hot reload /
+background watchers, web UI / dashboard frontend,
+packaging ecosystem (`.msi` / `.deb` / signed
+distribution / GUI installer / PyPI publication / wheel
+publication beyond `[project.scripts]` declarations),
+new MCP tools (registries without drift), 1cv8 work,
+rollback / AST / multi-version 1С matrix expansion,
+standalone `apps/platform` entrypoint, distributed
+tracing / observability stack, real MCP client
+integration test as closure gate, remote push.
+
+Известный gap из Step 4 (operator-facing item handled
+in this Step 5 alignment, not a Step 4 code-fix):
+`apps/platform/src/onec_platform/installer.py:_config_to_dict`
+не emit'ит новый `auth` section, поэтому config
+round-tripped через `scripts/release/install.ps1 ...
+-Confirm` silently теряет declarations `auth.tokens`.
+Operators using `--transport http` against a round-
+tripped config get a clean fail-closed startup и либо
+re-add the section by hand либо use `--auth-token-env
+<VARNAME>` CLI flag to bypass the config. Future
+post-Track-H fix к `_config_to_dict` analogous Phase 6
+/ Step 9 service-level + enterprise round-trip fix.
+
+Следующий шаг по Track H — **Step 6 (final integration
+pass and Track H closure)**: closure narrative pass
+через `README.md` + `PROJECT-STATUS.md` + `CHANGELOG.md`
+(Q7 default ДА — version bump 0.4.0→0.5.0 на closure
+если Step 4 functional delta проходит SemVer MINOR-
+bump bar; финальное решение — Step 6); **GitHub remote
+push — operator action, не часть трека**.
 
 Документы трека:
-[`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md),
-[`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md).
+[`track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md),
+[`track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md),
+[`track-h-transport-and-auth-baseline-audit.md`](docs/architecture/track-h-transport-and-auth-baseline-audit.md),
+[`track-h-network-transport-and-auth-contract.md`](docs/architecture/track-h-network-transport-and-auth-contract.md).
 
 Подробности по последнему закрытому треку — в секции
 «Track G detail (закрыт)» ниже.
