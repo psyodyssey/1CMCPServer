@@ -57,10 +57,18 @@
 > **не** web UI, **не** packaging ecosystem (`.msi` /
 > `.deb` / GUI installer / signed distribution / wheel
 > publication beyond `[project.scripts]` declarations),
-> **не** standalone `apps/platform` entrypoint. Активного
-> трека сейчас нет — Track G закрыт седьмым по счёту
-> post-phase треком; открытие следующего трека —
-> отдельное operator decision.
+> **не** standalone `apps/platform` entrypoint. Активный
+> трек сейчас — **Parallel Track H — Network-Grade MCP
+> Transport and Authentication Boundary** (planning-only,
+> Step 1; следующий слой зрелости поверх Track G — добавит
+> один network MCP transport family + один minimum auth
+> baseline на network surface, оставляя existing local
+> stdio Track G surface preserved; **не** full enterprise
+> identity stack (SSO / SAML / OIDC / RBAC / multi-tenant),
+> **не** zero-trust mesh, **не** web UI, **не** packaging
+> ecosystem beyond `[project.scripts]` declarations, **не**
+> service management ecosystem (systemd / Windows Service /
+> HA / hot reload), **не** новые MCP tools).
 
 ### Системные требования
 
@@ -660,12 +668,86 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 
 ## Active parallel track
 
-Активного трека сейчас нет. Семь post-phase parallel
-track'ов (A, B, C, D, E, F, G) закрыты последовательно;
-Phase 7 как линейная фаза не запланирована. Открытие
-следующего параллельного трека — отдельное operator
-decision. Подробности по последнему закрытому треку — в
-секции «Track G detail (закрыт)» ниже.
+После closure'а Track G открыт восьмой post-phase track —
+**Parallel Track H — Network-Grade MCP Transport and
+Authentication Boundary**. Цель — ship'ить **второй слой
+зрелости** поверх Track G: добавить один network-facing
+MCP transport family и один minimum authentication
+baseline, additive над existing local stdio surface;
+существующий `python -m <server> --transport stdio`
+remains supported. Это **не** universal enterprise
+deployment platform, **не** full identity stack
+(SSO / SAML / OIDC federation / SCIM / organizational
+RBAC / multi-tenant policy), **не** zero-trust mesh
+(mTLS-everywhere / service mesh / KMS / vault как
+mandatory), **не** web UI / dashboard frontend, **не**
+packaging ecosystem (`.msi` / `.deb` / signed
+distribution / PyPI publication / wheel publication —
+beyond existing `[project.scripts]` declarations), **не**
+service management ecosystem (systemd unit / Windows
+Service registration / `launchd` plist / auto-update /
+HA / clustering / load balancing / hot reload /
+supervisor daemon с restart watcher), **не** standalone
+`apps/platform` entrypoint (carry-over out-of-scope from
+Track G Q6), **не** новые MCP tools (registry invariant
+`read=15 / write=25 / intelligence=16` carried through
+unchanged). Платформа архитектурно остаётся при том же
+подходе: existing `server.py:REGISTERED_TOOLS` registries
+для всех 3 MCP servers preserved byte-identical
+(`list_tools()` / `get_tool(name)` API без изменений);
+Track H ship'ит **дополнительный transport / auth layer
+поверх** этих registries, не задевая их; existing Track G
+artefacts (3 `__main__.py` entrypoints, `_stdio_transport.py`
+helper, `[project.scripts]` block) preserved.
+
+Track H сейчас на **Step 1 (planning, docs-only)** —
+ship'нуты только два planning-документа
+([`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md),
+[`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md));
+никаких code changes Step 1 не делал; registries
+`read=15 / write=25 / intelligence=16` без drift'а;
+никаких 1cv8.exe runs (трек работает на process /
+transport / auth layer, не на 1cv8 binary surface);
+никаких реальных credentials в repo / docs / commit
+messages.
+
+Что **не** входит в Track H (повтор для ясности): full
+enterprise identity stack (SSO / SAML / OIDC federation /
+SCIM / RBAC platform / multi-tenant policy engine), full
+zero-trust perimeter (mTLS everywhere / service mesh /
+KMS / vault / secret rotation platform как mandatory
+baseline), web UI / dashboard frontend, packaging
+ecosystem (`.msi` / `.deb` / signed distribution / GUI
+installer / wizard / PyPI publication / wheel publication),
+service management ecosystem (systemd / Windows Service /
+`launchd` / auto-update / orchestration templates / HA /
+clustering / load balancing / hot reload / background
+watchers / supervisor daemon), новые MCP tools
+(registries без drift'а), 1cv8 work, rollback / AST /
+multi-version 1С matrix expansion, standalone
+`apps/platform` entrypoint, distributed tracing /
+observability stack, real MCP client integration test as
+closure gate, remote push.
+
+Следующий шаг по Track H — **Step 2 (transport / auth
+baseline audit, docs-only)**: новый short audit-документ
+с per-server / per-package / per-pyproject inventory
+current state + concrete missing pieces + 4-class
+breakdown + resolve Q1 (transport family — default HTTP-
+based), Q2 (transport family count — default exactly
+one), Q3 (auth baseline — default static bearer token),
+Q4 (auth config home — default existing config model
+с `${ENV:NAME}` env-substitution из Track D pattern).
+Production-код Step 2 не правит. Никаких real
+credentials. **GitHub remote push — operator action, не
+часть трека.**
+
+Документы трека:
+[`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md),
+[`docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md`](docs/architecture/track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md).
+
+Подробности по последнему закрытому треку — в секции
+«Track G detail (закрыт)» ниже.
 
 ## Track G detail (закрыт)
 

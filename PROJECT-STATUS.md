@@ -2,23 +2,41 @@
 
 ## Текущий шаг
 
-Активного шага нет. Phase 1–6 закрыты ранее; семь
+**Parallel Track H / Step 1 — planning Network-Grade MCP
+Transport and Authentication Boundary (in progress /
+documentation only).** Phase 1–6 закрыты ранее; семь
 post-phase parallel track'ов (A, B, C, D, E, F, G)
-полностью закрыты. Последним был закрыт **Parallel Track G —
-Production-Grade MCP Transport and CLI**, шесть шагов; шесть
-meaningful commit'ов в `main`: `7a39454` (Step 1 — planning
-production-grade MCP transport and CLI), `6f3ad73` (Step 2 —
-transport baseline audit), `8bb3883` (Step 3 — runtime CLI
-and entrypoint contract), `370c5a8` (Step 4 — narrow stdio
-transport and CLI entrypoints, единственный шаг с production
-code change), `5890ba5` (Step 5 — operator docs and transport
-alignment), плюс closure commit Step 6 фиксирует
-обновлённые README/PROJECT-STATUS/CHANGELOG +
-`pyproject.toml` version bump `0.3.0` → `0.4.0` (Q7 = ДА).
-Открытие следующего параллельного трека — отдельное operator
-decision; Phase 7 как линейная фаза не запланирована.
+полностью закрыты. Track H — восьмой post-phase parallel
+track, открыт после closure'а Track G; цель — ship'ить
+**второй слой зрелости** поверх Track G: добавить один
+network-facing MCP transport family и один minimum
+authentication baseline, additive над existing local
+stdio surface (Track G `python -m <server> --transport
+stdio` остаётся supported). Это **не** full enterprise
+identity stack (SSO / SAML / OIDC / RBAC / multi-tenant),
+**не** zero-trust perimeter (mTLS everywhere / service
+mesh / KMS / vault как mandatory), **не** web UI /
+dashboard, **не** packaging ecosystem beyond
+`[project.scripts]` declarations, **не** service
+management ecosystem (systemd / Windows Service / hot
+reload / supervisor daemon), **не** новые MCP tools
+(registries `read=15 / write=25 / intelligence=16`
+invariant carried through), **не** standalone
+`apps/platform` entrypoint (Q6 carry-over из Track G).
+Step 1 — два planning-документа без code changes.
+`pyproject.toml` `version=0.4.0` (Track G closure bump
+0.3.0→0.4.0 сохраняется до Track H closure Step 6 — Q7
+default ДА bump 0.4.0→0.5.0 на closure).
 
 ## Статус
+
+`in progress` (для Parallel Track H / Step 1 как
+documentation-only opening — два planning-документа
+ship'нуты, никаких code changes, никаких изменений
+registry, никаких новых MCP tool'ов, никаких запусков
+1cv8.exe в этом шаге; никаких реальных credentials в
+repo / docs / commit message; Track H / Step 2 —
+следующий шаг и не открывается в этом же заходе).
 
 `closed` (для всего Parallel Track G — Steps 1–6 закрыты
 последовательно). Track G ship'ил **первый production-grade
@@ -11396,6 +11414,128 @@ read/write/intelligence-серверов, с честно
   packaging ecosystem track, real MCP client
   integration test track, multi-version 1С matrix
   expansion (post-Track-E follow-up).
+
+  Один из этих кандидатов был выбран: см. секцию
+  Track H / Step 1 ниже.
+
+### Parallel Track H / Step 1 — planning Network-Grade MCP Transport and Authentication Boundary (завершён)
+
+- **Цель шага.** Зафиксировать документационный вход в
+  **Parallel Track H — Network-Grade MCP Transport and
+  Authentication Boundary**: назначение трека (следующий
+  слой зрелости поверх Track G — добавить один
+  network-facing MCP transport family и один minimum
+  authentication baseline, additive над existing local
+  stdio surface), целевой результат, что закрывает /
+  не закрывает Track H, чем отличается от Tracks A–G,
+  guardrails, acceptance criteria, открытые вопросы Q1–Q7.
+  Кода не писать. Никаких изменений registry. Никаких
+  новых MCP tool'ов. Никаких запусков 1cv8.exe.
+- **Что реально сделано (документ-only Step 1).**
+  Ship'нуты два planning-документа в
+  `docs/architecture/`:
+  - `track-h-network-grade-mcp-transport-and-authentication-boundary-plan.md` —
+    plan-уровень: 11 sections (зачем нужен Track H после
+    Track G; стартовая точка post-Track-G factual
+    baseline + per-package gap inventory verified
+    grep'ом zero hits на `http.server` / `aiohttp` /
+    `websockets` / `socketserver` / `asyncio.start_server`
+    / `bearer` / `jwt` / `oauth` / `x509` в `apps/*/src` и
+    `packages/*/src`; цель Track H; что входит in scope —
+    documentation surface + Step 4 implementation surface
+    + Step 5 docs alignment + Step 6 closure deliverables;
+    что НЕ входит — full enterprise identity stack /
+    full zero-trust perimeter / web UI / packaging
+    ecosystem / full service management ecosystem /
+    новые MCP tools / 1cv8 work / rollback / AST /
+    multi-version / standalone `apps/platform` /
+    distributed tracing / remote push; 13 guardrails
+    (registry invariant, no new MCP tools, stdio
+    baseline preserved, `mcp_common` public API
+    byte-identical, `run_write_flow` discipline preserved,
+    read-only intelligence preserved, no
+    `[project.dependencies]` as mandatory baseline без
+    обоснования, no real credentials, no 1cv8.exe runs,
+    production code only Step 4 на explicit allowed
+    surfaces, wheel-build empty preserved, no premature
+    enterprise-ready claim, no remote push); 12
+    acceptance criteria; honest constraints после closure;
+    relation to prior tracks A–G; open questions Q1–Q7
+    с default recommendations).
+  - `track-h-network-grade-mcp-transport-and-authentication-boundary-step-map.md` —
+    step map: 6 шагов (Step 1 planning / Step 2 baseline
+    audit / Step 3 normative contract / Step 4
+    implementation / Step 5 docs alignment / Step 6
+    closure) с per-step Цель / Что меняем / Что НЕ
+    меняем / Результат format'ом, mirror Track G
+    step-map structure.
+- **Open questions Q1–Q7 (default recommendations).**
+  - **Q1 = HTTP-based MCP boundary** (default planning
+    anchor; финал — Step 2 audit / Step 3 contract).
+    Reasoning: ближе к practical client/server deployment
+    story, честнее для near-enterprise trajectory, чем
+    raw WebSocket-first.
+  - **Q2 = exactly one** transport family. Reasoning:
+    narrowest honest scope; multi-transport matrix —
+    отдельный future track.
+  - **Q3 = static bearer token** (default planning
+    anchor; финал — Step 2 / Step 3). Reasoning:
+    минимальный реальный security perimeter без
+    enterprise identity explosion; переиспользует
+    Track D `${ENV:NAME}` pattern для secret config.
+  - **Q4 = existing config model boundary** (default;
+    финал — Step 3). Reasoning: никакого parallel
+    config path; operator-managed secret path остаётся
+    acceptable; vault / KMS / OS keychain — post-Track-H
+    tracks.
+  - **Q5 = НЕТ supervisor / service layer внутри
+    Track H.** Reasoning: не смешивать transport / auth
+    с process lifecycle track; supervisor / systemd /
+    Windows Service / hot reload — отдельный следующий
+    трек post-Track-H.
+  - **Q6 = НЕТ standalone `apps/platform` entrypoint
+    в Track H.** Carry-over out-of-scope from Track G
+    Q6.
+  - **Q7 = likely YES** (`0.4.0` → `0.5.0`) если Step 4
+    ship'нет real transport/auth capability; финальное
+    решение — Step 6 closure decision на основе
+    фактического Step 4 functional delta. Precedent —
+    Track D `0.1.0 → 0.2.0`, Track F `0.2.0 → 0.3.0`,
+    Track G `0.3.0 → 0.4.0`.
+- **Что НЕ изменено на Step 1 (закрытый scope).**
+  `apps/`, `packages/`, `scripts/`, `pyproject.toml`,
+  `.github/`, `.editorconfig`, `.python-version`,
+  `.gitignore`, `examples/`, `LICENSE`, `SECURITY.md`,
+  `CHANGELOG.md`, `docs/release-handoff.md`,
+  `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks/*`,
+  `apps/platform/README.md`, server `server.py` files,
+  three `__main__.py` files, `_stdio_transport.py`
+  helper. Никаких real credentials в commit message —
+  Track H не задевает credentials infrastructure.
+  Никакого 1cv8.exe.
+- **Selfcheck после Step 1.** Зелёный без правок:
+  registries `read=15 / write=25 / intelligence=16`,
+  `selfcheck_status=ok`. Track H / Step 1 не правил
+  production-кода — drift'а нет.
+- **Следующий шаг.** **Parallel Track H / Step 2 —
+  transport / auth baseline audit (docs-only).**
+  Step 2 включает: новый short audit-документ
+  `docs/architecture/track-h-transport-and-auth-baseline-audit.md`
+  (per-server / per-package / per-pyproject inventory
+  current state + concrete missing pieces + 4-class
+  breakdown + read-only evidence; resolve Q1 — transport
+  family final choice; Q2 — transport family count
+  confirmation; Q3 — auth baseline final choice; Q4 —
+  auth config home final choice). **Никаких изменений**
+  в `apps/`, `packages/`, `scripts/`, `pyproject.toml`,
+  `SECURITY.md`, `docs/release-handoff.md`,
+  `docs/operator-manual.md`, `apps/platform/README.md`,
+  `README.md` (Step 1 уже открыл active track —
+  дополнительно не правим). Production-код не правится.
+  Никакого 1cv8.exe не запускается. Step 2 я открываю
+  отдельным заходом, не в этом.
 
 ## Phase 6 закрыта
 
