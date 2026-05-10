@@ -78,6 +78,92 @@ PowerShell-скрипт, который выставляет `PYTHONPATH` для
 python .\scripts\dev\selfcheck.py
 ```
 
+### `mcp_client_smoke.py`
+
+Track K / Step 4 closure-gate harness: stdlib-only
+minimum-viable MCP client smoke. Exercises the platform's
+existing MCP server surface (`mcp-read-server` /
+`mcp-write-server` / `mcp-intelligence-server`)
+end-to-end via JSON-RPC 2.0 over both `--transport stdio`
+и `--transport http`. Не модифицирует ни один файл
+production-кода и ни одну MCP tool registration.
+
+Что делает:
+
+- запускает выбранный MCP server как subprocess через
+  `python -m <module>`;
+- speaks JSON-RPC 2.0 over stdin/stdout (stdio path)
+  или `POST /mcp` через stdlib `urllib.request` (HTTP
+  path);
+- выполняет `initialize` → `tools/list` → один
+  read-only `tools/call` с synthetic empty arguments;
+- asserts envelope shape (`protocolVersion =
+  "2024-11-05"`; non-empty `serverInfo.name` /
+  `version`; non-empty `tools` list; well-shaped
+  `result` или well-shaped `error` envelope —
+  contract §7.1.4 принимает оба как valid evidence);
+- для HTTP path дополнительно выполняет missing-
+  `Authorization` probe asserting `401` +
+  `WWW-Authenticate: Bearer realm="mcp"` + JSON-RPC
+  `error.code == -32001` (failure-equivalence per
+  Track H §6 / §8);
+- генерирует synthetic bearer token через
+  `secrets.token_urlsafe(32)` at run time; token value
+  **никогда** не печатается;
+- ephemeral port discovery через
+  `socket.bind(("127.0.0.1", 0))`;
+- clean subprocess shutdown (close-stdin →
+  `terminate` → kill-on-timeout escalation; no orphan
+  processes);
+- финальная строка `OK (server=... transport=...)`
+  на success; exit code 0 на success, non-zero на
+  assertion failure.
+
+CLI:
+
+```powershell
+python .\scripts\dev\mcp_client_smoke.py --server read --transport both
+python .\scripts\dev\mcp_client_smoke.py --server write --transport stdio
+python .\scripts\dev\mcp_client_smoke.py --server intelligence --transport http
+```
+
+- `--server {read,write,intelligence}` — какой MCP
+  server exercise'ить. По умолчанию `read` (mandatory
+  closure-gate target per contract §3.4); другие
+  значения = recommended-only spot coverage.
+- `--transport {stdio,http,both}` — какой transport(s)
+  exercise'ить. По умолчанию `both`.
+
+PYTHONPATH не обязателен заранее: harness строит свой
+собственный PYTHONPATH для subprocess (mirrors
+`bootstrap_paths.ps1`'s 11 src paths) если он не
+выставлен parent сессией.
+
+Что harness сознательно **не** делает:
+
+- не модифицирует production-код, `pyproject.toml`,
+  registries, или существующие `scripts/*` файлы;
+- не добавляет new dependencies (stdlib-only —
+  `argparse`, `json`, `os`, `secrets`, `socket`,
+  `subprocess`, `urllib.request`/`urllib.error`,
+  `time`, `contextlib`, `pathlib`);
+- не импортирует `mcp_common._stdio_transport` или
+  `mcp_common._network_transport` (server-side
+  internals); работает через wire (subprocess pipes /
+  HTTP);
+- не запускает `1cv8.exe` и не трогает 1С-инфобазу;
+- не делает remote push.
+
+Это **не** "client integration solved" / "production-
+ready client compatibility" / "interop fully proven" /
+"all clients supported" — harness exercises только
+narrow minimum scenario (`initialize` + `tools/list` +
+один read-only `tools/call` + HTTP 401 probe) и его
+job — produce byte-replayable closure-gate evidence,
+не establish broader QA framework. Per Track K Step 3
+contract §9 (PATH B pinned) / §10.1 (this file
+location pinned) / §13 (honest non-goals).
+
 ### `run_dev_check.ps1`
 
 Единая команда локальной проверки skeleton-проекта. Dot-source'ит

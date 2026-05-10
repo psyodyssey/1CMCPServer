@@ -102,6 +102,38 @@ The operator-facing surface you are receiving:
     across all three servers.
 - **Per-track planning documents** under `docs/architecture/`
   for Track A, Track B, Track C.
+- **Narrow MCP client smoke harness** (Track K /
+  Step 4 deliverable, PATH B narrow harness) at
+  [`scripts/dev/mcp_client_smoke.py`](../scripts/dev/mcp_client_smoke.py):
+  341-line stdlib-only operator-runnable diagnostic
+  script that exercises the platform's MCP method set
+  end-to-end against any of the three MCP servers
+  (`mcp-read-server` default; `--server
+  {read,write,intelligence}`) over both `--transport
+  stdio` and `--transport http` (defaults to both).
+  Completes a JSON-RPC 2.0 `initialize` →
+  `tools/list` → one read-only `tools/call` round-
+  trip with envelope-shape assertions; on the HTTP
+  path additionally performs a missing-`Authorization`
+  failure-equivalence probe asserting `401` +
+  `WWW-Authenticate: Bearer realm="mcp"` + JSON-RPC
+  `error.code == -32001`. Synthetic bearer token via
+  `secrets.token_urlsafe(32)` at run time; token
+  value never printed; ephemeral port via
+  `socket.bind(("127.0.0.1", 0))`; clean subprocess
+  shutdown. Runnable directly:
+  `python scripts/dev/mcp_client_smoke.py --server
+  read --transport both` → final `OK` line on
+  success. This is operator-runnable closure-gate
+  evidence that the MCP method set works
+  externally — **not** a claim of "client
+  integration solved" or "production-ready client
+  compatibility" (the harness exercises only the
+  narrow minimum scenario; broader matrices are
+  recommended-only). The Track K Step 3 contract
+  that pinned PATH B + closure-gate scenario lives
+  at
+  [`docs/architecture/track-k-real-mcp-client-integration-test-contract.md`](architecture/track-k-real-mcp-client-integration-test-contract.md).
 - **Operator-facing deployment-boundary recipe** (Track J /
   Step 4 deliverable, PATH A docs-only) at
   [`docs/operators/deployment-boundary.md`](operators/deployment-boundary.md):
@@ -468,6 +500,15 @@ For the security report flow, see `SECURITY.md`.
   The single recipe for deploying `--transport http` safely
   behind an operator-owned reverse proxy. Required reading
   before any non-loopback HTTP exposure.
+- **MCP client smoke harness (operator-runnable)** —
+  [`scripts/dev/mcp_client_smoke.py`](../scripts/dev/mcp_client_smoke.py).
+  Stdlib-only diagnostic script proving the MCP method
+  set works end-to-end against any of the three servers
+  over both stdio and HTTP. Run after the PYTHONPATH
+  bootstrap to verify the platform speaks MCP correctly
+  on your local machine. Not a closure of "client
+  integration solved" — exercises only the narrow
+  minimum scenario.
 - **Administrator-facing reference** — `docs/administrator-manual.md`.
 - **Developer-facing reference** — `docs/developer-manual.md`.
 - **Reproducible scenarios** — `docs/runbooks/`, including the
