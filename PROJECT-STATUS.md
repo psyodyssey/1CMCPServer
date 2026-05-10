@@ -2,26 +2,47 @@
 
 ## Текущий шаг
 
-Активного шага нет. Phase 1–6 закрыты ранее; восемь
-post-phase parallel track'ов (A, B, C, D, E, F, G, H)
-полностью закрыты. Последним был закрыт **Parallel
-Track H — Network-Grade MCP Transport and Authentication
-Boundary**, шесть шагов плюс один Step 2 follow-up; семь
-meaningful commit'ов в `main`: `563b27b` (Step 1 —
-planning), `3c74564` (Step 2 — transport and auth
-baseline audit), `0628f4c` (Step 2 follow-up — credential
-leak guard self-reference fix), `2e76061` (Step 3 —
-network transport and auth contract), `5814041` (Step 4 —
-narrow HTTP transport and bearer auth boundary,
-единственный шаг с production code change), `407a2f2`
-(Step 5 — operator docs and security alignment), плюс
-closure commit Step 6 фиксирует обновлённые README /
-PROJECT-STATUS / CHANGELOG + `pyproject.toml` version
-bump `0.4.0` → `0.5.0` (Q7 = ДА). Открытие следующего
-параллельного трека — отдельное operator decision; Phase
-7 как линейная фаза не запланирована.
+**Parallel Track I / Step 1 — planning Installer Auth
+Round-Trip Integrity (in progress / documentation only).**
+Phase 1–6 закрыты ранее; восемь post-phase parallel
+track'ов (A, B, C, D, E, F, G, H) полностью закрыты.
+Track I — девятый post-phase parallel track, открыт после
+closure'а Track H; цель — закрыть один honest gap, явно
+зафиксированный в Track H closure narrative:
+`apps/platform/src/onec_platform/installer.py:_config_to_dict`
+не emit'ит новый `auth` section, поэтому config round-tripped
+через `scripts/release/install.ps1 ... -Confirm` silently
+теряет declarations `auth.tokens`. Track I восстановит
+preservation symmetric к existing Phase 6 / Step 8
+enterprise-block emit-only-when-divergent pattern. Это
+**не** redesign `ProductAuthSettings` schema, **не**
+changes к `_parse_auth` validation, **не** changes к
+`_network_transport.py` auth resolution, **не**
+introduction secret storage / vault / KMS, **не**
+packaging ecosystem (`.msi` / `.deb` / signed distribution
+/ PyPI publication / wheel publication beyond existing
+`[project.scripts]` declarations), **не** service
+supervision, **не** network hardening, **не** enterprise
+identity stack, **не** standalone `apps/platform`
+entrypoint, **не** новые MCP tools (registries
+`read=15 / write=25 / intelligence=16` invariant carried
+through). Step 1 — два planning-документа без code
+changes. `pyproject.toml` `version=0.5.0` (Track H closure
+bump 0.4.0→0.5.0 сохраняется до Track I closure Step 6 —
+Q6 default ДА bump 0.5.0→0.6.0 на closure если Step 4
+ship'ит real code change с functional delta; alternative
+PATCH 0.5.0→0.5.1 — only if framing честнее как defect-
+fix чем feature).
 
 ## Статус
+
+`in progress` (для Parallel Track I / Step 1 как
+documentation-only opening — два planning-документа
+ship'нуты, никаких code changes, никаких изменений
+registry, никаких новых MCP tool'ов, никаких запусков
+1cv8.exe в этом шаге; никаких реальных credentials в
+repo / docs / commit message; Track I / Step 2 —
+следующий шаг и не открывается в этом же заходе).
 
 `closed` (для всего Parallel Track H — Steps 1–6 закрыты
 последовательно). Track H ship'ил **второй слой зрелости**
@@ -12015,6 +12036,148 @@ read/write/intelligence-серверов, с честно
   stack track (SSO / OIDC / RBAC / multi-tenant) —
   значительно больше Track H scope; multi-version
   1С matrix expansion (post-Track-E follow-up).
+
+  Один из этих кандидатов был выбран первым: см.
+  секцию Track I / Step 1 ниже.
+
+### Parallel Track I / Step 1 — planning installer auth round-trip integrity (завершён)
+
+- **Цель шага.** Зафиксировать документационный вход в
+  **Parallel Track I — Installer Auth Round-Trip
+  Integrity**: назначение трека (узкий follow-up к
+  Track H — закрывает один honest gap из Track H closure
+  narrative: `installer.py:_config_to_dict` не emit'ит
+  новый `auth` section, install fast path round-trip
+  silently drops `auth.tokens`), целевой результат, что
+  закрывает / не закрывает Track I, чем отличается от
+  Tracks A–H, guardrails, acceptance criteria, открытые
+  вопросы Q1–Q7. Кода не писать. Никаких изменений
+  registry. Никаких новых MCP tool'ов. Никаких запусков
+  1cv8.exe.
+- **Что реально сделано (документ-only Step 1).**
+  Ship'нуты два planning-документа в `docs/architecture/`:
+  - `track-i-installer-auth-round-trip-integrity-plan.md`
+    — plan-уровень: 11 sections (зачем нужен Track I
+    после Track H + concrete behaviour pre-Track-I; стартовая
+    точка post-Track-H factual baseline + per-installer-
+    surface inventory + Track H auth surfaces preserved
+    byte-identical anchor + existing precedent for
+    additive-installer-fix pattern (Phase 6/Step 6
+    service-level + Phase 6/Step 8 enterprise emit-only-
+    when-divergent); цель Track I; что входит in scope —
+    documentation surface + Step 4 implementation surface
+    + Step 5 docs alignment + Step 6 closure deliverables;
+    что НЕ входит — auth design changes / secret storage /
+    packaging ecosystem / transport-network changes /
+    service-supervisor / новые MCP tools / 1cv8 work /
+    rollback / AST / multi-version / standalone
+    apps/platform / web UI / enterprise identity / remote
+    push; 13 guardrails; 10 acceptance criteria; honest
+    constraints после closure; relation to prior tracks
+    A-H; open questions Q1-Q7 с default recommendations).
+  - `track-i-installer-auth-round-trip-integrity-step-map.md`
+    — step map: 6 шагов (Step 1 planning / Step 2
+    installer round-trip baseline audit / Step 3 auth
+    round-trip preservation contract / Step 4 narrow
+    installer auth round-trip implementation / Step 5
+    operator/security docs alignment / Step 6 final
+    integration pass and closure) с per-step Цель / Что
+    меняем / Что НЕ меняем / Результат format'ом, mirror
+    Track H step-map structure.
+- **Open questions Q1–Q7 (default recommendations).**
+  - **Q1 = `installer.py` only** (default planning anchor;
+    финал — Step 2 audit / Step 3 contract). Reasoning:
+    Phase 6/Step 9 precedent (service-level + enterprise
+    extensions без modification of `_install_runner.py`);
+    gap pattern matches — missing emit branch для `auth`
+    block, ~10–15 LOC symmetric к existing `enterprise_block`.
+    Alternative `installer.py + _install_runner.py`
+    rejected as default (explicit reporting hook expands
+    scope без shipping value).
+  - **Q2 = preserve `auth` section presence + `tokens`
+    list shape + order + raw `${ENV:NAME}` form +
+    empty/default no-implicit-injection** (default;
+    финал — Step 3 contract). Reasoning: symmetric к
+    existing `enterprise_block` emit-only-when-divergent
+    pattern; raw env-substitution form preserved as
+    configuration data (никаких env-resolution at install
+    time — это Track H `_resolve_env_token` boundary
+    territory at server startup).
+  - **Q3 = forbidden = no env-resolution at install time
+    / no cleartext token writing / no Track H auth model
+    changes / no secret storage / no broad packaging
+    rewrite / no `[project.scripts]` changes / no helper
+    file introduction unless absolutely justified**
+    (default; финал — Step 3 contract).
+  - **Q4 = backward compat preserved** (pre-Track-H
+    configs round-trip byte-identical; stdio-only configs
+    work; configs without `auth` section still load).
+    Carry-over из Track H §12 backward-compatibility
+    invariants.
+  - **Q5 = expected docs scope on Step 5** = `SECURITY.md`
+    «Honest constraints» known installer auth-round-trip
+    gap removed/updated; `docs/release-handoff.md` «What
+    is NOT» / «Known limitations» installer gap bullets;
+    `apps/platform/README.md` «Чего сейчас намеренно ещё
+    нет» installer gap mention; `README.md` Quickstart
+    + active parallel track section if remaining drift;
+    `scripts/dev/launch.ps1` + `scripts/dev/README.md`
+    only if direct user-facing drift; `scripts/release/
+    README.md` possibly. Default: check во время Step 5
+    inventory; не пред-открывать.
+  - **Q6 = likely YES** (`0.5.0 → 0.6.0`) если Step 4
+    ship'ит real production code change с observable
+    configuration-round-trip behaviour delta; alternative
+    PATCH (`0.5.0 → 0.5.1`) — only if Step 4 diff
+    действительно tiny (~5 LOC) и framing честнее как
+    defect-fix чем feature; финал — Step 6 closure
+    decision. Precedent — Track D / F / G / H all MINOR
+    bumps.
+  - **Q7 = closure не означает** «full installer
+    ecosystem solved» / «deployment solved» / «packaging
+    solved» / «enterprise-ready». Только installer auth
+    round-trip integrity fixed.
+- **Что НЕ изменено на Step 1 (закрытый scope).**
+  `apps/`, `packages/`, `scripts/`, `pyproject.toml`,
+  `.github/`, `.editorconfig`, `.python-version`,
+  `.gitignore`, `examples/`, `LICENSE`, `SECURITY.md`,
+  `CHANGELOG.md`, `docs/release-handoff.md`,
+  `docs/operator-manual.md`, `docs/administrator-manual.md`,
+  `docs/developer-manual.md`, `docs/runbooks/*`,
+  `apps/platform/README.md`, server `server.py` files,
+  three `__main__.py` files, `_stdio_transport.py`
+  helper, `_network_transport.py` helper, `installer.py`,
+  `models.py`, `loader.py`, `bootstrap.py`. Никаких real
+  credentials в commit message — Track I round-trips
+  raw `${ENV:NAME}` strings, никогда не resolves them.
+  Никакого 1cv8.exe.
+- **Selfcheck после Step 1.** Зелёный без правок:
+  registries `read=15 / write=25 / intelligence=16`,
+  `selfcheck_status=ok`. Track I / Step 1 не правил
+  production-кода — drift'а нет.
+- **Следующий шаг.** **Parallel Track I / Step 2 —
+  installer round-trip baseline audit (docs-only).**
+  Step 2 включает: новый short audit-документ
+  `docs/architecture/track-i-installer-auth-round-trip-baseline-audit.md`
+  (per-section inventory `_config_to_dict`
+  (`product_name` / `profile_name` / `default_environment`
+  / `project.environments` / `servers` / `bootstrap` /
+  `runtime` / `enterprise` / `auth`) + 4-class breakdown
+  (already round-trip-safe / partially preserved /
+  dropped on round-trip / out-of-scope) + read-only
+  evidence (file/line refs + diff `ProductConfig`
+  dataclass fields vs `_config_to_dict` emit branches +
+  precedent for emit-only-when-divergent pattern); resolve
+  Q1 — implementation surface final choice; Q2 —
+  preservation rules final shape; Q3 — forbidden
+  behaviours final list). **Никаких изменений** в
+  `apps/`, `packages/`, `scripts/`, `pyproject.toml`,
+  `SECURITY.md`, `docs/release-handoff.md`,
+  `docs/operator-manual.md`, `apps/platform/README.md`,
+  `README.md` (Step 1 уже открыл active track —
+  дополнительно не правим). Production-код не правится.
+  Никакого 1cv8.exe не запускается. Step 2 я открываю
+  отдельным заходом, не в этом.
 
 ## Phase 6 закрыта
 

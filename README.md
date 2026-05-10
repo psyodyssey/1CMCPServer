@@ -75,10 +75,18 @@
 > publication beyond `[project.scripts]` declarations),
 > **не** standalone `apps/platform` entrypoint, **не**
 > новые MCP tools (registries `read=15 / write=25 /
-> intelligence=16` invariant carried through). Активного
-> трека сейчас нет — Track H закрыт восьмым по счёту
-> post-phase треком; открытие следующего параллельного
-> трека — отдельное operator decision.
+> intelligence=16` invariant carried through). Активный
+> трек сейчас — **Parallel Track I — Installer Auth
+> Round-Trip Integrity** (planning-only, Step 1; узкий
+> follow-up к Track H — закрывает один honest gap из Track
+> H closure: `installer.py:_config_to_dict` currently не
+> emit'ит новый `auth` section, поэтому install fast path
+> round-trip silently drops `auth.tokens`. Track I
+> восстановит preservation symmetric к existing Phase 6 /
+> Step 8 enterprise-block emit-only-when-divergent
+> pattern; **не** redesign auth model, **не** packaging
+> ecosystem, **не** secrets vault / KMS, **не** новые
+> MCP tools).
 
 ### Системные требования
 
@@ -693,13 +701,105 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 
 ## Active parallel track
 
-Активного трека сейчас нет. Восемь post-phase parallel
-track'ов (A, B, C, D, E, F, G, H) закрыты последовательно;
-Phase 7 как линейная фаза не запланирована. Открытие
-следующего параллельного трека — отдельное operator
-decision. Подробности по последнему закрытому треку — в
-секции «Track H detail (закрыт)» ниже; предыдущий трек
-описан в «Track G detail (закрыт)».
+После closure'а Track H открыт девятый post-phase track —
+**Parallel Track I — Installer Auth Round-Trip Integrity**.
+Цель — закрыть один honest gap, зафиксированный в Track H
+closure narrative: `apps/platform/src/onec_platform/installer.py:_config_to_dict`
+не emit'ит новый `auth` section, поэтому config round-tripped
+через `scripts/release/install.ps1 ... -Confirm` silently
+теряет declarations `auth.tokens`. Operator получает clean
+fail-closed startup ("`--transport http requires
+--auth-token-env or auth.tokens in product config`") и
+либо re-add'ит section by hand, либо использует
+`--auth-token-env <VARNAME>` CLI flag для bypass'а. Это
+**не** silent insecure success (fail-closed корректен по
+Track H §10.6), но это silent configuration data loss,
+который ломает declarative round-trip guarantee, на которую
+полагаются другие installer paths (existing `enterprise`
+block + `runtime.services[*]` Phase 6/Step 6 service-level
+fields — оба honored emit-only-when-divergent pattern'ом).
+
+Track I ship'ит **fix this single gap** строго в рамках
+existing Track H auth design, без расширения scope. Это
+**не** redesign `ProductAuthSettings` schema, **не** changes
+к `_parse_auth` validation, **не** changes к
+`_network_transport.py` auth resolution, **не** introduction
+secret storage / vault / KMS / OS keychain, **не** packaging
+ecosystem (`.msi` / `.deb` / signed distribution / PyPI
+publication / wheel publication beyond existing
+`[project.scripts]` declarations), **не** service supervision
+(systemd / Windows Service / hot reload / supervisor daemon),
+**не** network hardening (TLS-in-process / mTLS / new
+transport family), **не** enterprise identity stack
+(SSO / OIDC / RBAC / multi-tenant), **не** standalone
+`apps/platform` entrypoint, **не** новые MCP tools (registry
+invariant `read=15 / write=25 / intelligence=16` carried
+through unchanged). Платформа архитектурно остаётся при
+том же подходе: existing Track G + Track H artefacts (3
+`__main__.py` entrypoints, `_stdio_transport.py` helper,
+`_network_transport.py` helper, `[project.scripts]` block,
+`ProductAuthSettings` dataclass, `_parse_auth` loader,
+`_AUTH_ENV_TOKEN_RE` regex, `Authorization` header parsing
++ case-insensitive scheme + `hmac.compare_digest`
+validation + failure-equivalence rule + complete redaction
+discipline) preserved byte-identical; Track I ship'ит
+**только narrow installer.py extension**, symmetric к
+existing Phase 6 / Step 8 enterprise-block emit-only-when-
+divergent pattern.
+
+Track I сейчас на **Step 1 (planning, docs-only)** —
+ship'нуты только два planning-документа
+([`docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md),
+[`docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md));
+никаких code changes Step 1 не делал; registries
+`read=15 / write=25 / intelligence=16` без drift'а; никаких
+1cv8.exe runs (трек работает на install/materialization
+layer уровне, не на 1cv8 binary surface); никаких реальных
+credentials в repo / docs / commit messages.
+
+Что **не** входит в Track I (повтор для ясности): full
+installer ecosystem (`.msi` / `.deb` / signed distribution /
+GUI installer / wizard / PyPI publication / wheel
+publication), secret storage / vault / KMS / OS keychain
+integration, env-var resolution at install time (это design
+invariant, не gap), Track H auth model changes
+(bearer / case-insensitive scheme / constant-time compare /
+failure-equivalence rule preserved byte-identical), новый
+transport / network / TLS / mTLS / OAuth / JWT / OIDC / SAML
+/ SCIM / RBAC / multi-tenant / sessions / rate limiting,
+supervisor / systemd / Windows Service / hot reload, web UI
+/ dashboard frontend, packaging ecosystem beyond
+`[project.scripts]`, standalone `apps/platform` entrypoint,
+новые MCP tools (registries без drift'а), 1cv8 work,
+rollback / AST / multi-version 1С matrix expansion,
+distributed tracing / observability stack, real MCP client
+integration test as closure gate, remote push.
+
+Следующий шаг по Track I — **Step 2 (installer round-trip
+baseline audit, docs-only)**: новый short audit-документ
+с per-section inventory `_config_to_dict` (`product_name` /
+`profile_name` / `default_environment` / `project.environments`
+/ `servers` / `bootstrap` / `runtime` / `enterprise` /
+`auth`), 4-class breakdown (already round-trip-safe /
+partially preserved / dropped on round-trip / out-of-scope),
+read-only evidence, resolve Q1 (implementation surface —
+default `installer.py` only), Q2 (preservation contract —
+`auth` section presence + `tokens` list shape + ordering +
+raw `${ENV:NAME}` form preservation + empty/default
+behaviour), Q3 (forbidden behaviours — no env-resolution at
+install time / no cleartext token writing / no Track H auth
+model changes / no secret storage / no broad packaging
+rewrite). Production-код Step 2 не правит. Никаких real
+credentials. **GitHub remote push — operator action, не
+часть трека.**
+
+Документы трека:
+[`docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md),
+[`docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md).
+
+Подробности по последнему закрытому треку — в секции
+«Track H detail (закрыт)» ниже; предыдущий трек описан в
+«Track G detail (закрыт)».
 
 ## Track H detail (закрыт)
 
