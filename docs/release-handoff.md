@@ -144,17 +144,24 @@ they are intentional limits of the current scaffolding.
   the `[project.scripts]` console entries materialise as
   installable binaries only when a future packaging track
   ships an actual wheel — meanwhile the documented
-  invocation is `python -m <server>`. **Known install fast
-  path limitation:** `installer.py:_config_to_dict` does
-  not yet emit the new `auth` section, so a config round-
-  tripped through `scripts/release/install.ps1 ... -Confirm`
-  silently loses its `auth.tokens` declarations. Operators
-  using `--transport http` against a round-tripped config
-  get a clean fail-closed startup and either re-add the
-  section by hand or use `--auth-token-env <VARNAME>` to
-  bypass the config. Future post-Track-H fix is analogous
-  to the Phase 6 / Step 9 service-level + enterprise
-  round-trip fix.
+  invocation is `python -m <server>`. **Install fast path
+  auth round-trip preserved (Track I / Step 4):**
+  `installer.py:_config_to_dict` now emits the operator's
+  `auth.tokens` declarations symmetric to the existing
+  Phase 6 / Step 8 enterprise-block emit-only-when-divergent
+  pattern. A config round-tripped through
+  `scripts/release/install.ps1 ... -Confirm` preserves
+  `auth.tokens` byte-identical to the source list (raw
+  `${ENV:NAME}` strings remain raw configuration data; env
+  resolution happens at server startup, not at install
+  time). Pre-Track-H configs without an `auth` section
+  continue to round-trip byte-identical (no implicit
+  `"auth": {}` injection). Operators using
+  `--transport http` against a round-tripped config no
+  longer have to re-add the section by hand; the
+  `--auth-token-env <VARNAME>` CLI override remains
+  available for operators who prefer not to declare tokens
+  in the config file at all.
 - **No web UI / dashboard frontend.**
 - **No enterprise super-set** (SSO/RBAC, multi-tenant, secrets
   vault as a service, federated audit storage, policy-as-code
@@ -414,11 +421,14 @@ as a single checklist so the receiver does not miss them.
   no mTLS / OAuth / JWT / SAML / SCIM / RBAC / multi-tenant;
   no WebSocket / SSE / TCP / pipe transports; no supervisor /
   systemd / Windows Service registration; no hot reload; no
-  web UI; no token rotation endpoint. See `SECURITY.md`
-  "Honest constraints" for the full per-transport statement
-  including the install fast path round-trip limitation
-  (`installer.py:_config_to_dict` does not yet emit the new
-  `auth` section).
+  web UI; no token rotation endpoint. After Track I / Step 4,
+  `installer.py:_config_to_dict` preserves operator
+  `auth.tokens` declarations byte-identical through install
+  fast path round-trip; raw `${ENV:NAME}` strings remain
+  raw configuration data (no env resolution at install
+  time). See `SECURITY.md` "Honest constraints" for the
+  full per-transport statement including the post-Track-I
+  install fast path auth-round-trip preservation behaviour.
 - **No installer ecosystem.** See "What is NOT in this handoff"
   above.
 

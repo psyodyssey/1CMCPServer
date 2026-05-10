@@ -77,16 +77,22 @@
 > новые MCP tools (registries `read=15 / write=25 /
 > intelligence=16` invariant carried through). Активный
 > трек сейчас — **Parallel Track I — Installer Auth
-> Round-Trip Integrity** (planning-only, Step 1; узкий
-> follow-up к Track H — закрывает один honest gap из Track
-> H closure: `installer.py:_config_to_dict` currently не
-> emit'ит новый `auth` section, поэтому install fast path
-> round-trip silently drops `auth.tokens`. Track I
-> восстановит preservation symmetric к existing Phase 6 /
-> Step 8 enterprise-block emit-only-when-divergent
-> pattern; **не** redesign auth model, **не** packaging
-> ecosystem, **не** secrets vault / KMS, **не** новые
-> MCP tools).
+> Round-Trip Integrity**: узкий follow-up к Track H,
+> закрывший один honest gap из Track H closure narrative.
+> Steps 1–4 закрыты (Step 4 ship'нул +15 LOC additive
+> emit branch в `installer.py:_config_to_dict` symmetric
+> к existing Phase 6 / Step 8 enterprise-block emit-only-
+> when-divergent pattern); auth.tokens теперь preserved
+> через install fast path round-trip byte-identical, raw
+> `${ENV:NAME}` strings round-tripped как configuration
+> data (env resolution остаётся runtime boundary в
+> `_network_transport._resolve_env_token`, не install
+> time). Pre-Track-H configs без `auth` section продолжают
+> round-trip'ить byte-identical (no implicit `"auth": {}`
+> injection). Текущий шаг — Step 5 operator/security docs
+> alignment (docs-only); Track I ещё **не** закрыт. Это
+> **не** redesign auth model, **не** packaging ecosystem,
+> **не** secrets vault / KMS, **не** новые MCP tools.
 
 ### Системные требования
 
@@ -747,55 +753,132 @@ discipline) preserved byte-identical; Track I ship'ит
 existing Phase 6 / Step 8 enterprise-block emit-only-when-
 divergent pattern.
 
-Track I сейчас на **Step 1 (planning, docs-only)** —
-ship'нуты только два planning-документа
-([`docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md),
-[`docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md));
-никаких code changes Step 1 не делал; registries
-`read=15 / write=25 / intelligence=16` без drift'а; никаких
-1cv8.exe runs (трек работает на install/materialization
-layer уровне, не на 1cv8 binary surface); никаких реальных
-credentials в repo / docs / commit messages.
+Track I сейчас на **Step 5 (operator/security docs
+alignment, docs-only)**. Закрытые шаги:
 
-Что **не** входит в Track I (повтор для ясности): full
-installer ecosystem (`.msi` / `.deb` / signed distribution /
-GUI installer / wizard / PyPI publication / wheel
-publication), secret storage / vault / KMS / OS keychain
-integration, env-var resolution at install time (это design
-invariant, не gap), Track H auth model changes
-(bearer / case-insensitive scheme / constant-time compare /
-failure-equivalence rule preserved byte-identical), новый
-transport / network / TLS / mTLS / OAuth / JWT / OIDC / SAML
-/ SCIM / RBAC / multi-tenant / sessions / rate limiting,
-supervisor / systemd / Windows Service / hot reload, web UI
-/ dashboard frontend, packaging ecosystem beyond
-`[project.scripts]`, standalone `apps/platform` entrypoint,
-новые MCP tools (registries без drift'а), 1cv8 work,
-rollback / AST / multi-version 1С matrix expansion,
-distributed tracing / observability stack, real MCP client
-integration test as closure gate, remote push.
+- **Step 1 (planning, docs-only, commit `cb79597`)** —
+  ship'нуты два planning-документа
+  ([`docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md),
+  [`track-i-...-step-map.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md)).
+- **Step 2 (installer round-trip baseline audit, docs-only,
+  commit `e7d9973`)** — ship'нут
+  [`track-i-installer-auth-round-trip-baseline-audit.md`](docs/architecture/track-i-installer-auth-round-trip-baseline-audit.md)
+  (889 lines, 12 sections); per-section `_config_to_dict`
+  inventory (9 logical sections); 4-class breakdown
+  идентифицировал `auth` как единственный CLASS-3 gap;
+  resolved Q1 (`installer.py` only — verified by Phase
+  6/Step 6 + Phase 6/Step 8 single-file precedents), Q2
+  (5 preservation rules), Q3 (11 forbidden sub-rules).
+- **Step 3 (auth round-trip preservation contract,
+  docs-only, commit `525c611`)** — ship'нут
+  [`track-i-installer-auth-round-trip-contract.md`](docs/architecture/track-i-installer-auth-round-trip-contract.md)
+  (843 lines, 118 RFC 2119 keyword usages: 78 MUST, 32
+  MUST NOT, 4 SHOULD, 3 MAY, 1 SHALL); 11 sections
+  pinning emit-branch placement, exact accumulator-and-
+  conditional-attach shape, list-copying discipline,
+  raw `${ENV:NAME}` byte-identical preservation rule, no
+  env-resolution-at-install-time rule, exact Step 4
+  allowed/forbidden file surfaces, verification protocol.
+- **Step 4 (narrow installer auth round-trip
+  implementation, единственный шаг с production code
+  change, commit `d047a6d`)** — 1 file modified, +15/-0
+  LOC. Additive emit branch в `installer.py:_config_to_dict`
+  между existing `enterprise_block` attach (l.314) и
+  `return out`:
 
-Следующий шаг по Track I — **Step 2 (installer round-trip
-baseline audit, docs-only)**: новый short audit-документ
-с per-section inventory `_config_to_dict` (`product_name` /
-`profile_name` / `default_environment` / `project.environments`
-/ `servers` / `bootstrap` / `runtime` / `enterprise` /
-`auth`), 4-class breakdown (already round-trip-safe /
-partially preserved / dropped on round-trip / out-of-scope),
-read-only evidence, resolve Q1 (implementation surface —
-default `installer.py` only), Q2 (preservation contract —
-`auth` section presence + `tokens` list shape + ordering +
-raw `${ENV:NAME}` form preservation + empty/default
-behaviour), Q3 (forbidden behaviours — no env-resolution at
-install time / no cleartext token writing / no Track H auth
-model changes / no secret storage / no broad packaging
-rewrite). Production-код Step 2 не правит. Никаких real
-credentials. **GitHub remote push — operator action, не
-часть трека.**
+  ```python
+  auth_block: dict[str, Any] = {}
+  if config.auth.tokens:
+      auth_block["tokens"] = list(config.auth.tokens)
+  if auth_block:
+      out["auth"] = auth_block
+  ```
+
+  Comment block описывает Track I provenance + raw
+  `${ENV:NAME}` preservation + resolution boundary в
+  `_network_transport.py`. **No new imports** (`Any`
+  already imported); **no edits в existing 8 emit
+  branches**; **no helper extraction** / refactor /
+  cleanup churn.
+
+После Step 4 фактически работает:
+
+```powershell
+# Operator declares config с auth section
+.\scripts\release\install.ps1 `
+    -ConfigPath input.config.json `
+    -OutputConfigPath out.config.json `
+    -Confirm
+# Materialised out.config.json contains
+# "auth": {"tokens": ["${ENV:MCP_TOKEN}"]}
+# byte-identical к source (raw env-substitution form
+# preserved as configuration data; no env resolution
+# at install time)
+```
+
+Step 4 verification: 14/14 PASS через одноразовый
+`.tmp_track_i_smoke.py` smoke harness (deleted
+pre-commit) — multi-token round-trip preserved с order;
+single-token round-trip; empty/default no-injection
+across 3 cases (default factory, explicit empty list,
+pre-Track-H input dict); pre-Track-H reload defaults to
+empty; token order positionally preserved через 3
+distinct entries; **raw `${ENV:NAME}` byte-for-byte
+preserved WITHOUT populating os.environ**; **no env
+resolution at install time** (negative probe с
+TRACK_I_ENV_RESOLUTION_PROBE — resolved value
+никогда не появляется в projected JSON); literal
+cleartext rejected fail-closed by `loader._parse_auth`
+upstream; end-to-end install fast-path executed-mode
+real-IO round-trip с
+`run_install_fast_path_from_json_file(confirm_write=True)`
+→ result.ok=True, mode=executed → materialised JSON
+contains auth.tokens byte-identical к source →
+`bootstrap_product_from_json_file` re-load preserves
+auth.tokens element-wise.
+
+Registries `read=15 / write=25 / intelligence=16` без
+drift'а; никаких новых MCP tools; никаких новых runtime
+dependencies; никаких 1cv8.exe runs ни на одном шаге
+трека; никаких реальных credentials в repo / docs /
+commit messages.
+
+Что **не** входит в Track I (повтор для ясности после
+Step 4): full installer ecosystem (`.msi` / `.deb` /
+signed distribution / GUI installer / wizard / PyPI
+publication / wheel publication), secret storage /
+vault / KMS / OS keychain integration, env-var
+resolution at install time (это design invariant —
+resolution остаётся runtime boundary), Track H auth
+model changes (bearer / case-insensitive scheme /
+constant-time compare / failure-equivalence rule
+preserved byte-identical), новый transport / network /
+TLS / mTLS / OAuth / JWT / OIDC / SAML / SCIM / RBAC /
+multi-tenant / sessions / rate limiting, supervisor /
+systemd / Windows Service / hot reload, web UI /
+dashboard frontend, packaging ecosystem beyond
+`[project.scripts]`, standalone `apps/platform`
+entrypoint, новые MCP tools (registries без drift'а),
+1cv8 work, rollback / AST / multi-version 1С matrix
+expansion, distributed tracing / observability stack,
+real MCP client integration test as closure gate,
+remote push.
+
+Следующий шаг по Track I — **Step 6 (final integration
+pass and Track I closure)**: closure narrative pass
+через `README.md` + `PROJECT-STATUS.md` + `CHANGELOG.md`
+(Q6 default ДА — version bump 0.5.0→0.6.0 на closure
+если Step 4 functional delta проходит SemVer MINOR-bump
+bar; alternative PATCH 0.5.0→0.5.1 — only if framing
+честнее как defect-fix чем feature; финальное решение —
+Step 6); **GitHub remote push — operator action, не
+часть трека**.
 
 Документы трека:
-[`docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md),
-[`docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md).
+[`track-i-installer-auth-round-trip-integrity-plan.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-plan.md),
+[`track-i-installer-auth-round-trip-integrity-step-map.md`](docs/architecture/track-i-installer-auth-round-trip-integrity-step-map.md),
+[`track-i-installer-auth-round-trip-baseline-audit.md`](docs/architecture/track-i-installer-auth-round-trip-baseline-audit.md),
+[`track-i-installer-auth-round-trip-contract.md`](docs/architecture/track-i-installer-auth-round-trip-contract.md).
 
 Подробности по последнему закрытому треку — в секции
 «Track H detail (закрыт)» ниже; предыдущий трек описан в

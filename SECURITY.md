@@ -76,19 +76,27 @@ hidden gaps.
     explicit Track H non-goals; subsequent post-Track-H tracks
     can address them. Track H does not claim production
     readiness for adversarial-internet deployment.
-  - **Known limitation in install fast path round-trip.**
-    `apps/platform/src/onec_platform/installer.py:_config_to_dict`
-    does not yet emit the new `auth` section, so configs round-
-    tripped through `scripts/release/install.ps1 ... -Confirm`
-    silently lose their `auth.tokens` declarations. Operators
-    using `--transport http` against a round-tripped config
-    therefore get a clean fail-closed startup line ("`--transport
-    http requires --auth-token-env or auth.tokens in product
-    config`") and either re-add the section by hand or use
-    `--auth-token-env <VARNAME>` to bypass the config. A future
-    post-Track-H fix to `_config_to_dict` belongs to the same
-    family as the Phase 6 / Step 9 service-level + enterprise
-    round-trip fix.
+  - **Install fast path auth round-trip preserved (Track I /
+    Step 4).** `apps/platform/src/onec_platform/installer.py:_config_to_dict`
+    now emits the operator's `auth.tokens` declarations through
+    the install fast path round-trip, symmetric to the existing
+    Phase 6 / Step 8 enterprise-block emit-only-when-divergent
+    pattern. Configs round-tripped through
+    `scripts/release/install.ps1 ... -Confirm` preserve
+    `auth.tokens` byte-identical to the source list (raw
+    `${ENV:NAME}` strings remain raw configuration data, not
+    resolved env values). Pre-Track-H configs without an `auth`
+    section continue to round-trip byte-identical (no implicit
+    `"auth": {}` injection). Resolution of `${ENV:NAME}` happens
+    at server startup in `_network_transport._resolve_env_token`,
+    not at install time. Broader installer / packaging /
+    deployment ecosystem limitations remain (no `.msi` / `.deb`
+    / signed distribution / GUI installer / wizard / PyPI
+    publication / wheel publication beyond `[project.scripts]`;
+    no service / supervisor registration; no enterprise-ready
+    or hostile-network claim) — see "What is NOT in this
+    handoff" / "Known limitations" sections in
+    `docs/release-handoff.md` for the full carry-forward list.
 - **Single-version 1С evidence (with multi-version scaffolding).** Real
   binary-backed round-trip evidence has been exercised on `8.3.27.1859`
   (Windows x64, file-based reference stand) — see Track A / Step 6 in
