@@ -6,6 +6,242 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
+## 0.4.0 — Parallel Track G — Production-Grade MCP Transport and CLI
+
+This release closes **Parallel Track G — Production-Grade MCP
+Transport and CLI**, the seventh post-phase parallel track.
+Track G shipped the **first production-grade operational
+layer** for the three MCP servers: canonical `__main__.py`
+entrypoints (`mcp_read_server` / `mcp_write_server` /
+`mcp_intelligence_server`), a minimum-viable line-delimited
+stdio JSON-RPC 2.0 transport (stdlib-only, no third-party
+SDK), a minimal CLI surface (`--help`, `--config-path`,
+`--transport`, `--log-level`), and `[project.scripts]`
+console entries in `pyproject.toml`. **No new MCP tools.**
+**No changes to tool registries, `mcp_common` public API,
+audit row `details` shape, or `run_write_flow` discipline.**
+Six steps total; production code was touched in only one
+step (Step 4); all other steps were
+documentation/status/version-only.
+
+The version bump `0.3.0` → `0.4.0` (Q7 resolved YES) reflects
+that Track G / Step 4 shipped a real production code change
+with observable runtime capability delta:
+`python -m mcp_read_server` (and the two siblings) now
+actually start a stdio JSON-RPC server, whereas before
+Track G the modules were not runnable as scripts at all.
+This is backward-compatible new functionality classifying as
+a classic MINOR bump per SemVer (existing `list_tools()` /
+`get_tool(name)` API preserved byte-identical; the new helper
+`mcp_common._stdio_transport` is underscore-prefixed and is
+NOT exported from `mcp_common.__init__`, so the public API
+surface of `mcp_common` is preserved byte-identical).
+
+### Per-step outcomes
+
+- **Step 1 (planning production-grade MCP transport and CLI)** —
+  two planning documents under `docs/architecture/track-g-*`
+  (plan + step-map). 7 open questions Q1–Q7. No code
+  changes. Commit `7a39454`.
+- **Step 2 (transport baseline audit)** — one new
+  descriptive documentation-only document
+  (`track-g-transport-baseline-audit.md`, 587 lines). Per-
+  server inventory of the current state with a 4-class
+  breakdown (already useful baseline / adjacent insufficient
+  / clearly missing / out-of-scope). Critical findings:
+  zero declared runtime dependencies in `pyproject.toml`,
+  zero MCP SDK imports anywhere in repo, all three MCP
+  server packages identical in structure and lacking
+  `__main__.py`. **Q1 resolved** (stdio only). **Q2
+  resolved** (custom stdlib only, no new pyproject deps).
+  **Q6 resolved** (`apps/platform` standalone entrypoint
+  out-of-scope). Commit `6f3ad73`.
+- **Step 3 (runtime CLI / entrypoint contract)** — one new
+  prescriptive normative document
+  (`track-g-runtime-cli-entrypoint-contract.md`, 879 lines)
+  using RFC 2119-style MUST / MUST NOT / SHALL / SHOULD /
+  MAY wording (85 normative keyword usages). 15 sections
+  pinning down the exact `__main__.py` shape, exact CLI
+  surface, exact transport scope (stdio JSON-RPC 2.0 only,
+  forbidden libraries, stdout/stderr discipline,
+  minimum-viable MCP method set), server binding /
+  dispatch contract via existing `list_tools()` /
+  `get_tool(name)` boundary, no-auth / no-supervisor
+  posture, exact `[project.scripts]` block content,
+  backward compatibility statement, exact Step 4
+  implementation surface (allowed files + forbidden
+  surfaces + scope creep markers), verification protocol.
+  Commit `8bb3883`.
+- **Step 4 (narrow stdio transport and CLI entrypoints)** —
+  the only step with production code change. Implementation
+  PATH B (3 entrypoints + pyproject scripts + 1 private
+  `mcp_common` helper); PATH A pure inline rejected because
+  each `__main__.py` would have carried ~140 LOC of
+  identical argparse / JSON-RPC framing / dispatch logic
+  (~280 LOC of pure copy-paste across 3 servers),
+  qualifying as "duplication otherwise unreasonable" under
+  Step 3 contract §12.1.4. Five files changed (+361
+  lines):
+  - `packages/mcp-common/src/mcp_common/_stdio_transport.py`
+    — new, 245 LOC; underscore-prefixed internal helper,
+    NOT exported from `mcp_common.__init__`; pure stdlib
+    (`argparse`, `json`, `logging`, `inspect`, `sys`);
+    implements line-delimited JSON-RPC 2.0 loop, the four
+    required CLI flags, handlers for `initialize` /
+    `ping` / `tools/list` / `tools/call` /
+    `notifications/initialized` /
+    `notifications/cancelled`, `ToolResult` → MCP
+    envelope serialization (`content` +
+    `structuredContent` + `isError`), top-of-`run_main`
+    exception boundary; `sys.stdout` reserved for
+    JSON-RPC envelopes, all diagnostic output routed to
+    `sys.stderr` via `logging`.
+  - `apps/mcp-read-server/src/mcp_read_server/__main__.py`,
+    `apps/mcp-write-server/src/mcp_write_server/__main__.py`,
+    `apps/mcp-intelligence-server/src/mcp_intelligence_server/__main__.py`
+    — new, ~30 LOC each; each defines `main() -> int`
+    that calls `run_main` with the package's existing
+    `list_tools` / `get_tool` boundary and a per-server
+    name + version. No `__init__.py` edits, no
+    `server.py` edits, no `tools.py` / `models.py` /
+    `runtime/` / `apps/platform/` touches.
+  - `pyproject.toml` — `[project.scripts]` block added
+    with exactly three console entries (`mcp-read-server`,
+    `mcp-write-server`, `mcp-intelligence-server`). No
+    new dependencies; the
+    `[tool.hatch.build.targets.wheel] packages = []`
+    block (Track C / Step 3 honest constraint) is
+    preserved unchanged. Commit `370c5a8`.
+- **Step 5 (operator docs and transport alignment)** —
+  six docs aligned with the actual Step 4 surface
+  (+229 / -81 lines): `README.md` Quickstart paragraph +
+  "Что Quickstart не обещает" + full rewrite of "Active
+  parallel track" section enumerating closed Steps 1–4
+  with artifacts and the actual launch surface;
+  `SECURITY.md` "No production-grade MCP transport yet"
+  bullet replaced with "Local stdio MCP transport only"
+  block (explicit threat model, explicit still-NOT list);
+  `docs/release-handoff.md` new "What is in this
+  handoff" bullet for the three `python -m` entrypoints,
+  reworded "What is NOT in this handoff", launch-section
+  parenthetical fix, "Known limitations" alignment;
+  `apps/platform/README.md` four "transport / `__main__`
+  / CLI does not exist" locations rewritten under the
+  Step 4 baseline while preserving network / auth /
+  supervisor out-of-scope; `scripts/dev/launch.ps1`
+  header comment + `Show-Usage` help text point operators
+  at `python -m <server> --help`; `scripts/dev/README.md`
+  two operator-facing parentheticals + CI workflow note
+  aligned. `PROJECT-STATUS.md` and `CHANGELOG.md`
+  deliberately not touched (closure territory). Commit
+  `5890ba5`.
+- **Step 6 (final integration pass and Track G closure)** —
+  this closure: `pyproject.toml` version bumped 0.3.0 →
+  0.4.0 (Q7 = YES); `README.md`, `PROJECT-STATUS.md`, and
+  `CHANGELOG.md` aligned with Track G closed status. Read-
+  only final integration check green: linear Step 1 → 6
+  history, all Step 1–5 deliverables present on disk,
+  registries without drift, `verify-release.ps1` GREEN on
+  8 checks, no real credentials anywhere in the six
+  Track G commits, no 1cv8.exe runs at any Track G step.
+
+### Actual launch surface after Track G closure
+
+```
+python -m mcp_read_server --help
+python -m mcp_write_server --help
+python -m mcp_intelligence_server --help
+```
+
+Each server starts a line-delimited stdio JSON-RPC 2.0 loop
+with handlers for `initialize`, `ping`, `tools/list`,
+`tools/call`, `notifications/initialized`, and
+`notifications/cancelled`. `sys.stdout` is reserved for
+JSON-RPC envelopes; diagnostic output (logs) is routed to
+`sys.stderr`. Tool dispatch goes through the existing
+`server.py` boundary (`list_tools()` / `get_tool(name)`); the
+`run_write_flow` discipline for write tools and the read-
+only-by-construction discipline of the intelligence server
+are preserved unchanged. CLI flags: `--help`, `--config-path
+<path>`, `--transport stdio`, `--log-level
+{DEBUG,INFO,WARNING,ERROR}`. The same three names are also
+declared as `[project.scripts]` console entries in
+`pyproject.toml`; the wheel build remains empty
+(`[tool.hatch.build.targets.wheel] packages = []`), so these
+console entries become installable binaries only when a
+future packaging track ships an actual wheel — meanwhile the
+documented invocation is `python -m <server>`.
+
+### Registry invariant carried through Track G
+
+- `mcp-read-server` — 15 public tools.
+- `mcp-write-server` — 25 public tools.
+- `mcp-intelligence-server` — 16 public tools.
+
+No MCP surface drift through Track G.
+
+### Honest constraints update under Track G closure
+
+- **Local trusted-stdio transport only.** No HTTP, no
+  WebSocket, no SSE, no TCP, no Unix domain socket, no
+  named pipe / Windows IPC. Network exposure remains
+  out-of-scope; threat model = local trusted stdio
+  boundary (operator-owned process). A future post-
+  Track-G network transport track is the right place
+  for any of those.
+- **No authentication / authorisation.** No token / Bearer
+  / JWT / API key validation; no mutual TLS; no OAuth /
+  OpenID Connect / SAML; no RBAC / ABAC; no multi-tenant
+  isolation; no rate limiting. The platform does not
+  claim production readiness for adversarial network
+  deployment.
+- **No supervisor / service registration.** No systemd
+  unit, no Windows Service, no `launchd` plist, no Docker
+  / Kubernetes deployment configuration, no
+  `supervisor` / `runit` / `s6` recipes, no automatic
+  restart watcher, no log aggregation
+  (`journald` / `syslog` / ELK), no distributed tracing
+  / observability stack.
+- **No hot reload, no background config watcher.** Each
+  server is a single-shot process; lifecycle is the
+  operator's responsibility (or the existing
+  `apps/platform/runtime.py` boundary, which Track G did
+  not extend).
+- **No web UI / dashboard frontend.**
+- **No standalone `apps/platform` entrypoint** (Q6
+  explicit out-of-scope; Track G ships entrypoints for
+  the three MCP servers only, not for `onec_platform`).
+- **No packaging ecosystem beyond `[project.scripts]`
+  declarations.** No `.msi` / `.deb` / GUI installer /
+  signed binary distribution / PyPI / wheel publication.
+  Track C wheel-build empty constraint is preserved.
+- **No new MCP tools.** Registry counts unchanged
+  (`read=15 / write=25 / intelligence=16`).
+- **No 1cv8.exe runs at any Track G step.** Track G
+  operates at the process / transport layer; the 1cv8
+  binary surface is not engaged.
+- **No real MCP client integration test as a closure
+  gate.** Real client testing (Claude Desktop, MCP CLI
+  launching the server) requires operator infrastructure
+  and is recommended but not blocking.
+- **All other 0.3.0 honest constraints carry forward
+  unchanged** (rollback whitelist 6 of 25 mutating
+  registry tools, no public `delete_*`, no multi-file
+  restore, no DB schema rollback, no AST semantic
+  inversion, no transactional rollback).
+- **All earlier 0.2.0 / 0.1.0 honest constraints carry
+  forward unchanged** (DESIGNER credentials via
+  `${ENV:NAME}` substitution; 8th hygiene check in
+  `verify-release.ps1`; no installer ecosystem; no full
+  enterprise super-set; no full AST parser; no full
+  rollback / delete coverage).
+
+### Active work
+
+None. No parallel track is currently open after Track G
+closure. Phase 7 as a linear phase is not planned. Opening
+the next parallel track is an explicit operator decision.
+
 ## 0.3.0 — Parallel Track F — Rollback Whitelist Expansion
 
 This release closes **Parallel Track F — Rollback Whitelist
