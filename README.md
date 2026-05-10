@@ -75,28 +75,33 @@
 > publication beyond `[project.scripts]` declarations),
 > **не** standalone `apps/platform` entrypoint, **не**
 > новые MCP tools (registries `read=15 / write=25 /
-> intelligence=16` invariant carried through). Активный
-> трек сейчас — **Parallel Track I — Installer Auth
-> Round-Trip Integrity**: узкий defect-fix follow-up к
-> Track H, закрывший один honest gap из Track H closure
+> intelligence=16` invariant carried through). И
+> **Parallel Track I — Installer Auth Round-Trip
+> Integrity**: узкий defect-fix follow-up к Track H,
+> закрывший один honest gap из Track H closure
 > narrative. Step 4 ship'нул +15 LOC additive emit branch
 > в `installer.py:_config_to_dict` symmetric к existing
 > Phase 6 / Step 8 enterprise-block emit-only-when-
 > divergent pattern; auth.tokens теперь preserved через
-> install fast path round-trip byte-identical, raw
-> `${ENV:NAME}` strings round-tripped как configuration
-> data (env resolution остаётся runtime boundary в
-> `_network_transport._resolve_env_token`, не install
-> time). Pre-Track-H configs без `auth` section продолжают
-> round-trip'ить byte-identical (no implicit `"auth": {}`
-> injection). Active no longer — Track I закрыт девятым
-> по счёту post-phase треком (Q6 = PATCH bump
-> `0.5.0 → 0.5.1`; Step 4 — defect-class round-trip
-> integrity fix, no new public API surface, no new
-> runtime capability для end users). Это **не** redesign
-> auth model, **не** packaging ecosystem, **не** secrets
-> vault / KMS, **не** новые MCP tools, **не** deployment
-> ecosystem solved.
+> install fast path round-trip byte-identical (Q6 = PATCH
+> bump `0.5.0 → 0.5.1`). Активный трек сейчас —
+> **Parallel Track J — TLS and Reverse-Proxy Deployment
+> Boundary** (planning-only, Step 1; следующий слой
+> зрелости поверх Tracks H/I — formalize "trusted-network
+> behind operator-owned reverse proxy" general-policy
+> statement из Track H Step 3 contract §13 в operator-
+> facing single-source-of-truth deployment-boundary
+> recipe с точной bind-host guidance, reverse-proxy
+> integration expectations, exposure-rule matrix для
+> трёх scenarios (loopback / private / public-through-
+> proxy), explicit `/healthz` endpoint resolution; Step
+> 4 design-question остаётся открытым между docs-only,
+> narrow ≤15 LOC code addition, или hybrid; **не**
+> in-process TLS / mTLS (carry-over Track H §13 forbid),
+> **не** enterprise identity stack (SSO/OIDC/RBAC/multi-
+> tenant), **не** service supervision, **не** packaging
+> ecosystem, **не** web UI, **не** observability stack,
+> **не** новые MCP tools).
 
 ### Системные требования
 
@@ -714,13 +719,114 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 
 ## Active parallel track
 
-Активного трека сейчас нет. Девять post-phase parallel
-track'ов (A, B, C, D, E, F, G, H, I) закрыты последовательно;
-Phase 7 как линейная фаза не запланирована. Открытие
-следующего параллельного трека — отдельное operator
-decision. Подробности по последнему закрытому треку — в
-секции «Track I detail (закрыт)» ниже; предыдущий трек
-описан в «Track H detail (закрыт)».
+После closure'а Track I открыт десятый post-phase track —
+**Parallel Track J — TLS and Reverse-Proxy Deployment
+Boundary**. Цель — формализовать "trusted-network behind
+operator-owned reverse proxy" general-policy statement из
+Track H Step 3 contract §13 в operator-facing single-
+source-of-truth deployment-boundary recipe: точная
+bind-host guidance (loopback / private subnet / public-
+facing-through-reverse-proxy scenarios), reverse-proxy
+integration expectations (X-Forwarded-* headers
+deliberately not consulted by `_MCPHandler`; auth is
+bearer-token-only), TLS termination point (operator's
+reverse proxy only — in-process TLS forbidden carry-over
+от Track H §13.1), exposure-rule matrix для трёх
+deployment scenarios, explicit `/healthz` endpoint
+resolution. Step 4 design-question остаётся открытым
+между docs-only operationalization (PATH A — operator-
+facing deployment guide), narrow ≤15 LOC code addition в
+`_network_transport.py` (PATH B — bind-host warning
+и/или `/healthz` endpoint), или hybrid (PATH C); финал
+PATH в Step 3 contract на основе Step 2 audit evidence.
+
+Это **не** in-process TLS / HTTPS termination (Track H
+§13.1 invariant carried forward unchanged), **не** mTLS
+/ client certificate authentication, **не** full
+enterprise identity stack (SSO / SAML / OIDC federation /
+SCIM / RBAC / ABAC / multi-tenant), **не** zero-trust
+posture, **не** hostile-internet exposure ready, **не**
+WAF / IDS / rate-limit / DDoS protection / anomaly
+detection integration, **не** observability stack
+(distributed tracing / metrics / logging / alerting),
+**не** service supervisor / systemd unit / Windows
+Service registration / hot reload / restart watcher,
+**не** packaging ecosystem (`.msi` / `.deb` / signed
+distribution / GUI installer / wizard / PyPI
+publication / wheel publication beyond
+`[project.scripts]`), **не** web UI / dashboard
+frontend, **не** standalone `apps/platform` entrypoint
+(carry-over из Tracks G/H/I), **не** новые MCP tools
+(registry invariant `read=15 / write=25 /
+intelligence=16` carried through). Платформа
+архитектурно остаётся при том же подходе: existing
+Track G / H / I artefacts (3 `__main__.py` entrypoints,
+`_stdio_transport.py` helper, `_network_transport.py`
+helper, `[project.scripts]` block, `ProductAuthSettings`
+dataclass, `_parse_auth` loader, `_AUTH_ENV_TOKEN_RE`
+regex, `Authorization` header parsing + case-insensitive
+scheme + `hmac.compare_digest` validation + failure-
+equivalence rule + complete redaction discipline,
+installer.py auth round-trip integrity) preserved
+byte-identical если Step 4 идёт PATH A; в случае
+PATH B/C — narrow additive change в одном файле
+(`_network_transport.py`) с byte-identical preservation
+всех остальных surfaces.
+
+Track J сейчас на **Step 1 (planning, docs-only)** —
+ship'нуты только два planning-документа
+([`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md),
+[`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md));
+никаких code changes Step 1 не делал; registries
+`read=15 / write=25 / intelligence=16` без drift'а;
+никаких 1cv8.exe runs (трек работает на network/
+deployment boundary layer, не на 1cv8 binary surface);
+никаких реальных credentials в repo / docs / commit
+messages.
+
+Что **не** входит в Track J (повтор для ясности):
+in-process TLS / mTLS (carry-over Track H §13 forbid),
+full enterprise identity stack (SSO/SAML/OIDC/SCIM/
+RBAC/ABAC/multi-tenant), zero-trust posture, hostile-
+internet exposure-ready stack, WAF/IDS/rate-limit/DDoS
+protection/anomaly detection, observability stack
+(OpenTelemetry/Jaeger/Prometheus/OpenMetrics/log
+aggregation), service supervisor / systemd / Windows
+Service / launchd / hot reload / restart watcher /
+auto-update, packaging ecosystem (.msi/.deb/signed
+distribution/GUI installer/wizard/PyPI/wheel
+publication beyond [project.scripts]), web UI/dashboard
+frontend, standalone `apps/platform` entrypoint, new
+MCP tools (registries без drift'а), 1cv8 work, rollback
+/ AST / multi-version 1С matrix expansion, real MCP
+client integration test as closure gate, remote push.
+
+Следующий шаг по Track J — **Step 2 (deployment-
+boundary baseline audit, docs-only)**: новый short
+audit-документ с inventory existing TLS / reverse-proxy
+/ bind-host text in Track H contract / SECURITY /
+release-handoff / apps/platform/README / scripts/dev/* /
+scripts/release/* + inventory `_network_transport.py`
+runtime behaviour (bind-host validation, forwarded-
+header treatment, non-`/mcp` 404 response,
+`WWW-Authenticate` 401) + 4-class breakdown (already
+formalized at general-policy level / partially
+documented scattered / clearly missing / out-of-scope) +
+resolve Q1 (target = hybrid reverse-proxy-first +
+in-process TLS deferred), Q2 (Step 4 PATH choice based
+on evidence), Q3 (deployment threat model = trusted
+internal network behind operator-owned reverse proxy),
+Q4 (deployment surfaces enumerated). Production-код
+Step 2 не правит. Никаких real credentials. **GitHub
+remote push — operator action, не часть трека.**
+
+Документы трека:
+[`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md),
+[`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md).
+
+Подробности по последнему закрытому треку — в секции
+«Track I detail (закрыт)» ниже; предыдущий трек описан
+в «Track H detail (закрыт)».
 
 ## Track I detail (закрыт)
 
