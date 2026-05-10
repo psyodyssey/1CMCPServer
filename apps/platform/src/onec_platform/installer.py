@@ -314,6 +314,21 @@ def _config_to_dict(config: ProductConfig) -> dict:
     if enterprise_block:
         out["enterprise"] = enterprise_block
 
+    # Track I / Step 4 — preserve the operator's auth.tokens
+    # declarations through the install fast path round-trip. Emit
+    # only when the token list is non-empty so pre-Track-H configs
+    # without an auth block remain byte-identical (no implicit
+    # ``"auth": {}`` injection). Token strings are round-tripped
+    # raw as configuration data; ``${ENV:NAME}`` env-substitution
+    # form is preserved character-by-character. Resolution remains
+    # the runtime boundary in
+    # ``packages/mcp-common/src/mcp_common/_network_transport.py``.
+    auth_block: dict[str, Any] = {}
+    if config.auth.tokens:
+        auth_block["tokens"] = list(config.auth.tokens)
+    if auth_block:
+        out["auth"] = auth_block
+
     return out
 
 
