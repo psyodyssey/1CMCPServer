@@ -2,33 +2,53 @@
 
 ## Текущий шаг
 
-Активного шага нет. Phase 1–6 закрыты ранее; десять
-post-phase parallel track'ов (A, B, C, D, E, F, G, H,
-I, J) полностью закрыты последовательно. Последним был
-закрыт **Parallel Track J — TLS and Reverse-Proxy
-Deployment Boundary**, intentionally docs-only
-deployment-boundary formalization track из шести шагов;
-шесть meaningful commit'ов в `main`: `e203e43` (Step 1
-— planning + step-map), `344129c` (Step 2 — descriptive
-baseline audit), `4e04771` (Step 3 — normative contract
-pinning PATH A docs-only), `5c793c1` (Step 4 — operator-
-facing deployment-boundary recipe), `19e8923` (Step 5 —
-operator docs and deployment-boundary alignment), плюс
-closure commit Step 6 фиксирует обновлённые README /
-PROJECT-STATUS / CHANGELOG. **Q7 = NO-BUMP** — Track J
-закрыт под existing `0.5.1` без further version bump:
-production code не правился ни в одном из шести Track J
-шагов; ноль defect-class fixes (Step 2 audit explicitly
-показал, что runtime уже enforce'ил deployment-boundary
-invariants); ноль new external capability (Step 3
-contract pinned PATH A specifically чтобы избежать
-net-new capability); ноль registry change (`read=15 /
-write=25 / intelligence=16` invariant carried through
-все шесть шагов). Phase 7 как линейная фаза не
-запланирована; открытие следующего параллельного трека
-— отдельное operator decision.
+**Parallel Track K / Step 1 — planning real MCP
+client integration test (in progress / documentation
+only).** Phase 1–6 закрыты ранее; десять post-phase
+parallel track'ов (A, B, C, D, E, F, G, H, I, J)
+полностью закрыты последовательно (см. блок «Статус»
+ниже для Track J closure narrative). Track K — **одиннадцатый**
+post-phase parallel track, открыт после closure'а
+Track J; цель — закрыть один из последних честных
+gaps проекта: нет real MCP-client-facing end-to-end
+proof для already-existing stdio/HTTP transport
+surfaces. Step 1 — два planning-документа без code
+changes; Step 4 design-question (docs-only PATH A vs
+narrow ≤300 LOC harness PATH B vs hybrid PATH C)
+**остаётся открытым** до Step 3 contract (на основе
+Step 2 audit evidence). Это **не** new transport
+family, **не** auth-scheme redesign, **не** mTLS /
+in-process TLS (Track H §13.1 / Track J §5 carry-
+forward), **не** full enterprise identity stack
+(SSO / SAML / OIDC / SCIM / RBAC / ABAC / multi-
+tenant), **не** zero-trust posture, **не** hostile-
+internet ready, **не** WAF / IDS / rate-limit /
+observability stack, **не** service supervisor
+(systemd / Windows Service / hot reload), **не**
+packaging ecosystem, **не** web UI, **не**
+standalone `apps/platform` entrypoint, **не** новые
+MCP tools (registries `read=15 / write=25 /
+intelligence=16` invariant carried through), **не**
+deployment-boundary redesign (Track J §13 / §6 /
+§7 / §8 carry-forward), **не** 1cv8 work, **не**
+multi-version 1С matrix expansion / rollback / AST
+work. `pyproject.toml` `version=0.5.1` preserved от
+Track I closure bump; Track K Q7 SemVer call — Step 6
+territory; default expectation = NO-BUMP (PATCH
+`0.5.1 → 0.5.2` только если Step 4 ship'нет defect-
+class fix observable by end-users, что данным треком
+не expected; MINOR / MAJOR forbidden by track
+scope).
 
 ## Статус
+
+`in progress` (для Parallel Track K / Step 1 как
+documentation-only opening — два planning-документа
+ship'нуты, никаких code changes, никаких изменений
+registry, никаких новых MCP tool'ов, никаких запусков
+1cv8.exe в этом шаге; никаких реальных credentials в
+repo / docs / commit message; Track K / Step 2 —
+следующий шаг и не открывается в этом же заходе).
 
 `closed` (для всего Parallel Track J — Steps 1–6
 закрыты последовательно; **Q7 = NO-BUMP**;
@@ -13026,7 +13046,129 @@ read/write/intelligence-серверов, с честно
   parallel track'ов (A, B, C, D, E, F, G, H, I, J)
   полностью закрыты. Phase 7 как линейная фаза не
   запланирована. Открытие следующего параллельного
-  трека — отдельное operator decision.
+  трека — отдельное operator decision. **Историческая
+  правка (Track K / Step 1):** первый из recommended-
+  next-track candidates ("real MCP client integration
+  test track") выбран как следующий открываемый трек —
+  см. секцию «Parallel Track K / Step 1 — planning
+  real MCP client integration test (завершён)» ниже.
+  Open vs closed framing для Track K: на момент
+  написания этой секции Track K открыт только на
+  Step 1 (planning, docs-only); полное closure Track K
+  — Step 6.
+
+### Parallel Track K / Step 1 — planning real MCP client integration test (завершён)
+
+- **Цель.** Открыть одиннадцатый post-phase parallel
+  track — Track K — как **planning-only** документационный
+  шаг, который закрывает один из последних честных
+  gaps проекта: нет real MCP-client-facing end-to-end
+  proof. Каждое предыдущее MCP-transport-track closure
+  (Tracks G / H / I / J) explicitly flagged эту gap
+  как honest constraint, не hidden defect. Step 1 —
+  два planning-документа без code changes; Step 4
+  design-question (docs-only PATH A vs narrow ≤300
+  LOC harness PATH B vs hybrid PATH C) **остаётся
+  открытым** до Step 2 audit + Step 3 contract.
+- **Что shipped в Step 1.**
+  - `docs/architecture/track-k-real-mcp-client-integration-test-plan.md` —
+    14-секционный planning-документ: §1 purpose / why
+    track exists, §2 current post-Track-J baseline,
+    §3 honest gap statement, §4 why not redundant
+    with existing smoke (`selfcheck.py` /
+    `verify-release.ps1` / internal unit-shape
+    paths), §5 goal of the track, §6 in-scope (6
+    bullet points), §7 out-of-scope (17 bullet
+    points), §8 guardrails (13 hard invariants),
+    §9 acceptance criteria for eventual closure
+    (11 items), §10 honest constraints after closure
+    (carry-forward from Tracks G / H / I / J), §11
+    relationship to Tracks G / H / I / J table,
+    §12 Q1–Q7 open questions с directional
+    recommendations only (no fake certainty), §13
+    step trajectory preview table, §14 honest
+    summary.
+  - `docs/architecture/track-k-real-mcp-client-integration-test-step-map.md` —
+    6-step map в формате «Goal / What changes /
+    What does NOT change / Result» для каждого шага;
+    track-invariants block с 15 hard constraints
+    включая "Track J §13 / §6 / §7 / §8 carry-
+    forward unchanged"; hard out-of-scope list с
+    16 categorical denials; Step 4 explicitly
+    preserves PATH A / B / C openness; Step 6 — Q7
+    decision rule с NO-BUMP / PATCH framing
+    (MINOR / MAJOR forbidden by track scope).
+- **Q1–Q7 directional defaults (plan §12).** Q1 =
+  Class B (minimum-viable real-client-compatible
+  harness shipped как single new file); Q2 = stdio +
+  HTTP both (best coverage; cheap once one harness
+  works); Q3 = minimum-viable harness (Class B);
+  Q4 = one client / one transport sufficient для
+  closure gate; multiple = recommended-only; Q5 =
+  likely needs code, but a new stand-alone harness
+  file, not modification к existing production
+  code; Q6 = `pyproject.toml` untouched везде кроме
+  Step 6 Q7-bump; `scripts/*` untouched except Step
+  4 may add one new file under `scripts/dev/` or
+  `examples/mcp-client-smoke/`; Q7 = NO-BUMP
+  preferred; PATCH `0.5.1 → 0.5.2` только если
+  Step 4 ship'нет defect-class fix observable by
+  end-users; MINOR / MAJOR forbidden by track scope.
+- **Что Step 1 НЕ делал.**
+  - Не правил production-код (никаких изменений в
+    `apps/*/src/`, `packages/*/src/`,
+    `_stdio_transport.py`, `_network_transport.py`,
+    `installer.py`).
+  - Не открывал и не правил Step 2 audit / Step 3
+    contract / Step 4 implementation — это уже
+    следующие шаги.
+  - Не менял registries (`read=15 / write=25 /
+    intelligence=16` invariant carried through;
+    никаких новых MCP tool'ов в Step 1).
+  - Не bumped'ил `pyproject.toml` `version`
+    (остаётся `0.5.1` от Track I closure bump через
+    Track J NO-BUMP closure; Track K Q7 bump deferred
+    до Step 6 — default NO-BUMP).
+  - Не правил `SECURITY.md`, `docs/release-handoff.md`,
+    `apps/platform/README.md`, `CHANGELOG.md`, manuals,
+    Closed parallel tracks list (Track K не moved
+    туда — Track K active).
+  - Не запускал `1cv8.exe` (Track K работает на MCP
+    client / transport layer, не на 1cv8 binary
+    surface).
+  - Не вводил никаких реальных credentials в repo /
+    docs / commit message.
+  - Не делал remote push / GitHub release —
+    operator action, не часть трека.
+  - Не открывал Track K Step 2 в этом же commit'е.
+- **Документ scope.** Ровно четыре файла: 2 новых
+  planning-документа в `docs/architecture/` + README.md
+  (Quickstart paragraph + Active parallel track section
+  reopened) + PROJECT-STATUS.md (header rewrite + this
+  section). Никаких других файлов Step 1 не трогает.
+- **Verify-release.ps1 -AllowDirtyTree.** GREEN на 8
+  checks; никаких реальных credentials в Step 1 diff'е;
+  registries без drift'а.
+- **Selfcheck после Step 1.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без drift'а;
+  selfcheck_status=ok; никаких реальных credentials
+  в Step 1 diff'е.
+- **Следующий шаг.** **Parallel Track K / Step 2 —
+  baseline audit of current client-integration gap
+  (docs-only).** Новый short audit-документ с
+  inventory existing client-integration approximations
+  (`scripts/dev/selfcheck.py`, `_handle_request`
+  internal switch, JSON-RPC envelope shaping inside
+  `_stdio_transport.py` / `_network_transport.py`) +
+  inventory того, что real-MCP-client end-to-end
+  proof would require + 4-class breakdown (already-
+  covered / adjacent-but-insufficient / clearly-
+  missing / explicitly-out-of-scope) + directional
+  Q1–Q6 resolutions с evidence-grounded
+  recommendations + Step 3 handoff list. Production-
+  код Step 2 не правит. Никаких real credentials.
+  **GitHub remote push — operator action, не часть
+  трека.**
 
 ## Phase 6 закрыта
 
