@@ -12,6 +12,18 @@ authors = [
     { name = "1C Agent Platform Team" },
 ]
 
+# Track G / Step 4 — narrow stdio transport and CLI entrypoints.
+# Three console scripts pointing at the per-package __main__:main
+# entrypoints. No new runtime dependencies are introduced (the stdio
+# transport is pure stdlib, see packages/mcp-common/src/mcp_common/
+# _stdio_transport.py). The wheel-build block below remains empty,
+# so these entries become installable binaries only when a future
+# packaging track ships an actual wheel.
+[project.scripts]
+mcp-read-server = "mcp_read_server.__main__:main"
+mcp-write-server = "mcp_write_server.__main__:main"
+mcp-intelligence-server = "mcp_intelligence_server.__main__:main"
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
