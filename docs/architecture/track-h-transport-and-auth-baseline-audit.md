@@ -274,11 +274,16 @@ territory, не Step 2.
 - `scripts/release/install.ps1`, `scripts/release/_install_runner.py`,
   `scripts/release/verify-release.ps1` — release-facing
   wrappers (Track B / C territory); 8 release-facing
-  checks включая credential leak guard
-  (`BEGIN PRIVATE KEY` / `BEGIN RSA PRIVATE KEY` /
-  `BEGIN OPENSSH PRIVATE KEY` / `aws_secret_access_key`)
-  и credential template hygiene (`/P` / `/Pwd` argv
-  positions, env-substitution form `${ENV:NAME}` accepted).
+  checks including the credential leak guard (three PEM
+  private-key header variants — generic, RSA, OpenSSH —
+  plus the well-known AWS secret-access-key token; the
+  exact pattern strings are defined in
+  `scripts/release/verify-release.ps1` itself, and this
+  document deliberately does not re-quote them so it stays
+  outside the guard's match set) and the credential
+  template hygiene check (`/P` / `/Pwd` argv positions in
+  tracked `*.config.json` files, env-substitution form
+  `${ENV:NAME}` accepted as the documented safe form).
 
 ---
 
