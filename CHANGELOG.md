@@ -6,7 +6,289 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
-## 0.5.1 — Parallel Track I — Installer Auth Round-Trip Integrity
+## 0.5.1 — Parallel Track I (PATCH bump) and Parallel Track J (docs-only closure under 0.5.1, no further bump)
+
+Version 0.5.1 closes two parallel post-phase tracks. The
+`0.5.0 → 0.5.1` PATCH bump itself was made by **Parallel
+Track I** (defect-class installer round-trip integrity fix).
+**Parallel Track J** (TLS and Reverse-Proxy Deployment
+Boundary) subsequently closes under the same `0.5.1` version
+without further bump (**Q7 = NO-BUMP**), because Track J was
+an intentionally documentation-only deployment-boundary
+formalization track with zero production code changes, zero
+new public API surface, zero new CLI flag or MCP tool, zero
+registry change, and zero observable runtime behaviour
+change. Each track has its own subsection below; both close
+under the single `0.5.1` release line.
+
+After Tracks I and J close, the registry invariant remains
+`read = 15 / write = 25 / intelligence = 16`, the HTTP
+transport runtime is byte-identical to its Track H / Step 4
+shape (with the Track I defect fix layered on top), and
+`pyproject.toml` `version` stays at `0.5.1`. Active parallel
+track = none.
+
+### Parallel Track J — TLS and Reverse-Proxy Deployment Boundary (NO-BUMP closure under 0.5.1)
+
+Track J is the tenth post-phase parallel track. It closes
+under existing `0.5.1` without further version bump. Track J
+formalized the "trusted-internal-network HTTP MCP listener
+fronted by an operator-owned reverse proxy that terminates
+TLS" deployment shape (already a general-policy statement in
+Track H Step 3 contract §13) into a single operator-facing
+single-source-of-truth deployment-boundary recipe. The
+runtime that Track J describes is byte-identical to the
+post-Track-I runtime; Track J added no new code, no new
+endpoint, no new flag, no new MCP tool, no registry change.
+
+The **Q7 = NO-BUMP** decision is grounded in repo facts:
+
+- **Zero production code change** across all six Track J
+  steps. `apps/*/src/`, `packages/*/src/`,
+  `_network_transport.py`, `_stdio_transport.py`,
+  `installer.py` byte-identical to the Track I closure
+  state (`d408dd2`).
+- **Zero defect-class fix.** Step 2 audit explicitly
+  established that the runtime already enforced the
+  deployment-boundary invariants Track J formalizes
+  (bind validation, fail-closed startup, `/mcp` POST-only,
+  bearer auth with failure-equivalence + redaction
+  discipline, deterministic 404 on non-`/mcp`, zero
+  consumption of `X-Forwarded-*` / `Forwarded` /
+  `X-Real-IP` / `client_ip` / `peer_ip` for access-control
+  purposes, no in-process TLS code path). There was no
+  broken behaviour, silent failure, or operator workaround
+  at any point.
+- **Zero new external capability.** No new `/healthz`
+  endpoint, no `--bind` runtime warning, no new CLI flag,
+  no new MCP tool, no new auth scheme, no new transport.
+  Step 3 contract pinned PATH A specifically to avoid
+  net-new capability that would force the SemVer question
+  into MINOR territory.
+- **Zero new public API surface.** No new public types,
+  functions, imports, `__all__` exports, `[project.scripts]`
+  entries, or config schema fields.
+- **SemVer §6 / Keep-a-Changelog.** PATCH is for
+  backward-compatible bug fixes; Track J fixed no bug.
+  PATCH inertia is rejected by the prompt's Q7 default-bias
+  rule.
+- **Track I PATCH precedent does not transfer.** Track I
+  had `+15 / -0 LOC` of production code AND a previously-
+  broken silent-data-loss round-trip; Track J has neither.
+- **Track A / B / C / E precedent applies.** Those
+  docs-heavy tracks also closed without separate version
+  entries in this `CHANGELOG.md`.
+- **Step 1 plan §14 and Step 3 contract §3.7 / §11.5**
+  explicitly authorize NO-BUMP if Step 6 is closure-doc
+  alignment with no version-relevant change. Both
+  conditions hold.
+
+#### Per-step outcomes (Track J)
+
+- **Step 1 (planning TLS and reverse-proxy deployment
+  boundary)** — two planning documents under
+  `docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-{plan,step-map}.md`
+  (plan + step-map) plus narrative updates to README.md /
+  PROJECT-STATUS.md to open the track. Step 4 PATH
+  explicitly preserved as open between PATH A docs-only,
+  PATH B narrow ≤15 LOC code, and PATH C hybrid. No
+  production code; no registry change; no SemVer bump.
+  Commit `e203e43`.
+- **Step 2 (deployment-boundary baseline audit)** — one
+  new descriptive documentation-only document
+  (`docs/architecture/track-j-deployment-boundary-baseline-audit.md`,
+  980 lines, 10 sections). Inventoried existing
+  TLS / reverse-proxy / bind-host text in Track H
+  contract / SECURITY / release-handoff /
+  apps/platform/README / scripts; inventoried
+  `_network_transport.py` runtime behaviour; produced
+  4-class breakdown (already-formalized at general-
+  policy level / partially-documented scattered /
+  clearly-missing / explicitly-out-of-scope); resolved
+  Q1–Q6 directionally (Q1 = reverse-proxy-first hybrid
+  with in-process TLS deferred; Q2 directional default
+  = PATH A docs-only; Q3 = trusted internal network
+  behind operator-owned reverse proxy; Q4 = surfaces
+  enumerated for three scenarios; Q5 = `/healthz`
+  defer; Q6 = Track J probably needs no production
+  code); produced 14-item Step 3 handoff list. Commit
+  `344129c`.
+- **Step 3 (deployment-boundary contract)** — one new
+  prescriptive normative document
+  (`docs/architecture/track-j-deployment-boundary-contract.md`,
+  1150 lines, 15 sections, RFC 2119 MUST / MUST NOT /
+  SHOULD / SHOULD NOT / MAY language). Pinned **PATH A
+  docs-only** for Step 4 (PATH B / PATH C explicitly
+  rejected); pinned per-scenario MUST/SHOULD/MAY
+  matrix for three deployment scenarios (loopback /
+  trusted private subnet / public-facing-through-
+  reverse-proxy); pinned Forwarded-header MUST-NOT-
+  consume policy for `X-Forwarded-For` /
+  `X-Forwarded-Proto` / `X-Forwarded-Host` /
+  `X-Forwarded-Port` / `X-Forwarded-Server` /
+  `X-Real-IP` / `Forwarded` / `True-Client-IP` /
+  `CF-Connecting-IP`; pinned `/healthz` defer; pinned
+  Step 4 file surface (one new file under `docs/`
+  default `docs/operators/deployment-boundary.md`);
+  pinned 18-check Step 4 verification harness;
+  pinned forbidden file surface for Step 4 / Step 5 /
+  Step 6; carry-forward of Track H §10 / §13 + Track G
+  stdio + Track I installer round-trip preserved
+  byte-identical. Commit `4e04771`.
+- **Step 4 (operator-facing deployment-boundary
+  recipe, PATH A docs-only)** — one new operator-
+  facing recipe document
+  ([`docs/operators/deployment-boundary.md`](operators/deployment-boundary.md),
+  691 lines, 10 sections; well under contract §10.5
+  ≤1500-line soft cap). Sections: purpose,
+  threat-model summary, per-scenario deployment
+  matrix (byte-identical to contract §7.1),
+  per-scenario walkthroughs (A local-only / B
+  trusted private subnet with B1 proxy-fronted and
+  B2 proxy-omitted variants / C public-facing-
+  through-reverse-proxy), Forwarded-header policy
+  with full nine-header list, `/healthz` non-
+  shipping with rationale and strict-2xx-only-prober
+  workarounds, two abstract reverse-proxy snippets
+  (nginx + Caddy) plus an explicit deferral note for
+  the third under contract §10.3 ≤3 cap, eight
+  operator decision-point Q&A, cross-references,
+  honest non-goals. Created new `docs/operators/`
+  directory. No production code change. All examples
+  use abstract placeholders (`<PUBLIC_HOSTNAME>`,
+  `<CERT_PATH>`, `<KEY_PATH>`, `<LISTENER_PORT>`,
+  `<VARNAME>`); zero real domains, certificates,
+  ports, env-var values. Commit `5c793c1`.
+- **Step 5 (operator docs and deployment-boundary
+  alignment)** — narrow CLASS-1 docs-alignment.
+  Three files modified, zero new files: `README.md`
+  Quickstart paragraph + Active parallel track
+  section refreshed to reflect Steps 1–4 closed and
+  Step 5 active (Track J still framed as **active**
+  in this commit; closed-tracks list and Track J
+  detail section deferred to Step 6); `SECURITY.md`
+  "Threat model for HTTP" bullet — single-sentence
+  cross-link to the new recipe; `docs/release-handoff.md`
+  "What is in this handoff" + "Where to read deeper"
+  lists — one bullet each pointing at the recipe
+  with required-reading framing. PROJECT-STATUS.md /
+  CHANGELOG.md / `pyproject.toml` / closed-tracks
+  list deliberately untouched (Step 6 territory).
+  Commit `19e8923`.
+- **Step 6 (final integration pass and Track J
+  closure)** — closure-only commit. README move of
+  Track J into Closed parallel tracks list (девять →
+  десять); Active parallel track section compressed
+  back to "no active track" wording; new "Track J
+  detail (закрыт)" section added above "Track I
+  detail (закрыт)"; Quickstart paragraph flipped
+  from active → no-active-track wording.
+  PROJECT-STATUS.md header rewritten from "Track J /
+  Step 1 in progress" to "no active step + Track J
+  fully closed" with `closed` status block;
+  historical-edit annotation updated; per-step
+  closure sections for Step 2 / Step 3 / Step 4 /
+  Step 5 / Step 6 inserted. CHANGELOG.md (this
+  document) — `0.5.1` heading restructured to
+  embrace both Track I (PATCH bump) and Track J
+  (NO-BUMP closure) subsections. `pyproject.toml`
+  **NOT** touched (Q7 = NO-BUMP). `SECURITY.md`,
+  `docs/release-handoff.md`,
+  `apps/platform/README.md`,
+  `docs/operators/deployment-boundary.md`, Track J
+  Step 1–4 architecture docs, production code,
+  `scripts/*`, `examples/*`, manuals — all
+  byte-identical to their Step 5 closure state.
+
+#### Honest constraints carried forward (Track J)
+
+These are **not new** with Track J — they are properties
+of the post-Track-H / post-Track-I baseline that Track J
+documents but does not change:
+
+- **stdio baseline preserved.** `--transport stdio`
+  remains the trusted-local-subprocess channel from
+  Track G / Step 4. No auth, no network listener, no
+  bind. Track J did not touch
+  `_stdio_transport.py`.
+- **HTTP baseline preserved.** `--transport http`
+  remains the single `/mcp` POST endpoint from
+  Track H / Step 4 with bearer auth, 1 MiB body cap,
+  failure-equivalent 401, complete redaction
+  discipline, plain HTTP/1.1 (no in-process TLS),
+  no consumption of forwarded headers. Track J did
+  not touch `_network_transport.py`.
+- **Reverse proxy terminates TLS.** Operator-owned;
+  the listener never speaks TLS itself.
+- **Forwarded headers not consumed.** The listener
+  does not consume `X-Forwarded-*` / `Forwarded` /
+  `X-Real-IP` / `True-Client-IP` / `CF-Connecting-IP`
+  for any access-control / trust / allow-listing /
+  identity / audit / routing decision. Track J Step 3
+  contract §6 pinned this as a MUST-NOT.
+- **`/healthz` not shipped.** Non-`/mcp` paths
+  return deterministic `404 Not Found` without
+  requiring auth — sufficient for connectivity-class
+  load-balancer probes. Strict-2xx-only probers must
+  reconfigure to accept 4xx as alive or use a proxy-
+  synthesised 2xx. Track J does not promise a future
+  `/healthz`.
+- **Public-routable bind without fronting TLS proxy
+  is NOT SUPPORTED.** Documented in the recipe as a
+  prose risk; deliberately not a runtime warning
+  (PATH A scope discipline; PATH B/C rejected by
+  contract §9).
+- **Registries `read = 15 / write = 25 /
+  intelligence = 16`** carried through unchanged
+  across all six Track J steps. Selfcheck
+  `selfcheck_status=ok` confirmed at every step.
+
+#### What Track J explicitly does NOT do
+
+For absolute clarity (carry-forward from Step 3 contract
+§13 and Step 4 recipe §10):
+
+- No in-process TLS / HTTPS termination — Track H §13.1
+  forbid carried forward.
+- No mTLS / client certificate authentication — Track H
+  §13.3 carried forward.
+- No JWT / OAuth 2.0 / OIDC / SAML / SCIM / federated
+  identity.
+- No RBAC / ABAC / per-tool ACL / per-tenant isolation
+  / multi-tenant.
+- No token rotation endpoint / refresh tokens / session
+  cookies.
+- No rate limiting / WAF / IDS / DDoS protection /
+  anomaly detection in the listener.
+- No service supervisor / systemd unit / Windows
+  Service registration / launchd / hot reload /
+  restart watcher / auto-update.
+- No packaging ecosystem (`.msi` / `.deb` / signed
+  distribution / GUI installer / wizard / PyPI
+  publication / wheel publication beyond
+  `[project.scripts]`).
+- No web UI / dashboard frontend.
+- No observability stack (OpenTelemetry / Jaeger /
+  Prometheus / OpenMetrics / log aggregation /
+  distributed tracing).
+- No standalone `apps/platform` entrypoint.
+- No `/healthz` / `/readyz` / `/livez` endpoint.
+- No `0.0.0.0` runtime warning.
+- No new MCP tools or registry change.
+- No multi-version 1С matrix expansion.
+- No rollback / AST work.
+- No 1cv8 work.
+- No remote push (operator action; not part of any
+  Track J step).
+
+#### Active parallel track after Track J closure
+
+None. Ten post-phase parallel tracks (A / B / C / D /
+E / F / G / H / I / J) closed sequentially. Phase 7 as
+a linear phase is not planned. Opening of any next
+parallel track is a separate operator decision.
+
+### Parallel Track I — Installer Auth Round-Trip Integrity (PATCH bump 0.5.0 → 0.5.1)
 
 This patch release closes **Parallel Track I — Installer Auth
 Round-Trip Integrity**, the ninth post-phase parallel track.

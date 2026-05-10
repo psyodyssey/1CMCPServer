@@ -2,58 +2,44 @@
 
 ## Текущий шаг
 
-**Parallel Track J / Step 1 — planning TLS and Reverse-
-Proxy Deployment Boundary (in progress / documentation
-only).** Phase 1–6 закрыты ранее; девять post-phase
-parallel track'ов (A, B, C, D, E, F, G, H, I)
-полностью закрыты. Track J — десятый post-phase
-parallel track, открыт после closure'а Track I; цель
-— формализовать "trusted-network behind operator-owned
-reverse proxy" general-policy statement из Track H Step
-3 contract §13 в operator-facing single-source-of-truth
-deployment-boundary recipe (точная bind-host guidance
-для трёх scenarios — loopback / private subnet / public-
-facing-through-reverse-proxy; reverse-proxy integration
-expectations с explicit policy что `_MCPHandler` не
-trust / consume X-Forwarded-* headers; TLS termination
-point — operator's reverse proxy only, in-process TLS
-forbidden carry-over от Track H §13.1; exposure rules
-matrix; explicit `/healthz` endpoint resolution).
-Step 4 design-question остаётся открытым между docs-
-only operationalization (PATH A — operator-facing
-deployment guide), narrow ≤15 LOC code addition в
-`_network_transport.py` (PATH B), или hybrid (PATH C);
-финал PATH в Step 3 contract на основе Step 2 audit
-evidence. Это **не** in-process TLS / mTLS (Track H
-§13.1 invariant carried forward), **не** full
-enterprise identity stack (SSO / SAML / OIDC / SCIM /
-RBAC / ABAC / multi-tenant), **не** zero-trust posture,
-**не** hostile-internet ready, **не** WAF / IDS /
-rate-limit / observability stack, **не** service
-supervisor (systemd / Windows Service / hot reload),
-**не** packaging ecosystem, **не** web UI, **не**
-standalone `apps/platform` entrypoint, **не** новые MCP
-tools (registries `read=15 / write=25 / intelligence=16`
-invariant carried through). Step 1 — два planning-
-документа без code changes. `pyproject.toml`
-`version=0.5.1` (Track I closure bump 0.5.0→0.5.1
-сохраняется до Track J closure Step 6 — Q7 default
-PATCH bump 0.5.1→0.5.2 на closure if Step 4 PATH A
-docs-only; alternative PATCH or MINOR depending on
-PATH B/C external-capability framing).
+Активного шага нет. Phase 1–6 закрыты ранее; десять
+post-phase parallel track'ов (A, B, C, D, E, F, G, H,
+I, J) полностью закрыты последовательно. Последним был
+закрыт **Parallel Track J — TLS and Reverse-Proxy
+Deployment Boundary**, intentionally docs-only
+deployment-boundary formalization track из шести шагов;
+шесть meaningful commit'ов в `main`: `e203e43` (Step 1
+— planning + step-map), `344129c` (Step 2 — descriptive
+baseline audit), `4e04771` (Step 3 — normative contract
+pinning PATH A docs-only), `5c793c1` (Step 4 — operator-
+facing deployment-boundary recipe), `19e8923` (Step 5 —
+operator docs and deployment-boundary alignment), плюс
+closure commit Step 6 фиксирует обновлённые README /
+PROJECT-STATUS / CHANGELOG. **Q7 = NO-BUMP** — Track J
+закрыт под existing `0.5.1` без further version bump:
+production code не правился ни в одном из шести Track J
+шагов; ноль defect-class fixes (Step 2 audit explicitly
+показал, что runtime уже enforce'ил deployment-boundary
+invariants); ноль new external capability (Step 3
+contract pinned PATH A specifically чтобы избежать
+net-new capability); ноль registry change (`read=15 /
+write=25 / intelligence=16` invariant carried through
+все шесть шагов). Phase 7 как линейная фаза не
+запланирована; открытие следующего параллельного трека
+— отдельное operator decision.
 
 ## Статус
 
-`in progress` (для Parallel Track J / Step 1 как
-documentation-only opening — два planning-документа
-ship'нуты, никаких code changes, никаких изменений
-registry, никаких новых MCP tool'ов, никаких запусков
-1cv8.exe в этом шаге; никаких реальных credentials в
-repo / docs / commit message; Track J / Step 2 —
-следующий шаг и не открывается в этом же заходе).
+`closed` (для всего Parallel Track J — Steps 1–6
+закрыты последовательно; **Q7 = NO-BUMP**;
+`pyproject.toml` `version=0.5.1` preserved от Track I
+closure bump; никаких code changes ни в одном Track J
+шаге; registry invariant без drift'а; никаких 1cv8.exe
+runs; никаких реальных credentials в repo / docs /
+commit messages).
 
 `closed` (для всего Parallel Track I — Steps 1–6
-закрыты последовательно). Последним был закрыт
+закрыты последовательно). Был закрыт
 **Parallel Track I — Installer Auth Round-Trip
 Integrity**, шесть шагов; шесть meaningful commit'ов
 в `main`: `cb79597`
@@ -12615,14 +12601,18 @@ read/write/intelligence-серверов, с честно
   Track-E follow-up); packaging ecosystem track
   (`.msi`/`.deb`/wheel publication beyond
   `[project.scripts]`). **Историческая правка
-  (Track J / Step 1):** первый из этих кандидатов
-  выбран как следующий открываемый трек — см. секцию
-  «Parallel Track J / Step 1 — planning TLS and
-  reverse-proxy deployment boundary (завершён)»
-  ниже. Open vs closed framing для Track J: на
-  момент написания этой секции Track J открыт
-  только на Step 1 (planning, docs-only); полный
-  closure Track J — Step 6.
+  (Track J / Step 6):** первый из этих кандидатов
+  открыт и **полностью закрыт** как Track J — TLS and
+  Reverse-Proxy Deployment Boundary, intentionally
+  docs-only formalization track. Шесть meaningful
+  commit'ов: `e203e43` Step 1 / `344129c` Step 2 /
+  `4e04771` Step 3 / `5c793c1` Step 4 / `19e8923`
+  Step 5 / closure commit Step 6. **Q7 = NO-BUMP** —
+  закрыт под existing `0.5.1` без further version
+  bump (zero production code change; zero defect-class
+  fix; zero new external capability). См. per-step
+  секции «Parallel Track J / Step 1–6 (завершён)»
+  ниже для подробностей.
 
 ### Parallel Track J / Step 1 — planning TLS and reverse-proxy deployment boundary (завершён)
 
@@ -12741,6 +12731,302 @@ read/write/intelligence-серверов, с честно
   Production-код Step 2 не правит. Никаких real
   credentials. **GitHub remote push — operator
   action, не часть трека.**
+
+### Parallel Track J / Step 2 — deployment-boundary baseline audit (завершён)
+
+- **Цель.** Превратить general-policy statement из
+  Track H §13 в descriptive baseline audit:
+  inventory всех существующих deployment-boundary
+  surfaces в repo (runtime: `_network_transport.py`,
+  `_stdio_transport.py`, three `__main__.py`,
+  `_parse_bind`, `_MCPHandler`; operator-facing docs:
+  Track H Step 3 contract §10 / §13, SECURITY.md
+  "Honest constraints" bullet, `docs/release-handoff.md`
+  "What is NOT", `apps/platform/README.md` Track-H
+  citations, manuals); 4-class breakdown
+  (already-reusable / adjacent-but-insufficient /
+  clearly-missing / explicitly-out-of-scope);
+  directional Q1–Q6 resolutions для Step 3 contract
+  consumption.
+- **Что shipped.** Один новый descriptive
+  audit-документ:
+  `docs/architecture/track-j-deployment-boundary-baseline-audit.md`
+  (980 lines, 10 sections). Section 9 — 14-item
+  Step 3 handoff list. Никаких других файлов Step 2
+  не правил.
+- **Ключевые находки.** Code уже enforce'ит
+  deployment-boundary invariants Track J хотел
+  formalize (bind validation, fail-closed startup,
+  `/mcp` POST-only, bearer auth с failure-equivalence
+  + redaction discipline, deterministic 404 на
+  non-`/mcp`, нулевой consumption `X-Forwarded-*` /
+  `Forwarded` / `X-Real-IP` / `client_ip` /
+  `peer_ip` для access-control); dominant gap =
+  documentation, не behaviour; recommended Step 4
+  PATH A docs-only.
+- **Verify-release.** GREEN на 8 checks; selfcheck
+  registries `read=15 / write=25 / intelligence=16`
+  без drift'а; никаких реальных credentials в
+  audit; никаких 1cv8.exe runs; `pyproject.toml`
+  `version=0.5.1` preserved.
+- **Commit.** `344129c` (`Track J / Step 2 —
+  deployment-boundary baseline audit`).
+
+### Parallel Track J / Step 3 — deployment-boundary contract (завершён)
+
+- **Цель.** Promote Step 2 directional findings в
+  normative contract: pin final Step 4 PATH; codify
+  per-scenario MUST/SHOULD/MAY matrix; codify
+  Forwarded-header MUST-NOT-consume policy; codify
+  `/healthz` decision; codify `0.0.0.0` runtime-
+  warning decision; lock Step 4 file surface; lock
+  Step 4 verification harness; preserve Track G /
+  Track H / Track I invariants byte-identical.
+- **Что shipped.** Один новый normative contract-
+  документ:
+  `docs/architecture/track-j-deployment-boundary-contract.md`
+  (1150 lines, 15 sections, RFC 2119 MUST / MUST NOT
+  / SHOULD / SHOULD NOT / MAY language). Никаких
+  других файлов Step 3 не правил.
+- **Ключевые decisions.**
+  - **Step 4 PATH A (docs-only) pinned** в §9.1;
+    PATH B (narrow ≤15 LOC code) и PATH C (hybrid)
+    explicitly rejected в §9.3 / §9.4 (PATH B's
+    `0.0.0.0` warning fully documentable в PATH A
+    prose; `/healthz` = net-new external capability
+    that would force MINOR SemVer question, deferred
+    by §8).
+  - **Forwarded-header policy** (§6.1): listener
+    **MUST NOT** consume `X-Forwarded-For` /
+    `X-Forwarded-Proto` / `X-Forwarded-Host` /
+    `X-Forwarded-Port` / `X-Forwarded-Server` /
+    `X-Real-IP` / `Forwarded` / `True-Client-IP` /
+    `CF-Connecting-IP` для **any** access-control,
+    trust, allow-listing, identity, audit, or
+    routing decision. Step 4 inherits as
+    invariant.
+  - **Per-scenario MUST/SHOULD/MAY matrix** (§7.1):
+    три scenarios (loopback / trusted private
+    subnet / public-facing-through-reverse-proxy)
+    с per-row bind-host / reverse-proxy /
+    TLS-termination / token-wire-confidentiality
+    columns. Public-routable bind без fronting TLS
+    proxy = **NOT SUPPORTED** (§7.2).
+  - **`/healthz` defer** (§8): Step 4 **MUST NOT**
+    add `/healthz` / `/readyz` / `/livez`. Strict-
+    2xx-only probers решают через probe-config
+    override или reverse-proxy synthesised 2xx.
+  - **TLS posture carry-forward** (§5): in-process
+    TLS forbidden (Track H §13.1); mTLS forbidden
+    (§13.3); TLS termination at operator's reverse
+    proxy only (§13.2).
+- **Step 4 surface lock.** Allowed: exactly один
+  новый файл, default `docs/operators/deployment-
+  boundary.md`. Forbidden: production code,
+  `pyproject.toml`, `scripts/*`, `SECURITY.md`,
+  `docs/release-handoff.md`, `apps/platform/
+  README.md`, manuals, `README.md`,
+  `PROJECT-STATUS.md`, `CHANGELOG.md`,
+  `examples/*`, Track J Step 1/2/3 docs, new MCP
+  tools, registry changes.
+- **Step 4 verification harness lock** (§12):
+  18-check protocol across scope (1-file new, no
+  modifications), selfcheck (registries
+  `15/25/16`, status=ok), release-verify
+  (`verify-release.ps1 -AllowDirtyTree` GREEN на 8
+  checks), honesty (no 1cv8.exe, no real
+  credentials, no premature closure language, no
+  enterprise-ready / hostile-network framing), and
+  doc-consistency (matrix byte-identical to §7.1;
+  Forwarded-header / `/healthz` / threat-model
+  consistent with §6 / §8 / §4).
+- **Verify-release.** GREEN на 8 checks; selfcheck
+  registries без drift'а; никаких реальных
+  credentials в contract; никаких 1cv8.exe runs;
+  `pyproject.toml` `version=0.5.1` preserved.
+- **Commit.** `4e04771` (`Track J / Step 3 —
+  deployment-boundary contract`).
+
+### Parallel Track J / Step 4 — operator deployment-boundary recipe (завершён)
+
+- **Цель.** Operationalize Step 3 contract как
+  single operator-facing deployment recipe (PATH A
+  docs-only). Recipe **MUST** содержать: per-
+  scenario matrix (byte-identical к contract §7.1);
+  per-scenario walkthroughs; Forwarded-header
+  policy; `/healthz` non-shipping explanation;
+  ≤3 concrete reverse-proxy snippets с abstract
+  placeholders only; 8 operator decision-point
+  Q&A; honest non-goals.
+- **Что shipped.** Один новый operator-facing
+  recipe-документ: [`docs/operators/deployment-boundary.md`](docs/operators/deployment-boundary.md)
+  (691 lines, 10 sections; well под contract §10.5
+  ≤1500-line soft cap). Создан новый каталог
+  `docs/operators/`. Никаких других файлов Step 4
+  не правил.
+- **Содержание.** §1 Purpose; §2 Threat-model
+  summary (in-scope диаграмма, trusted parties,
+  untrusted parties, NOT-supported list, honest
+  summary phrase); §3 Per-scenario deployment
+  matrix; §4 Per-scenario walkthroughs (A
+  local-only / B trusted private subnet с B1
+  proxy-fronted и B2 proxy-omitted variants /
+  C public-facing-through-reverse-proxy); §5
+  Forwarded-header policy (full 9-header list);
+  §6 `/healthz` non-shipping (rationale +
+  workarounds для strict-2xx-only probers);
+  §7 Concrete reverse-proxy snippets (nginx +
+  Caddy; abstract placeholders only; explicit
+  deferral note для третьего snippet'а под
+  contract §10.3 ≤3 cap); §8 Operator decision-
+  point Q&A (8 questions byte-faithful к contract
+  §7.4); §9 Cross-references (links к Track J
+  Step 1/2/3 docs, Track H Step 3 contract,
+  SECURITY.md, release-handoff.md, apps/platform/
+  README.md, manuals; не modify ни один из них —
+  Step 5 territory); §10 Honest non-goals.
+- **Verify-release.** GREEN на 8 checks; selfcheck
+  registries без drift'а; никаких реальных
+  credentials в recipe (placeholders:
+  `<PUBLIC_HOSTNAME>`, `<CERT_PATH>`, `<KEY_PATH>`,
+  `<LISTENER_PORT>`, `<VARNAME>`); никаких
+  1cv8.exe runs; `pyproject.toml` `version=0.5.1`
+  preserved.
+- **Commit.** `5c793c1` (`Track J / Step 4 —
+  operator deployment-boundary recipe`).
+
+### Parallel Track J / Step 5 — operator docs and deployment-boundary alignment (завершён)
+
+- **Цель.** Узкое CLASS-1 docs-alignment:
+  обновить только те operator/security/release-
+  facing docs, у которых после Step 4 появился
+  прямой factual drift. Track J остаётся active
+  на Step 5 (closure narrative — Step 6
+  territory).
+- **Drift inventory.**
+  - **CLASS 1 (direct factual drift, fixed):**
+    `README.md` Quickstart paragraph (говорил
+    "Step 1, planning-only" — stale); `README.md`
+    Active parallel track section (говорил
+    "Track J сейчас на Step 1" — stale);
+    `docs/release-handoff.md` "What is in this
+    handoff" + "Where to read deeper" lists (не
+    referenced new recipe at all).
+  - **CLASS 2 (narrow cross-link applied):**
+    `SECURITY.md` "Threat model for HTTP" bullet —
+    one-sentence cross-link в конец existing
+    bullet pointing к `docs/operators/deployment-
+    boundary.md`.
+  - **CLASS 3 (closure territory, NOT touched):**
+    `PROJECT-STATUS.md`, `CHANGELOG.md`, README
+    Closed parallel tracks list / Track-J-detail
+    section, `pyproject.toml`. Step 6 territory.
+  - **Out of scope, NOT touched:**
+    `apps/platform/README.md` (no factual drift,
+    only optional cross-link); manuals (no
+    actively-misleading text); `scripts/*`,
+    production code, `examples/*`, Track J Step
+    1–4 deliverables.
+- **Что shipped.** Три файла modified:
+  `README.md` (Quickstart paragraph + Active
+  parallel track section refreshed; Track J
+  framed as **active** — not moved to closed
+  list); `SECURITY.md` (single-sentence
+  cross-link added к existing transports
+  bullet); `docs/release-handoff.md` (one new
+  bullet в "What is in this handoff" list +
+  one new bullet в "Where to read deeper" list).
+  154 insertions, 76 deletions, 0 new files.
+- **Verify-release.** GREEN на 8 checks;
+  selfcheck registries без drift'а; никаких
+  реальных credentials в commit'е; никаких
+  1cv8.exe runs; `pyproject.toml` `version=0.5.1`
+  preserved; Track J still active framed
+  везде (`PROJECT-STATUS.md` / `CHANGELOG.md`
+  /closed-tracks list untouched).
+- **Commit.** `19e8923` (`Track J / Step 5 —
+  operator docs and deployment-boundary
+  alignment`).
+
+### Parallel Track J / Step 6 — final integration pass and track closure (завершён)
+
+- **Цель.** Final integration pass над Track J
+  Steps 1–5 + честное Q7-решение + closure
+  narrative в README / PROJECT-STATUS / CHANGELOG.
+  Закрыть весь Track J. Active tracks remaining =
+  none после Step 6.
+- **Q7 = NO-BUMP.** Track J закрыт под existing
+  `0.5.1` без further version bump. Защита
+  решения:
+  - **Zero production code change** across all six
+    Track J steps. `apps/*/src/`, `packages/*/src/`,
+    `_network_transport.py`, `_stdio_transport.py`,
+    `installer.py` byte-identical к Track I closure
+    state (`d408dd2`).
+  - **Zero defect-class fix.** Step 2 audit
+    explicitly показал, что runtime уже
+    enforce'ил deployment-boundary invariants
+    Track J formalize'ил. Не было broken behaviour,
+    silent failure, или operator workaround.
+  - **Zero new external capability.** No new
+    `/healthz` endpoint, no new `--bind` warning,
+    no new CLI flag, no new MCP tool, no new auth
+    scheme, no new transport. Step 3 contract
+    pinned PATH A specifically чтобы избежать
+    net-new capability.
+  - **Zero new public API surface.** No new public
+    types, functions, imports, `__all__` exports,
+    `[project.scripts]` entries, или config schema
+    changes.
+  - **SemVer §6 не оправдывает PATCH.** PATCH =
+    "backward-compatible bug fixes"; Track J не
+    fix'ил никакого bug.
+  - **Track I PATCH precedent не переносится.**
+    Track I имел `+15 LOC` production code И
+    previously-broken round-trip (silent data loss
+    в `installer.py:_config_to_dict`); Track J не
+    имеет ни того, ни другого.
+  - **Track A / B / C / E precedent.** Те docs-heavy
+    треки тоже закрылись без separate version
+    bumps — отсутствуют как `## VERSION — Track X`
+    headings в `CHANGELOG.md`.
+  - **Step 1 plan §14 / Step 3 contract §3.7 /
+    §11.5** explicitly authorize NO-BUMP if Step 6
+    = closure-doc alignment с no version-relevant
+    change.
+- **Closure scope (narrowest honest).** Touched:
+  `README.md` (Quickstart paragraph flipped from
+  active → no-active-track wording; Active
+  parallel track section compressed back to
+  no-active-track; new "Track J detail (закрыт)"
+  section added above "Track I detail (закрыт)";
+  Closed parallel tracks list extended from девять
+  to десять с Track J entry); `PROJECT-STATUS.md`
+  (header rewritten от "Track J / Step 1 in
+  progress" к "no active step + Track J fully
+  closed"; historical-edit annotation updated;
+  per-step closure sections для Step 2 / Step 3 /
+  Step 4 / Step 5 / Step 6 inserted между Step 1
+  section и `## Phase 6 закрыта`); `CHANGELOG.md`
+  (Track J closure narrative inserted под existing
+  `## 0.5.1` heading с explicit NO-BUMP framing).
+  **NOT touched:** `pyproject.toml` (NO-BUMP);
+  `SECURITY.md`; `docs/release-handoff.md`;
+  `apps/platform/README.md`;
+  `docs/operators/deployment-boundary.md`; Track J
+  Step 1–4 architecture docs; production code;
+  `scripts/*`; `examples/*`; manuals.
+- **Verify-release.** GREEN на 8 checks pre-commit
+  (`-AllowDirtyTree`) и post-commit (clean tree);
+  selfcheck registries `read=15 / write=25 /
+  intelligence=16` без drift'а; никаких реальных
+  credentials в closure commit'е; никаких 1cv8.exe
+  runs; никакого remote push.
+- **Track J closure итог.** Десять post-phase
+  parallel track'ов (A, B, C, D, E, F, G, H, I, J)
+  полностью закрыты. Phase 7 как линейная фаза не
+  запланирована. Открытие следующего параллельного
+  трека — отдельное operator decision.
 
 ## Phase 6 закрыта
 
