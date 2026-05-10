@@ -1,27 +1,36 @@
-"""Stdio entrypoint for ``mcp-read-server`` (Track G / Step 4).
+"""Entrypoint for ``mcp-read-server`` (Track G stdio + Track H HTTP).
 
 Run as ``python -m mcp_read_server`` or via the ``mcp-read-server``
-console script declared in ``pyproject.toml``. The transport is
-line-delimited JSON-RPC 2.0 over stdin/stdout; diagnostic output is
-written to stderr. Tool dispatch goes through the existing
-``server.py`` boundary (``list_tools`` / ``get_tool``); no parallel
-registration paths are introduced.
+console script declared in ``pyproject.toml``. Two transports are
+supported:
+
+- ``--transport stdio`` (default; Track G / Step 4) — line-delimited
+  JSON-RPC 2.0 over stdin/stdout; trusted local subprocess model.
+- ``--transport http`` (Track H / Step 4) — HTTP/1.1 ``/mcp``
+  endpoint with bearer-token authentication; trusted-network
+  deployment behind operator's reverse proxy.
+
+Diagnostic output is written to stderr. Tool dispatch goes through
+the existing ``server.py`` boundary (``list_tools`` / ``get_tool``)
+on both transports; no parallel registration paths are introduced.
 """
 
-from mcp_common._stdio_transport import run_main
+from mcp_common._network_transport import run_main_http
 
 from .server import get_tool, list_tools
 
 SERVER_NAME = "mcp-read-server"
-SERVER_VERSION = "0.3.0"
+SERVER_VERSION = "0.4.0"
 
 
 def main() -> int:
-    return run_main(
+    return run_main_http(
         prog="python -m mcp_read_server",
         description=(
-            "Local stdio MCP server exposing the read-only 1C tools "
-            "registered in mcp_read_server.server."
+            "MCP server exposing the read-only 1C tools registered in "
+            "mcp_read_server.server. Defaults to local stdio transport "
+            "(Track G); use --transport http for the Track H HTTP "
+            "transport with bearer-token authentication."
         ),
         server_name=SERVER_NAME,
         server_version=SERVER_VERSION,

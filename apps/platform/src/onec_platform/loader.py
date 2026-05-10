@@ -16,6 +16,7 @@ see an exception.
 """
 
 import json
+import re
 from pathlib import Path
 
 from onec_config import load_project_config
@@ -24,6 +25,7 @@ from .models import (
     DEFAULT_LOG_MAX_BYTES,
     DEPLOYMENT_TIERS,
     EnterpriseFoundationSettings,
+    ProductAuthSettings,
     ProductBootstrapSettings,
     ProductConfig,
     ProductRuntimeSettings,
@@ -31,6 +33,11 @@ from .models import (
     ProductServiceSpec,
     RESTART_POLICIES,
 )
+
+# Track H / Step 4 — env-substitution form for auth.tokens entries.
+# Byte-identical to Track D pattern in
+# apps/mcp-write-server/src/mcp_write_server/runtime/binary_dispatch.py.
+_AUTH_ENV_TOKEN_RE = re.compile(r"^\$\{ENV:([A-Za-z_][A-Za-z0-9_]*)\}$")
 
 _REQUIRED_TOP_LEVEL: tuple[str, ...] = (
     "product_name",
@@ -132,6 +139,7 @@ def load_product_config(data: dict) -> ProductConfig:
 
     runtime = _parse_runtime(data.get("runtime"))
     enterprise = _parse_enterprise(data.get("enterprise"))
+    auth = _parse_auth(data.get("auth"))
 
     return ProductConfig(
         product_name=product_name,
@@ -142,6 +150,7 @@ def load_product_config(data: dict) -> ProductConfig:
         bootstrap=bootstrap,
         runtime=runtime,
         enterprise=enterprise,
+        auth=auth,
     )
 
 
@@ -425,6 +434,66 @@ def _parse_enterprise(
         require_operator_identity=require_operator_identity,
         runbook_reference=runbook_reference,
     )
+
+
+def _parse_auth(auth_raw: object) -> ProductAuthSettings:
+    """Parse the optional ``auth`` section (Track H / Step 4).
+
+    Validation contract (fail-closed via :class:`ValueError`):
+
+    - missing section → empty :class:`ProductAuthSettings` (Phase 1–6
+      and Track A–G backward compatibility);
+    - present section must be a dict with at most one key, ``tokens``;
+    - ``tokens`` (optional, default ``[]``) must be a list of strings
+      if present;
+    - each entry MUST match the env-substitution form
+      ``${ENV:NAME}`` per :data:`_AUTH_ENV_TOKEN_RE`. Literal
+      cleartext tokens are rejected fail-closed; empty strings and
+      partial / mixed forms (``${ENV:`` without closing brace, or
+      bare ``${`` prefix) are rejected fail-closed.
+
+    See ``docs/architecture/track-h-network-transport-and-auth-contract.md``
+    §9 for the full normative contract.
+    """
+    if auth_raw is None:
+        return ProductAuthSettings()
+    if not isinstance(auth_raw, dict):
+        raise ValueError("'auth' must be a dict if present.")
+
+    allowed_keys = {"tokens"}
+    unknown = set(auth_raw) - allowed_keys
+    if unknown:
+        raise ValueError(
+            f"'auth' contains unknown keys: {sorted(unknown)}. "
+            f"Allowed keys: {sorted(allowed_keys)}."
+        )
+
+    tokens_raw = auth_raw.get("tokens")
+    if tokens_raw is None:
+        return ProductAuthSettings()
+    if not isinstance(tokens_raw, list):
+        raise ValueError(
+            "'auth.tokens' must be a list of strings if present."
+        )
+
+    tokens: list[str] = []
+    for index, entry in enumerate(tokens_raw):
+        if not isinstance(entry, str):
+            raise ValueError(
+                f"'auth.tokens[{index}]' must be a string; got "
+                f"{type(entry).__name__}."
+            )
+        if not _AUTH_ENV_TOKEN_RE.match(entry):
+            # Do not echo the offending value -- it could be a
+            # literal cleartext token. Operator gets the index and
+            # the required form only.
+            raise ValueError(
+                f"'auth.tokens[{index}]' must match the env-"
+                f"substitution form '${{ENV:NAME}}'. Literal "
+                f"cleartext tokens are not accepted."
+            )
+        tokens.append(entry)
+    return ProductAuthSettings(tokens=tokens)
 
 
 def load_product_config_from_json_file(path: str | Path) -> ProductConfig:

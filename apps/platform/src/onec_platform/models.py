@@ -146,6 +146,33 @@ class ProductRuntimeSettings:
 
 
 @dataclass
+class ProductAuthSettings:
+    """Optional authentication contract for the network transport.
+
+    Track H / Step 4 introduces a single network transport family
+    (HTTP/1.1) with bearer-token authentication. This dataclass
+    holds the operator-declared list of valid bearer tokens.
+
+    Each entry in :attr:`tokens` MUST be a string of the env-
+    substitution form ``${ENV:NAME}`` (Track D pattern) — literal
+    cleartext tokens are rejected at config-load time. The actual
+    secret values are resolved from :attr:`os.environ` at startup
+    by ``mcp_common._network_transport`` and never persisted to
+    disk by this layer.
+
+    The section is optional: configs that omit ``auth`` continue to
+    load with an empty token list, which is fine for stdio-only
+    deployments. The HTTP transport startup gate fails closed when
+    no token source is available.
+
+    See ``docs/architecture/track-h-network-transport-and-auth-contract.md``
+    §9 for the full normative contract.
+    """
+
+    tokens: list[str] = field(default_factory=list)
+
+
+@dataclass
 class ProductConfig:
     """Top-level product config of 1C Agent Platform.
 
@@ -173,6 +200,11 @@ class ProductConfig:
     enterprise: "EnterpriseFoundationSettings" = field(
         default_factory=lambda: EnterpriseFoundationSettings()
     )
+    # Track H / Step 4 — narrow, optional authentication contract
+    # for the new HTTP network transport. Backward-compatible with
+    # all pre-Track-H configs (default empty list). See
+    # :class:`ProductAuthSettings`.
+    auth: ProductAuthSettings = field(default_factory=ProductAuthSettings)
 
 
 # Allowed deployment tiers for ``EnterpriseFoundationSettings.deployment_tier``.
