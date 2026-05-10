@@ -75,6 +75,15 @@ The operator-facing surface you are receiving:
 - One **reference-stand runbook** for the real binary-backed
   write round-trip
   (`docs/runbooks/track-a-reference-stand-round-trip.md`).
+- A **local stdio MCP transport baseline** for the three MCP
+  servers (Track G / Step 4): `python -m mcp_read_server`,
+  `python -m mcp_write_server`,
+  `python -m mcp_intelligence_server` start a line-delimited
+  JSON-RPC 2.0 stdio loop with a minimal CLI (`--help`,
+  `--config-path`, `--transport`, `--log-level`); the same
+  three names are also declared as `[project.scripts]`
+  console entries in `pyproject.toml`. **Local / trusted-stdio
+  use only** — no network listener, no auth.
 - **Per-track planning documents** under `docs/architecture/`
   for Track A, Track B, Track C.
 - **Standalone manuals** under `docs/`:
@@ -100,10 +109,22 @@ they are intentional limits of the current scaffolding.
   distribution.**
 - **No publication to package managers** (PyPI / Chocolatey /
   winget / apt).
-- **No production-grade MCP transport.** No authentication,
-  authorisation, multi-tenant isolation, or hardened network
-  transport. The three MCP servers are intended for local /
-  controlled use, not as exposed network endpoints.
+- **Local stdio MCP transport only — no network / auth /
+  service story.** Track G / Step 4 ship'нул узкий
+  operational baseline (three `python -m <server>`
+  entrypoints + minimal stdio JSON-RPC transport + four CLI
+  flags + `[project.scripts]` console entries). It does not
+  add authentication, authorisation, multi-tenant isolation,
+  hardened network transport (HTTP / WebSocket / SSE /
+  TCP / named pipe), or any supervisor / systemd unit /
+  Windows Service registration. The three MCP servers are
+  intended for local / trusted-stdio use, not as exposed
+  network endpoints. The wheel build remains empty
+  (`[tool.hatch.build.targets.wheel] packages = []`), so
+  the `[project.scripts]` console entries materialise as
+  installable binaries only when a future packaging track
+  ships an actual wheel — meanwhile the documented
+  invocation is `python -m <server>`.
 - **No web UI / dashboard frontend.**
 - **No enterprise super-set** (SSO/RBAC, multi-tenant, secrets
   vault as a service, federated audit storage, policy-as-code
@@ -290,9 +311,13 @@ When to use which switch:
 .\scripts\dev\launch.ps1 run <script.py> [args]  # ad-hoc Python script
 ```
 
-It deliberately does NOT start the MCP servers (no production
-transport yet), does NOT run pytest (no test suite yet), does
-NOT touch a 1С infobase, does NOT replace the install fast path.
+It deliberately does NOT start the MCP servers — those are
+launched separately via `python -m mcp_read_server` /
+`python -m mcp_write_server` /
+`python -m mcp_intelligence_server` (Track G / Step 4 stdio
+entrypoints; trusted-local-stdio only, no network, no auth).
+It also does NOT run pytest (no test suite yet), does NOT
+touch a 1С infobase, does NOT replace the install fast path.
 
 
 ## Known limitations
@@ -343,8 +368,14 @@ as a single checklist so the receiver does not miss them.
   `docs/architecture/track-f-rollback-baseline-audit.md`,
   and `docs/architecture/track-f-rollback-eligibility-contract.md`
   for full rationale and per-tool tier breakdown.
-- **No production-grade MCP transport.** Treat the servers as
-  local development services, not as exposed network endpoints.
+- **Local stdio MCP transport only.** Track G / Step 4 ship'нул
+  three `python -m <server>` entrypoints + minimum-viable stdio
+  JSON-RPC transport + four CLI flags +
+  `[project.scripts]` console entries — narrow operational
+  baseline for local / trusted-stdio use. No auth, no network
+  listener, no supervisor / systemd / Windows Service
+  registration; not an exposed network endpoint. See
+  `SECURITY.md` "Honest constraints" for the full statement.
 - **No installer ecosystem.** See "What is NOT in this handoff"
   above.
 

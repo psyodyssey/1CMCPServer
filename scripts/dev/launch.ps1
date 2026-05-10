@@ -9,8 +9,13 @@
 # command surface. No production code is touched.
 #
 # What this wrapper deliberately does NOT do:
-#   - it does NOT start MCP read / write / intelligence servers
-#     (there is no production-grade transport yet);
+#   - it does NOT start MCP read / write / intelligence servers.
+#     Track G / Step 4 ship'нул local stdio entrypoints -
+#     `python -m mcp_read_server`, `python -m mcp_write_server`,
+#     `python -m mcp_intelligence_server` (also declared as
+#     [project.scripts] console entries). They are launched
+#     separately as a deliberate scope choice of this umbrella;
+#     transport itself is local-stdio only, not network;
 #   - it does NOT run pytest (there is no test suite yet);
 #   - it does NOT run the install fast path
 #     (use scripts\release\install.ps1 for that);
@@ -57,8 +62,13 @@ Usage:
 
 What this wrapper deliberately does NOT do:
 
-  - It does NOT start the MCP read / write / intelligence servers
-    (no production-grade transport yet; out of Track B scope).
+  - It does NOT start the MCP read / write / intelligence servers.
+    Track G / Step 4 ship'nul local stdio entrypoints. Launch
+    them separately, e.g.:
+        python -m mcp_read_server --help
+        python -m mcp_write_server --help
+        python -m mcp_intelligence_server --help
+    Transport is local-stdio only (no network, no auth).
   - It does NOT run pytest (no test suite yet).
   - It does NOT run the install fast path. Use
     scripts\release\install.ps1 for that (Track B / Step 3).

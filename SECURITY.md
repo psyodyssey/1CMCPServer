@@ -37,11 +37,25 @@ hidden gaps.
   integration / encrypted-at-rest secrets file format. Operators
   who need any of those pull values into env vars from their own
   secrets infrastructure before invoking the platform.
-- **No production-grade MCP transport yet.** The three MCP servers are
-  intended for local / controlled use. There is no built-in
-  authentication, authorisation, multi-tenant isolation, or hardened
-  network transport. Treat them as you would any local development
-  service.
+- **Local stdio MCP transport only.** Track G / Step 4 ship'нул
+  узкий operational baseline: три canonical entrypoint'а
+  (`python -m mcp_read_server` / `python -m mcp_write_server` /
+  `python -m mcp_intelligence_server`), minimum-viable stdio
+  JSON-RPC 2.0 transport (line-delimited, stdlib-only), minimal CLI
+  surface (`--help`, `--config-path`, `--transport`, `--log-level`),
+  и `[project.scripts]` console entries в `pyproject.toml`. Это
+  закрывает factual gap «MCP servers cannot start at all» в
+  trusted local environment. Threat model = local trusted stdio
+  boundary (operator-owned process), **не** adversarial network.
+  По-прежнему нет: built-in authentication / authorisation,
+  multi-tenant isolation, hardened network transport
+  (HTTP / WebSocket / SSE / TCP / named pipe), token / mTLS /
+  OAuth / SAML / RBAC, supervisor daemon / systemd unit /
+  Windows Service registration. Treat the servers as you would
+  any local development service. Network exposure требует
+  отдельного post-Track-G transport track'а; Track G **не**
+  претендует на production-readiness для adversarial network
+  deployment.
 - **Single-version 1С evidence (with multi-version scaffolding).** Real
   binary-backed round-trip evidence has been exercised on `8.3.27.1859`
   (Windows x64, file-based reference stand) — see Track A / Step 6 in

@@ -32,10 +32,13 @@ success / help; делегированный `$LASTEXITCODE` для `selfcheck` 
 `run`; `64` — unknown command или missing args.
 
 `launch.ps1` сознательно **не** делает: не стартует MCP-серверы
-(production-grade transport — out of Track B), не запускает
-pytest (нет test suite'а), не делает install fast path
-(см. `scripts/release/install.ps1`, Track B / Step 3), не
-трогает 1С-инфобазу.
+(Track G / Step 4 ship'нул отдельные local stdio entrypoint'ы —
+`python -m mcp_read_server`, `python -m mcp_write_server`,
+`python -m mcp_intelligence_server`; transport — local-stdio only,
+без network / auth; запуск делается оператором отдельно, не
+через umbrella), не запускает pytest (нет test suite'а), не делает
+install fast path (см. `scripts/release/install.ps1`,
+Track B / Step 3), не трогает 1С-инфобазу.
 
 ### `bootstrap_paths.ps1`
 
@@ -88,8 +91,10 @@ python .\scripts\dev\selfcheck.py
 Тот же сценарий (bootstrap + selfcheck) повторяется в минимальном
 CI workflow `.github/workflows/dev-check.yml`. На текущем этапе это
 единственный quality gate проекта — он проверяет только
-import/wiring skeleton-модулей, без реального MCP-рантайма,
-интеграции с 1С, pytest, ruff или установки пакетов.
+import/wiring skeleton-модулей и registry counts, без запуска
+живого MCP-рантайма (Track G / Step 4 stdio entrypoints
+запускаются оператором отдельно — см. выше про `launch.ps1`),
+без интеграции с 1С, без pytest / ruff / установки пакетов.
 
 ## Статус
 
