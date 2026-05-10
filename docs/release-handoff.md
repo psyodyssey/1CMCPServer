@@ -102,6 +102,26 @@ The operator-facing surface you are receiving:
     across all three servers.
 - **Per-track planning documents** under `docs/architecture/`
   for Track A, Track B, Track C.
+- **Operator-facing deployment-boundary recipe** (Track J /
+  Step 4 deliverable, PATH A docs-only) at
+  [`docs/operators/deployment-boundary.md`](operators/deployment-boundary.md):
+  single-source-of-truth ten-section recipe for the
+  `--transport http` deployment shape — per-scenario
+  MUST/SHOULD/MAY matrix (loopback / trusted private
+  subnet / public-facing-through-reverse-proxy),
+  per-scenario walkthroughs, explicit Forwarded-header
+  MUST-NOT-consume policy (listener does not consume
+  `X-Forwarded-*` / `Forwarded` / `X-Real-IP` /
+  `True-Client-IP` / `CF-Connecting-IP` for any
+  trust / authz / routing / audit decision), `/healthz`
+  non-shipping with strict-2xx-only-prober workarounds,
+  two abstract reverse-proxy snippets (nginx + Caddy),
+  eight operator decision-point Q&A, honest non-goals.
+  This is the document to read **before** standing up
+  the HTTP listener anywhere off-loopback. The Track J
+  Step 3 contract that pinned PATH A and the
+  per-scenario matrix lives at
+  [`docs/architecture/track-j-deployment-boundary-contract.md`](architecture/track-j-deployment-boundary-contract.md).
 - **Standalone manuals** under `docs/`:
   `operator-manual.md`, `administrator-manual.md`,
   `developer-manual.md`, `runbooks.md`.
@@ -443,6 +463,11 @@ For the security report flow, see `SECURITY.md`.
 - **Local dev wrappers detail** — `scripts/dev/README.md`.
 - **Product layer surface** — `apps/platform/README.md`.
 - **Operator-facing reference** — `docs/operator-manual.md`.
+- **Operator-facing deployment-boundary recipe (HTTP transport)** —
+  [`docs/operators/deployment-boundary.md`](operators/deployment-boundary.md).
+  The single recipe for deploying `--transport http` safely
+  behind an operator-owned reverse proxy. Required reading
+  before any non-loopback HTTP exposure.
 - **Administrator-facing reference** — `docs/administrator-manual.md`.
 - **Developer-facing reference** — `docs/developer-manual.md`.
 - **Reproducible scenarios** — `docs/runbooks/`, including the

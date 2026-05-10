@@ -64,7 +64,16 @@ hidden gaps.
     an operator-owned reverse proxy that terminates TLS. The
     listener itself binds plain HTTP/1.1; in-process TLS is not
     provided. Operator SHOULD bind the listener to a loopback or
-    private interface and front-proxy it.
+    private interface and front-proxy it. The single
+    operator-facing single-source-of-truth recipe for this
+    deployment shape — per-scenario MUST/SHOULD/MAY matrix
+    (loopback / trusted private subnet / public-facing-through-
+    reverse-proxy), explicit Forwarded-header MUST-NOT-consume
+    policy, `/healthz` non-shipping, abstract nginx / Caddy
+    snippets, and operator decision-point Q&A — is
+    [`docs/operators/deployment-boundary.md`](docs/operators/deployment-boundary.md)
+    (Track J / Step 4 deliverable; PATH A docs-only per Track J
+    Step 3 contract).
   - **Still NOT shipped:** TLS / HTTPS termination in process,
     mTLS / client certificate authentication, JWT / OAuth 2.0 /
     OIDC / SAML / SCIM, RBAC / ABAC / per-tool ACL / per-tenant

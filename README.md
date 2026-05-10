@@ -86,22 +86,38 @@
 > install fast path round-trip byte-identical (Q6 = PATCH
 > bump `0.5.0 → 0.5.1`). Активный трек сейчас —
 > **Parallel Track J — TLS and Reverse-Proxy Deployment
-> Boundary** (planning-only, Step 1; следующий слой
-> зрелости поверх Tracks H/I — formalize "trusted-network
-> behind operator-owned reverse proxy" general-policy
-> statement из Track H Step 3 contract §13 в operator-
-> facing single-source-of-truth deployment-boundary
-> recipe с точной bind-host guidance, reverse-proxy
-> integration expectations, exposure-rule matrix для
-> трёх scenarios (loopback / private / public-through-
-> proxy), explicit `/healthz` endpoint resolution; Step
-> 4 design-question остаётся открытым между docs-only,
-> narrow ≤15 LOC code addition, или hybrid; **не**
-> in-process TLS / mTLS (carry-over Track H §13 forbid),
-> **не** enterprise identity stack (SSO/OIDC/RBAC/multi-
-> tenant), **не** service supervision, **не** packaging
-> ecosystem, **не** web UI, **не** observability stack,
-> **не** новые MCP tools).
+> Boundary** (Steps 1–4 закрыты; Step 5 активен —
+> operator docs alignment; Step 6 closure впереди).
+> Track J формализовал "trusted-network behind
+> operator-owned reverse proxy" general-policy statement
+> из Track H Step 3 contract §13 в operator-facing
+> single-source-of-truth deployment-boundary recipe;
+> Step 3 contract pinned **PATH A docs-only**, и Step 4
+> ship'нул [`docs/operators/deployment-boundary.md`](docs/operators/deployment-boundary.md)
+> — single ten-section operator-facing документ:
+> per-scenario MUST/SHOULD/MAY matrix для трёх scenarios
+> (loopback / private subnet / public-facing-through-
+> reverse-proxy), per-scenario walkthroughs, explicit
+> Forwarded-header MUST-NOT-consume policy для
+> `X-Forwarded-*` / `Forwarded` / `X-Real-IP` /
+> `True-Client-IP` / `CF-Connecting-IP` (listener не
+> consume их ни для access-control, ни для trust, ни
+> для routing/audit decisions), `/healthz` non-shipping
+> с rationale для strict-2xx-only probers, два
+> reverse-proxy snippet'а (nginx + Caddy) с abstract
+> placeholders only, восемь operator decision-point
+> Q&A, honest non-goals. Production code не правился
+> ни в одном Track J шаге; runtime preserved
+> byte-identical от Track I closure state. Это
+> **не** in-process TLS / mTLS (carry-over Track H §13
+> forbid), **не** enterprise identity stack
+> (SSO/OIDC/RBAC/multi-tenant), **не** service
+> supervision, **не** packaging ecosystem, **не** web
+> UI, **не** observability stack, **не** `/healthz`
+> endpoint, **не** `0.0.0.0` runtime warning, **не**
+> новые MCP tools, **не** registry change (registries
+> `read=15 / write=25 / intelligence=16` invariant
+> carried through).
 
 ### Системные требования
 
@@ -732,13 +748,8 @@ deliberately not consulted by `_MCPHandler`; auth is
 bearer-token-only), TLS termination point (operator's
 reverse proxy only — in-process TLS forbidden carry-over
 от Track H §13.1), exposure-rule matrix для трёх
-deployment scenarios, explicit `/healthz` endpoint
-resolution. Step 4 design-question остаётся открытым
-между docs-only operationalization (PATH A — operator-
-facing deployment guide), narrow ≤15 LOC code addition в
-`_network_transport.py` (PATH B — bind-host warning
-и/или `/healthz` endpoint), или hybrid (PATH C); финал
-PATH в Step 3 contract на основе Step 2 audit evidence.
+deployment scenarios, explicit `/healthz` non-shipping
+resolution.
 
 Это **не** in-process TLS / HTTPS termination (Track H
 §13.1 invariant carried forward unchanged), **не** mTLS
@@ -768,61 +779,94 @@ regex, `Authorization` header parsing + case-insensitive
 scheme + `hmac.compare_digest` validation + failure-
 equivalence rule + complete redaction discipline,
 installer.py auth round-trip integrity) preserved
-byte-identical если Step 4 идёт PATH A; в случае
-PATH B/C — narrow additive change в одном файле
-(`_network_transport.py`) с byte-identical preservation
-всех остальных surfaces.
+byte-identical — Step 3 contract pinned **PATH A
+docs-only**, и Step 4 это соблюл.
 
-Track J сейчас на **Step 1 (planning, docs-only)** —
-ship'нуты только два planning-документа
-([`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md),
-[`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md));
-никаких code changes Step 1 не делал; registries
-`read=15 / write=25 / intelligence=16` без drift'а;
-никаких 1cv8.exe runs (трек работает на network/
-deployment boundary layer, не на 1cv8 binary surface);
-никаких реальных credentials в repo / docs / commit
-messages.
+Track J сейчас на **Step 5 (operator docs and
+deployment-boundary alignment, docs-only)**. Шаги 1–4
+закрыты последовательно:
 
-Что **не** входит в Track J (повтор для ясности):
-in-process TLS / mTLS (carry-over Track H §13 forbid),
-full enterprise identity stack (SSO/SAML/OIDC/SCIM/
-RBAC/ABAC/multi-tenant), zero-trust posture, hostile-
-internet exposure-ready stack, WAF/IDS/rate-limit/DDoS
-protection/anomaly detection, observability stack
-(OpenTelemetry/Jaeger/Prometheus/OpenMetrics/log
-aggregation), service supervisor / systemd / Windows
-Service / launchd / hot reload / restart watcher /
-auto-update, packaging ecosystem (.msi/.deb/signed
-distribution/GUI installer/wizard/PyPI/wheel
-publication beyond [project.scripts]), web UI/dashboard
-frontend, standalone `apps/platform` entrypoint, new
-MCP tools (registries без drift'а), 1cv8 work, rollback
-/ AST / multi-version 1С matrix expansion, real MCP
-client integration test as closure gate, remote push.
+- **Step 1 (commit `e203e43`)** — planning: два
+  planning-документа
+  ([`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md),
+  [`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md))
+  + narrative updates README.md / PROJECT-STATUS.md.
+  Step 4 PATH explicitly preserved as open.
+- **Step 2 (commit `344129c`)** — descriptive
+  baseline audit
+  ([`docs/architecture/track-j-deployment-boundary-baseline-audit.md`](docs/architecture/track-j-deployment-boundary-baseline-audit.md))
+  с inventory existing TLS / reverse-proxy /
+  bind-host text in Track H contract / SECURITY /
+  release-handoff / apps/platform/README / scripts +
+  inventory `_network_transport.py` runtime behaviour
+  + Q1–Q6 directional resolutions + 14-item Step 3
+  handoff.
+- **Step 3 (commit `4e04771`)** — normative
+  contract
+  ([`docs/architecture/track-j-deployment-boundary-contract.md`](docs/architecture/track-j-deployment-boundary-contract.md))
+  с 15 sections: pinned **PATH A docs-only** for
+  Step 4 (PATH B / C explicitly rejected); pinned
+  per-scenario MUST/SHOULD/MAY matrix; pinned
+  `X-Forwarded-*` / `Forwarded` / `X-Real-IP` /
+  `True-Client-IP` / `CF-Connecting-IP`
+  MUST-NOT-consume policy; pinned `/healthz`
+  defer; pinned 18-check Step 4 verification
+  harness; pinned forbidden file surface.
+- **Step 4 (commit `5c793c1`)** — operator-facing
+  deployment-boundary recipe
+  ([`docs/operators/deployment-boundary.md`](docs/operators/deployment-boundary.md)),
+  691-line ten-section single-file deliverable:
+  per-scenario matrix (byte-identical to contract
+  §7.1), per-scenario walkthroughs (A local-only /
+  B trusted private subnet with B1 proxy-fronted
+  и B2 proxy-omitted variants / C public-facing-
+  through-reverse-proxy), Forwarded-header policy,
+  `/healthz` non-shipping (rationale + workarounds
+  для strict-2xx-only probers), два reverse-proxy
+  snippet'а (nginx + Caddy) с abstract placeholders
+  only, восемь operator decision-point Q&A, honest
+  non-goals.
 
-Следующий шаг по Track J — **Step 2 (deployment-
-boundary baseline audit, docs-only)**: новый short
-audit-документ с inventory existing TLS / reverse-proxy
-/ bind-host text in Track H contract / SECURITY /
-release-handoff / apps/platform/README / scripts/dev/* /
-scripts/release/* + inventory `_network_transport.py`
-runtime behaviour (bind-host validation, forwarded-
-header treatment, non-`/mcp` 404 response,
-`WWW-Authenticate` 401) + 4-class breakdown (already
-formalized at general-policy level / partially
-documented scattered / clearly missing / out-of-scope) +
-resolve Q1 (target = hybrid reverse-proxy-first +
-in-process TLS deferred), Q2 (Step 4 PATH choice based
-on evidence), Q3 (deployment threat model = trusted
-internal network behind operator-owned reverse proxy),
-Q4 (deployment surfaces enumerated). Production-код
-Step 2 не правит. Никаких real credentials. **GitHub
-remote push — operator action, не часть трека.**
+Step 5 (этот текущий шаг) — узкое CLASS-1 docs-
+alignment: только те docs, у которых после Step 4
+появился прямой factual drift, перечитываются с
+точки зрения existing operator-facing surface
+(README quickstart + active-track section,
+SECURITY transports bullet, release-handoff
+"What is in" / "Where to read deeper" lists).
+Никаких code changes; никаких новых правил;
+никаких registry / `pyproject.toml` / `scripts/*` /
+manuals / CHANGELOG / PROJECT-STATUS edits — Step
+6 closure territory остаётся нетронутой.
+
+Никаких 1cv8.exe runs (трек работает на network /
+deployment-boundary layer, не на 1cv8 binary
+surface). Никаких реальных credentials в repo /
+docs / commit messages. Registries `read=15 /
+write=25 / intelligence=16` invariant без drift'а
+через все Track J шаги. `pyproject.toml`
+`version=0.5.1` preserved (Track I closure bump);
+SemVer call — Step 6 / Q7 territory; default
+expectation = PATCH `0.5.1 → 0.5.2` или no-bump,
+никогда MINOR / MAJOR (контракт §3.7).
+
+Следующий шаг по Track J — **Step 6 (final
+integration pass and track closure)**. Step 6
+территория: SemVer call, CHANGELOG entry,
+PROJECT-STATUS Track J closure section, README
+move Track J в Closed parallel tracks list (10 → 10
+закрытых post-phase parallel tracks A/B/C/D/E/F/G/
+H/I/J), final honest closure narrative. Step 6
+production-код не правит. Никаких реальных
+credentials. **GitHub remote push — operator
+action, не часть трека.**
 
 Документы трека:
 [`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-plan.md),
-[`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md).
+[`docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md`](docs/architecture/track-j-tls-and-reverse-proxy-deployment-boundary-step-map.md),
+[`docs/architecture/track-j-deployment-boundary-baseline-audit.md`](docs/architecture/track-j-deployment-boundary-baseline-audit.md),
+[`docs/architecture/track-j-deployment-boundary-contract.md`](docs/architecture/track-j-deployment-boundary-contract.md),
+[`docs/operators/deployment-boundary.md`](docs/operators/deployment-boundary.md).
 
 Подробности по последнему закрытому треку — в секции
 «Track I detail (закрыт)» ниже; предыдущий трек описан
