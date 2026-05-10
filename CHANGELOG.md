@@ -6,6 +6,277 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
+## 0.5.0 — Parallel Track H — Network-Grade MCP Transport and Authentication Boundary
+
+This release closes **Parallel Track H — Network-Grade MCP
+Transport and Authentication Boundary**, the eighth post-
+phase parallel track. Track H shipped the **second maturity
+layer** on top of Track G: a single HTTP/1.1 `/mcp` endpoint
+with static bearer authentication, additive over the existing
+local stdio transport. The same `list_tools()` /
+`get_tool(name)` boundary serves both transports; the
+existing `--transport stdio` path is preserved byte-
+identically. **No new MCP tools.** **No changes to tool
+registries, `mcp_common` public API, audit row `details`
+shape, or `run_write_flow` discipline.** Six steps plus one
+Step 2 follow-up; production code was touched in only one
+step (Step 4) and only on the explicit allowed surfaces.
+
+The version bump `0.4.0` → `0.5.0` (Q7 resolved YES) reflects
+that Track H / Step 4 shipped a real production code change
+with observable runtime capability delta:
+`python -m mcp_<server> --transport http --bind ...
+--auth-token-env ...` now actually starts an HTTP/1.1
+listener with bearer authentication, whereas before Track H
+the existing `_stdio_transport._build_arg_parser` had
+`ALLOWED_TRANSPORTS=("stdio",)` and rejected `http` at
+argparse level. This is backward-compatible new functionality
+classifying as a classic MINOR bump per SemVer (existing
+`--transport stdio` byte-identical via delegation to
+`_stdio_transport._serve_stdio`; `mcp_common/__init__.py`
+`__all__` byte-identical; `_stdio_transport.py` byte-
+identical; `[project.scripts]` byte-identical; registries
+`15/25/16` invariant; audit `details` shape preserved; new
+`ProductConfig.auth` is an optional field with
+`default_factory=ProductAuthSettings`, so pre-Track-H
+configs continue to load unchanged).
+
+### Per-step outcomes
+
+- **Step 1 (planning network-grade MCP transport and
+  authentication boundary)** — two planning documents under
+  `docs/architecture/track-h-*` (plan + step-map). 7 open
+  questions Q1–Q7. No code changes. Commit `563b27b`.
+- **Step 2 (transport / auth baseline audit)** — one new
+  descriptive documentation-only document
+  (`track-h-transport-and-auth-baseline-audit.md`,
+  1085 lines, 11 sections). Per-server / per-package /
+  per-pyproject inventory + 4-class breakdown (11 reusable
+  / 8 adjacent / 11 missing / 12 out-of-scope) + read-only
+  evidence (zero hits across 8 grep categories: HTTP server
+  libs, SSE, WebSocket, TCP, TLS, auth, sessions, rate-
+  limit). Resolved Q1 (HTTP-based MCP transport), Q2
+  (exactly one transport family), Q3 (static bearer token
+  via `Authorization` header, constant-time compare, fail-
+  closed), Q4 (`ProductConfig.auth.tokens` + Track D
+  `${ENV:NAME}` pattern + `--auth-token-env` CLI override).
+  Commit `3c74564`.
+- **Step 2 follow-up (credential leak guard self-reference
+  fix)** — narrow one-file fix removing four literal
+  credential-leak-guard pattern strings from the audit doc
+  that started self-matching against `verify-release.ps1`
+  Check 7 once the file became tracked (the same self-
+  reference hazard the script already handles for itself
+  and its README via the `$excludes` list). Paraphrased
+  without weakening the audit's meaning; touching
+  `scripts/release/verify-release.ps1` deliberately
+  avoided. Commit `0628f4c`.
+- **Step 3 (network transport / auth contract)** — one new
+  prescriptive normative document
+  (`track-h-network-transport-and-auth-contract.md`, 1650
+  lines) using RFC 2119-style MUST / MUST NOT / SHALL /
+  SHOULD / MAY wording (293 normative keyword usages: 199
+  MUST, 74 MUST NOT, 17 MAY, 2 SHOULD, 1 SHALL). 18
+  sections pinning the exact transport family, framing,
+  endpoint, MCP method coverage, JSON-RPC ↔ HTTP boundary
+  (per-failure-mode HTTP status + envelope shape pinned),
+  concurrency, auth contract (`Authorization: <case-
+  insensitive-Bearer> <token>`, `hmac.compare_digest`,
+  failure-equivalence rule, complete redaction discipline,
+  exhaustive forbidden auth-shape list), config schema, CLI
+  surface, integration boundary, backward compatibility,
+  TLS posture (in-process TLS forbidden; operator-reverse-
+  proxy responsibility), `pyproject.toml` posture, exact
+  Step 4 implementation surface (allowed/forbidden file
+  lists), verification protocol. Commit `2e76061`.
+- **Step 4 (narrow HTTP transport and bearer auth boundary)**
+  — the only step with production code change.
+  Implementation PATH A. Five files changed (+877 / -35,
+  1 new + 4 modified):
+  - `packages/mcp-common/src/mcp_common/_network_transport.py`
+    — new, 549 LOC; underscore-prefixed internal helper,
+    NOT exported from `mcp_common.__init__`; pure stdlib
+    (`http.server.ThreadingHTTPServer`, `hmac`, `os`, `re`,
+    `json`, `argparse`, `logging`, `sys`, `email.message`).
+    Implements the `/mcp` POST handler (GET → 405+
+    `Allow:POST`; non-`/mcp` → 404; wrong Content-Type →
+    415+`-32600`; body > 1 MiB → 413+`-32600`; multiple
+    Authorization headers → 400+`-32600`; case-insensitive
+    Bearer scheme; constant-time token compare; failure-
+    equivalence 401+`WWW-Authenticate: Bearer realm="mcp"`+
+    JSON-RPC `-32001` for missing/empty/malformed/invalid
+    tokens; notifications → 204; complete token-redaction
+    discipline) and a unified `run_main_http(...)` that
+    handles both `--transport stdio` and `--transport http`
+    via a single argparser (stdio path delegates to
+    existing `_stdio_transport._serve_stdio` byte-
+    identically).
+  - Three `__main__.py` (modified) — switched import
+    `_stdio_transport.run_main` → `_network_transport.run_main_http`;
+    `SERVER_VERSION` bumped 0.3.0→0.4.0; module docstrings
+    describe both transports; `main() -> int` signature
+    preserved.
+  - `apps/platform/src/onec_platform/models.py` (modified)
+    — added `ProductAuthSettings` dataclass with
+    `tokens: list[str]` + `auth: ProductAuthSettings`
+    field on `ProductConfig` with `default_factory`.
+  - `apps/platform/src/onec_platform/loader.py` (modified)
+    — added `_AUTH_ENV_TOKEN_RE` regex byte-identical to
+    Track D pattern; added `_parse_auth(auth_raw)` with
+    unknown-keys reject, list-of-strings validation,
+    env-substitution regex enforce per entry, literal
+    cleartext fail-closed at config-load time. Wired into
+    `load_product_config`. Commit `5814041`.
+- **Step 5 (operator docs and security alignment)** — six
+  docs aligned with the actual Step 4 surface (+410 / -173
+  lines): `README.md` Quickstart + "Что Quickstart не
+  обещает" + full rewrite of "Active parallel track"
+  section enumerating Steps 1–4 closure summary;
+  `SECURITY.md` "Local stdio MCP transport only" bullet
+  replaced with structured per-transport block (stdio
+  threat model + http threat model) plus exhaustive
+  still-NOT list and the installer auth-round-trip gap;
+  `docs/release-handoff.md` four locations updated;
+  `apps/platform/README.md` four locations updated;
+  `scripts/dev/launch.ps1` header comment + Show-Usage
+  help text point operators at both transports;
+  `scripts/dev/README.md` `launch.ps1` parenthetical
+  rewritten. `PROJECT-STATUS.md` and `CHANGELOG.md`
+  deliberately not touched (closure territory). Commit
+  `407a2f2`.
+- **Step 6 (final integration pass and Track H closure)** —
+  this closure: `pyproject.toml` version bumped 0.4.0 →
+  0.5.0 (Q7 = YES); `README.md`, `PROJECT-STATUS.md`, and
+  `CHANGELOG.md` aligned with Track H closed status. Read-
+  only final integration check green: linear Step 1 → 6
+  history, all Step 1–5 deliverables present on disk,
+  registries without drift, `verify-release.ps1` GREEN on
+  8 checks, no real credentials anywhere in the seven
+  Track H commits, no 1cv8.exe runs at any Track H step.
+
+### Actual launch surface after Track H closure
+
+```
+python -m mcp_read_server --transport stdio --help
+python -m mcp_read_server --transport http \
+    --bind 127.0.0.1:8765 --auth-token-env MCP_TOKEN --help
+```
+
+(and analogously for `mcp_write_server` and
+`mcp_intelligence_server`). The CLI flag set is identical
+across all three servers: `--help`, `--config-path`,
+`--transport {stdio,http}`, `--log-level
+{DEBUG,INFO,WARNING,ERROR}`, `--bind <HOST>:<PORT>`,
+`--auth-token-env <VARNAME>`. `--bind` and a token source
+(either `--auth-token-env <VARNAME>` or non-empty
+`auth.tokens` in product config) are required when
+`--transport http`; both are silently ignored when
+`--transport stdio`.
+
+The HTTP `/mcp` endpoint accepts only POST with
+`Content-Type: application/json` and a single JSON-RPC
+2.0 message per body up to 1 MiB. The `Authorization`
+header is required (`<case-insensitive-Bearer> <token>`);
+missing, empty, malformed, mismatched, or duplicate
+header all map to a deterministic shape (401 +
+`WWW-Authenticate: Bearer realm="mcp"` + JSON-RPC
+`-32001` envelope, except multiple-Authorization which
+maps to 400+`-32600`). Token validation is constant-time
+via `hmac.compare_digest`. Token values, lengths, prefixes,
+suffixes, hashes, and fingerprints never appear in stderr
+logs, response bodies, error messages, or audit `details`.
+
+Tool dispatch goes through the existing `server.py`
+boundary (`list_tools()` / `get_tool(name)`); the
+`run_write_flow` discipline for write tools and the
+read-only-by-construction discipline of the intelligence
+server are preserved unchanged on both transports.
+
+### Registry invariant carried through Track H
+
+- `mcp-read-server` — 15 public tools.
+- `mcp-write-server` — 25 public tools.
+- `mcp-intelligence-server` — 16 public tools.
+
+No MCP surface drift through Track H.
+
+### Honest constraints update under Track H closure
+
+- **Local trusted-stdio + trusted-network HTTP+bearer
+  baseline only.** Threat model = local trusted stdio
+  boundary for `--transport stdio`, trusted-network
+  deployment behind operator-owned reverse proxy for
+  `--transport http`. The platform does not claim
+  production readiness for adversarial-internet
+  deployment.
+- **No in-process TLS / HTTPS termination.** Operator
+  is responsible for TLS termination at the reverse
+  proxy layer; the Track H listener binds plain HTTP/1.1
+  and SHOULD be bound to a loopback or private interface.
+- **No mTLS / client certificate authentication.**
+- **No JWT / OAuth 2.0 / OIDC / SAML / SCIM**, no token
+  introspection / refresh / rotation endpoints, no
+  session cookies.
+- **No RBAC / ABAC / per-token permissioning / per-tool
+  ACL / per-tenant isolation / multi-tenant policy
+  engine.** Single-tier auth: a valid token grants access
+  to the full tool registry.
+- **No rate limiting / quotas / throttling.**
+- **No WebSocket / Server-Sent Events / TCP / Unix-socket
+  / named-pipe transports.**
+- **No supervisor daemon / systemd unit / Windows Service
+  registration / `launchd` plist / hot reload / restart
+  watcher.** Each server is a single-shot process; the
+  operator (or the existing `apps/platform/runtime.py`
+  boundary, which Track H did not extend) is responsible
+  for lifecycle.
+- **No web UI / dashboard frontend.**
+- **No standalone `apps/platform` entrypoint** (Q6
+  carry-over from Track G).
+- **No packaging ecosystem beyond `[project.scripts]`
+  declarations.** No `.msi` / `.deb` / GUI installer /
+  signed binary distribution / PyPI / wheel publication.
+  Track C wheel-build empty constraint preserved.
+- **No new MCP tools.** Registry counts unchanged.
+- **No 1cv8.exe runs at any Track H step.** Track H
+  operates at the process / transport / auth layer; the
+  1cv8 binary surface is not engaged.
+- **Known install fast path round-trip limitation.**
+  `apps/platform/src/onec_platform/installer.py:_config_to_dict`
+  does not yet emit the new `auth` section, so a config
+  round-tripped through `scripts/release/install.ps1
+  ... -Confirm` silently loses its `auth.tokens`
+  declarations. Operators using `--transport http`
+  against a round-tripped config get a clean fail-
+  closed startup ("`--transport http requires
+  --auth-token-env or auth.tokens in product config`")
+  and can either re-add the section by hand or use
+  `--auth-token-env <VARNAME>` to bypass the config.
+  Future post-Track-H fix to `_config_to_dict` is
+  analogous to the Phase 6 / Step 9 service-level +
+  enterprise round-trip fix.
+- **No real MCP client integration test as a closure
+  gate.** Real client testing (Claude Desktop, MCP CLI
+  launching the server) is recommended but not blocking
+  (Track G precedent carry-over).
+- **All other 0.4.0 honest constraints carry forward
+  unchanged** (local stdio baseline; rollback whitelist
+  6 of 25 mutating registry tools; no `delete_*` family;
+  no multi-file restore; no DB schema rollback; no AST
+  semantic inversion; no transactional rollback).
+- **All earlier 0.3.0 / 0.2.0 / 0.1.0 honest constraints
+  carry forward unchanged** (DESIGNER credentials via
+  `${ENV:NAME}` substitution; 8th hygiene check in
+  `verify-release.ps1`; no installer ecosystem; no full
+  enterprise super-set; no full AST parser; no full
+  rollback / delete coverage).
+
+### Active work
+
+None. No parallel track is currently open after Track H
+closure. Phase 7 as a linear phase is not planned. Opening
+the next parallel track is an explicit operator decision.
+
 ## 0.4.0 — Parallel Track G — Production-Grade MCP Transport and CLI
 
 This release closes **Parallel Track G — Production-Grade MCP
