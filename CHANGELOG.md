@@ -6,6 +6,253 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
+## 0.5.1 — Parallel Track I — Installer Auth Round-Trip Integrity
+
+This patch release closes **Parallel Track I — Installer Auth
+Round-Trip Integrity**, the ninth post-phase parallel track.
+Track I is a defect-class round-trip integrity fix, not a
+feature delta. It restores the missing emit branch for the
+`auth` section in
+`apps/platform/src/onec_platform/installer.py:_config_to_dict`
+that was deferred during Track H / Step 4 (per Track H Step 3
+contract §11.5 forbidden-files list). After Track I, install
+fast-path materialization round-trip preserves the operator's
+`auth.tokens` declarations byte-identical to the source list;
+raw `${ENV:NAME}` strings remain raw configuration data; env
+resolution remains the runtime boundary in
+`_network_transport._resolve_env_token`, not install time.
+
+The version bump `0.5.0` → `0.5.1` (Q6 resolved PATCH, NOT
+MINOR) reflects the honest framing of Track I as a defect-
+class fix:
+
+- Step 4 commit (`d047a6d`) changed `+15 / -0` LOC in a
+  single function (`installer.py:_config_to_dict`), symmetric
+  to the existing Phase 6 / Step 8 `enterprise_block` emit-
+  only-when-divergent pattern that has been in
+  `_config_to_dict` since Phase 6.
+- **No new public API surface.** `ProductAuthSettings` and
+  `ProductConfig.auth` already existed in version `0.5.0`
+  (Track H / Step 4); Track I added zero new public types,
+  zero new functions, zero new module imports, zero new CLI
+  flags, zero new MCP tools, zero changes to
+  `mcp_common/__init__.py` `__all__`, zero changes to
+  `[project.scripts]`.
+- **No new runtime capability for end users.** Operators
+  using `--transport http` already had two correct paths
+  pre-Track-I: declare `auth.tokens` in source config (works
+  unless they round-trip through install fast-path), or use
+  `--auth-token-env` CLI override. Track I closed a silent
+  data-loss bug in install fast-path materialization that
+  operators worked around. There is no net-new capability;
+  there is a previously-broken round-trip that now works.
+- **SemVer prior precedent comparison.** Track D
+  `0.1.0 → 0.2.0` (env-substitution + verify-release Check 8
+  — added 50+ LOC of new credential-resolution logic + new
+  release-side check). Track F `0.2.0 → 0.3.0` (rollback
+  whitelist 2 → 6 — meaningful runtime-reachable recovery for
+  4 new tool families). Track G `0.3.0 → 0.4.0` (3 new
+  `__main__.py` + 245-LOC `_stdio_transport.py` + new
+  `[project.scripts]` block — net-new runnable surface).
+  Track H `0.4.0 → 0.5.0` (549-LOC `_network_transport.py`
+  + new HTTP/`/mcp` endpoint + bearer auth + new CLI flags —
+  net-new transport family). Each of D/F/G/H added a
+  recognizable new external capability and warranted MINOR.
+  **Track I does not** — it restores integrity of a flow
+  that should have always preserved this section.
+- **Per Keep-a-Changelog conventions and SemVer §6**, "Bug
+  fixes" → PATCH. Track I plan §10 Q6 explicitly framed
+  PATCH `0.5.1` as the alternative path "only if Step 4 diff
+  truly tiny and framing honest as defect-fix"; both
+  conditions are met.
+
+### Per-step outcomes
+
+- **Step 1 (planning installer auth round-trip integrity)** —
+  two planning documents under `docs/architecture/track-i-*`
+  (plan + step-map). 7 open questions Q1–Q7 with default
+  recommendations. No code changes. Commit `cb79597`.
+- **Step 2 (installer round-trip baseline audit)** — one new
+  descriptive documentation-only document
+  (`track-i-installer-auth-round-trip-baseline-audit.md`,
+  889 lines, 12 sections). Per-section `_config_to_dict`
+  inventory (9 logical sections) + 4-class breakdown (CLASS
+  1 already round-trip-safe = 8 sections; CLASS 2 partially
+  preserved = empty; CLASS 3 currently dropped = only
+  `auth`; CLASS 4 explicitly out-of-scope = 11 items) +
+  read-only evidence (file/line refs + diff `ProductConfig`
+  dataclass fields vs `_config_to_dict` emit branches +
+  precedent for emit-only-when-divergent pattern). Resolved
+  Q1 (`installer.py` only — verified by Phase 6/Step 6
+  service-level + Phase 6/Step 8 enterprise single-file
+  precedents), Q2 (5 preservation rules with file/line
+  evidence anchors), Q3 (11 forbidden sub-rules with Track H
+  contract + observed-evidence anchors). Commit `e7d9973`.
+- **Step 3 (auth round-trip preservation contract)** — one
+  new prescriptive normative document
+  (`track-i-installer-auth-round-trip-contract.md`, 843
+  lines) using RFC 2119-style MUST / MUST NOT / SHALL /
+  SHOULD / MAY wording (118 normative keyword usages: 78
+  MUST, 32 MUST NOT, 4 SHOULD, 3 MAY, 1 SHALL). 11 sections
+  pinning round-trip integrity definition, exact emit-branch
+  placement (after `enterprise_block` attach at l.314, before
+  `return out`), exact accumulator-and-conditional-attach
+  shape, list-copying discipline, raw `${ENV:NAME}` byte-
+  identical preservation, no env-resolution-at-install-time
+  rule, exact Step 4 allowed/forbidden file surfaces,
+  verification protocol (6 positive checks + 6 negative
+  checks + 4 insufficient-verification exclusions + no-real-
+  MCP-client-gate carry-over), 15 honest non-goals each
+  followed by "No ..." denial clauses, 8-precondition +
+  11-prohibition Step 4 handoff note. Commit `525c611`.
+- **Step 4 (narrow installer auth round-trip
+  implementation)** — the only step with production code
+  change. One file modified, +15 / -0 LOC. Additive emit
+  branch in `apps/platform/src/onec_platform/installer.py:_config_to_dict`
+  between existing `enterprise_block` attach (l.314) and
+  `return out`:
+  ```python
+  auth_block: dict[str, Any] = {}
+  if config.auth.tokens:
+      auth_block["tokens"] = list(config.auth.tokens)
+  if auth_block:
+      out["auth"] = auth_block
+  ```
+  Comment block describes Track I provenance + raw
+  `${ENV:NAME}` preservation rule + resolution boundary in
+  `_network_transport.py`. No new imports (`Any` already
+  imported); no edits to existing 8 emit branches; no helper
+  extraction; no refactor; no cleanup churn. Verification:
+  14/14 PASS through one-off ephemeral
+  `.tmp_track_i_smoke.py` smoke harness (deleted pre-commit)
+  covering multi-token round-trip with order, single-token
+  round-trip, empty/default no-injection across 3 cases,
+  pre-Track-H reload defaults to empty, token order
+  positionally preserved, raw `${ENV:NAME}` byte-for-byte
+  preserved without populating `os.environ`, no env
+  resolution at install time (probe value never appears in
+  projected JSON), literal cleartext rejected fail-closed by
+  `loader._parse_auth` upstream, end-to-end install fast-
+  path executed-mode real-IO round-trip preserves
+  `auth.tokens` element-wise. Commit `d047a6d`.
+- **Step 5 (operator docs and installer auth alignment)** —
+  three docs aligned with the actual Step 4 fix state
+  (+185 / -84 lines): `SECURITY.md` (single bullet "Known
+  limitation in install fast path round-trip" replaced with
+  "Install fast path auth round-trip preserved (Track I /
+  Step 4)" + pointer to release-handoff.md for full carry-
+  forward); `docs/release-handoff.md` (two locations:
+  "What is NOT in this handoff" bullet + "Known limitations"
+  pointer); `README.md` (Quickstart paragraph + "Active
+  parallel track" section enumerating Steps 1-4 closure
+  summary). Drift inventory classified 8 candidates:
+  3 CLASS-1 (touched), 3 CLASS-2 (apps/platform/README.md +
+  scripts/dev/launch.ps1 + scripts/dev/README.md —
+  qualitatively still accurate, no gap mention; verified by
+  grep), 2 CLASS-3 (PROJECT-STATUS.md + CHANGELOG.md —
+  closure narrative territory, deferred to Step 6). Commit
+  `2e9e0b8`.
+- **Step 6 (final integration pass and Track I closure)** —
+  this closure: `pyproject.toml` version bumped `0.5.0` →
+  `0.5.1` (Q6 = PATCH); `README.md`, `PROJECT-STATUS.md`,
+  and `CHANGELOG.md` aligned with Track I closed status.
+  Read-only final integration check green: linear Step 1 → 6
+  history, all Step 1–5 deliverables present on disk,
+  registries without drift, `verify-release.ps1` GREEN on 8
+  checks, no real credentials anywhere in the six Track I
+  commits, no 1cv8.exe runs at any Track I step.
+
+### Actual install fast-path round-trip surface after Track I closure
+
+```powershell
+# Operator declares config with auth section
+.\scripts\release\install.ps1 `
+    -ConfigPath input.config.json `
+    -OutputConfigPath out.config.json `
+    -Confirm
+# Materialised out.config.json now contains
+# "auth": {"tokens": ["${ENV:MCP_TOKEN}"]}
+# byte-identical to source (raw env-substitution form
+# preserved as configuration data; no env resolution
+# at install time)
+```
+
+Materialised config can then be loaded directly by
+`python -m mcp_<server> --transport http --bind <H>:<P>
+--config-path out.config.json`; Track H startup gate
+accepts the token source without requiring operators to
+re-add the section by hand or pass `--auth-token-env`.
+
+### Registry invariant carried through Track I
+
+- `mcp-read-server` — 15 public tools.
+- `mcp-write-server` — 25 public tools.
+- `mcp-intelligence-server` — 16 public tools.
+
+No MCP surface drift through Track I.
+
+### Honest constraints update under Track I closure
+
+- **Install fast-path auth round-trip preserved.** Operator
+  `auth.tokens` declarations now survive
+  `scripts/release/install.ps1 ... -Confirm` materialization
+  byte-identical to the source list; raw `${ENV:NAME}`
+  strings remain raw configuration data (no env resolution
+  at install time); pre-Track-H configs without an `auth`
+  section round-trip byte-identical (no implicit
+  `"auth": {}` injection).
+- **No full installer ecosystem.** No `.msi` / `.deb` /
+  signed binary distribution / GUI installer / wizard /
+  PyPI publication / wheel publication beyond existing
+  `[project.scripts]` declarations. Track C wheel-build
+  empty constraint preserved.
+- **No secret storage / vault / KMS / OS keychain
+  integration.** Operator-managed `${ENV:NAME}` path
+  remains the only documented secret discipline (Track D
+  carry-over).
+- **No env-var resolution at install time.** This is a
+  design invariant, not a gap. Resolution lives in
+  `packages/mcp-common/src/mcp_common/_network_transport.py:_resolve_env_token`
+  at server startup, called by Track H
+  `_resolve_token_sources` boundary.
+- **No Track H auth model changes.** Bearer / case-
+  insensitive scheme / constant-time compare via
+  `hmac.compare_digest` / failure-equivalence rule / fail-
+  closed startup gate / complete redaction discipline all
+  preserved byte-identical.
+- **No new transport / network / TLS / mTLS / OAuth / JWT
+  / OIDC / SAML / SCIM / RBAC / multi-tenant / sessions /
+  rate limiting / token rotation / refresh tokens.**
+- **No supervisor daemon / systemd unit / Windows Service
+  registration / `launchd` plist / hot reload / restart
+  watcher / auto-update / orchestration templates / HA /
+  clustering / load balancing.**
+- **No web UI / dashboard frontend.**
+- **No standalone `apps/platform` entrypoint** (carry-over
+  out-of-scope from Tracks G/H).
+- **No new MCP tools.** Registry counts unchanged
+  (`read=15 / write=25 / intelligence=16`).
+- **No 1cv8.exe runs at any Track I step.** Track I
+  operates at the install/materialization layer; the 1cv8
+  binary surface is not engaged.
+- **No real MCP client integration test as a closure
+  gate.** Recommended but not blocking (Track G/H precedent
+  carry-over).
+- **No deployment / packaging / enterprise-ready /
+  hostile-network-ready posture claim.** Track H trusted-
+  network-behind-operator-reverse-proxy model carries
+  forward unchanged.
+- **All other 0.5.0 honest constraints carry forward
+  unchanged.**
+- **All earlier 0.4.0 / 0.3.0 / 0.2.0 / 0.1.0 honest
+  constraints carry forward unchanged.**
+
+### Active work
+
+None. No parallel track is currently open after Track I
+closure. Phase 7 as a linear phase is not planned. Opening
+the next parallel track is an explicit operator decision.
+
 ## 0.5.0 — Parallel Track H — Network-Grade MCP Transport and Authentication Boundary
 
 This release closes **Parallel Track H — Network-Grade MCP
