@@ -32,26 +32,32 @@ target-version = "py311"
 testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
-# Intentionally empty (Track C / Step 3 honest constraint).
+# Track M / Step 4 — narrow supported distribution boundary.
 #
-# The operator install flow for this project runs through
-# `scripts/release/install.ps1` (a thin wrapper over
-# `onec_platform.run_install_fast_path_from_json_file`), NOT through
-# `pip install`. The source layout spreads 11 importable packages
-# across `apps/*/src/` and `packages/*/src/`; PYTHONPATH for local
-# development is bootstrapped by `scripts/dev/bootstrap_paths.ps1`,
-# which the rest of the scripts/ tree dot-sources.
+# Historically (Track C / Step 3) this list was empty and accompanied
+# by a 24-line honest-constraint comment explaining that no wheel
+# build was supported. Track M Step 3 contract flipped that decision:
+# the supported distribution boundary is now a single `py3-none-any`
+# wheel containing the eleven src-layout packages enumerated below.
+# Operator recipe: `docs/operators/packaging/distribution-boundary.md`.
 #
-# Consequences of leaving this empty:
-#   - `python -m build` produces no usable artifact for this project;
-#   - the build toolchain (`build` / `hatch` / `hatchling`) is NOT
-#     part of the documented dev prerequisites;
-#   - no one is expected to install this project via pip today.
-#
-# This is a deliberate honest limitation of the current scaffolding,
-# not an oversight. A future packaging track may revisit it and adopt
-# either a single-wheel layout (one wheel containing all 11 packages)
-# or a multi-wheel split (one wheel per package). Until that track is
-# opened, see `scripts/release/README.md` for the canonical install
-# story.
-packages = []
+# Explicit non-goals (mirroring the recipe): no "PyPI publication",
+# no "signed distribution", no "GUI installer", no
+# "Chocolatey / Homebrew / apt / conda-forge / NuGet" support, no
+# "enterprise-ready" packaging. The build toolchain (`build`) remains
+# an operator-side prerequisite — NOT a project dependency. The
+# install-fast-path (`scripts/release/install.ps1`) and the wheel are
+# orthogonal-but-complementary axes; see the recipe.
+packages = [
+    "apps/mcp-read-server/src/mcp_read_server",
+    "apps/mcp-write-server/src/mcp_write_server",
+    "apps/mcp-intelligence-server/src/mcp_intelligence_server",
+    "apps/platform/src/onec_platform",
+    "packages/mcp-common/src/mcp_common",
+    "packages/onec-process-runner/src/onec_process_runner",
+    "packages/onec-policy-engine/src/onec_policy_engine",
+    "packages/onec-audit/src/onec_audit",
+    "packages/onec-health/src/onec_health",
+    "packages/onec-troubleshooting/src/onec_troubleshooting",
+    "packages/onec-config/src/onec_config",
+]
