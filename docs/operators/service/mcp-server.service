@@ -1,0 +1,76 @@
+# Track L / Step 4 systemd unit template for 1C Agent Platform MCP servers.
+# Placeholder-only declarative artefact. Type=simple. Operator copies this
+# file to /etc/systemd/system/<UNIT_NAME>.service, substitutes placeholders
+# for their environment, then runs the lifecycle verbs documented in
+# docs/operators/service/service-supervision.md. This template covers one
+# MCP server process; install a separate copy per server (read / write /
+# intelligence). See the recipe for full placeholder semantics.
+
+[Unit]
+Description=1C Agent Platform MCP server (<UNIT_NAME>)
+Documentation=file://<REPO_ROOT>/docs/operators/service/service-supervision.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Type=simple matches the foreground-blocking shape of the existing
+# python -m mcp_<role>_server entrypoints (Track G / Step 4). Do not
+# change to Type=forking or Type=notify — neither is supported by the
+# current runtime and both are explicitly rejected by the Track L
+# contract.
+Type=simple
+
+# Run as a dedicated unprivileged operator-owned account. The recipe
+# describes how to create / pick this account. Do NOT run as root.
+User=<USER>
+Group=<GROUP>
+
+# Working directory MUST be readable by <USER>. The repo / install
+# location is the natural choice; the operator may also point this at
+# a deployment overlay directory.
+WorkingDirectory=<WORKING_DIR>
+
+# Source operator-managed environment variables (including
+# <MCP_TOKEN_VARNAME>) from a file readable ONLY by <USER>. Mode 0600
+# recommended. NEVER commit this file to the repo. See recipe §10.
+EnvironmentFile=<ENV_FILE_PATH>
+
+# Make the project's 11 src paths visible to the Python interpreter.
+# Operator may instead pre-install a wheel and point <PYTHON_BIN> at
+# its venv. The two paths are equivalent for systemd.
+Environment=PYTHONPATH=<PYTHONPATH>
+
+# ExecStart invokes the existing MCP server entrypoint. Choose one of
+# the three modules per unit copy:
+#   <MCP_SERVER_MODULE> ∈ {mcp_read_server, mcp_write_server,
+#                          mcp_intelligence_server}
+# Choose <TRANSPORT> ∈ {stdio, http}. For HTTP add --bind and
+# --auth-token-env; for stdio drop both. See recipe §5 / §10.
+ExecStart=<PYTHON_BIN> -m <MCP_SERVER_MODULE> \
+    --transport <TRANSPORT> \
+    --config-path <CONFIG_PATH> \
+    --bind <HOST>:<PORT> \
+    --auth-token-env <MCP_TOKEN_VARNAME>
+
+# Restart on non-zero exit only — operator-initiated `systemctl stop`
+# is a clean exit (Track G / Track H KeyboardInterrupt path) and must
+# NOT be respawned.
+Restart=on-failure
+RestartSec=5s
+
+# Rate-limit respawn loops. Operator may tune for their environment.
+StartLimitBurst=5
+StartLimitIntervalSec=600s
+
+# Map systemd's default service-stop SIGTERM onto SIGINT so the existing
+# KeyboardInterrupt graceful-shutdown path in _stdio_transport.py /
+# _network_transport.py fires. This is the smallest unit-file override
+# that avoids requiring any production code change. KillMode=mixed
+# sends the kill signal to the main process first, then SIGKILL to any
+# remaining group members after TimeoutStopSec.
+KillSignal=SIGINT
+KillMode=mixed
+TimeoutStopSec=15s
+
+[Install]
+WantedBy=multi-user.target
