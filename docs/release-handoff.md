@@ -154,6 +154,42 @@ The operator-facing surface you are receiving:
   Step 3 contract that pinned PATH A and the
   per-scenario matrix lives at
   [`docs/architecture/track-j-deployment-boundary-contract.md`](architecture/track-j-deployment-boundary-contract.md).
+- **Operator-facing service-supervision recipe and
+  systemd unit template** (Track L / Step 4 deliverable,
+  PATH B docs + one declarative template) at
+  [`docs/operators/service/service-supervision.md`](operators/service/service-supervision.md)
+  and
+  [`docs/operators/service/mcp-server.service`](operators/service/mcp-server.service):
+  the **process-lifecycle sibling** of the
+  deployment-boundary recipe. Recipe covers all five
+  lifecycle verbs (`start` / `stop` / `restart` /
+  `status` / `logs`) end-to-end against systemd on
+  Linux as the implementation-covered closure-gate OS
+  family, plus prose-only notes for Windows (NSSM)
+  and macOS (launchd). Template is a single
+  `Type=simple` `.service` unit with placeholders
+  only and RECOMMENDED defaults (`Restart=on-failure`,
+  `KillSignal=SIGINT` to re-route service stop to the
+  existing `KeyboardInterrupt` graceful path so no
+  Python-side code change is required). Read this
+  recipe **alongside** the deployment-boundary recipe
+  before standing up a long-lived MCP server: the two
+  recipes cover orthogonal axes (process supervision
+  vs network exposure). This is **not** a claim of
+  "service supervision solved forever" / "all OS
+  families supported" / "production-ready service
+  supervision" / "clustered HA" / "zero-downtime
+  restart" — the closure-gate target is the narrow
+  one-OS-family implementation slice plus cross-OS
+  prose; broader matrices are recommended-only. The
+  `apps/platform/src/onec_platform/runtime.py`
+  in-process supervisor for product-layer subprocesses
+  remains byte-identical and is **not** the supervisor
+  Track L built — see recipe §4.3 for the explicit
+  distinction. The Track L Step 3 contract that
+  pinned PATH B + systemd-first + the five lifecycle
+  verbs lives at
+  [`docs/architecture/track-l-service-supervision-and-os-service-registration-contract.md`](architecture/track-l-service-supervision-and-os-service-registration-contract.md).
 - **Standalone manuals** under `docs/`:
   `operator-manual.md`, `administrator-manual.md`,
   `developer-manual.md`, `runbooks.md`.
@@ -189,8 +225,18 @@ they are intentional limits of the current scaffolding.
   ACL / per-tenant isolation; token rotation endpoint /
   refresh tokens / session cookies; rate limiting; WebSocket
   / SSE / TCP / Unix-socket / named-pipe transports;
-  supervisor daemon / systemd unit / Windows Service
-  registration / hot reload; multi-tenant identity stack.
+  in-repo daemon framework / pywin32 service wrapper /
+  shipped `.plist` artefact / shipped NSSM install script /
+  Windows Service registration helper / hot reload /
+  zero-downtime restart / clustered HA; multi-tenant
+  identity stack. Track L / Step 4 added an operator-
+  facing service-supervision recipe and a single
+  declarative systemd unit template at
+  [`docs/operators/service/`](operators/service/) —
+  Linux/systemd is implementation-covered, Windows + macOS
+  are prose-only; the recipe is not a packaging ecosystem
+  and the platform's in-process `runtime.py` was not
+  extended into a service manager.
   The wheel build remains empty
   (`[tool.hatch.build.targets.wheel] packages = []`), so
   the `[project.scripts]` console entries materialise as
@@ -218,9 +264,27 @@ they are intentional limits of the current scaffolding.
 - **No enterprise super-set** (SSO/RBAC, multi-tenant, secrets
   vault as a service, federated audit storage, policy-as-code
   DSL, multi-instance HA).
-- **No hot reload or OS-level service supervision** (Windows
-  Service / systemd unit registration, automatic restart
-  supervisor).
+- **OS-level service supervision — documented, narrow.**
+  Track L / Step 4 added an operator-facing service-
+  supervision recipe and a single declarative systemd
+  unit template at
+  [`docs/operators/service/`](operators/service/).
+  Linux/systemd is implementation-covered with all five
+  lifecycle verbs (`start` / `stop` / `restart` /
+  `status` / `logs`) walked through end-to-end against
+  `systemctl` / `journalctl`. Windows (NSSM) and macOS
+  (launchd) are prose-only — no `.plist` and no NSSM
+  install script ship in repo; operators on those
+  platforms apply the prose with operator-side
+  validation. The recipe is **not** a packaging
+  ecosystem, **not** an in-repo daemon framework,
+  **not** an extension of the platform's in-process
+  `runtime.py` supervisor (which continues to manage
+  only operator-declared product-layer subprocesses,
+  not the MCP servers themselves). **No hot reload,
+  no zero-downtime restart, no clustered HA, no
+  automatic update / OTA** — each appears in the
+  recipe only as an explicit denial.
 - **Multi-version 1С smoke matrix — scaffolding only.** Real-stand
   binary-backed evidence exists for `8.3.27.1859` (Windows x64,
   file-based reference stand) — represented as the reference row
@@ -471,9 +535,16 @@ as a single checklist so the receiver does not miss them.
   trusted-local-stdio for stdio, trusted-network behind an
   operator-owned reverse proxy for HTTP. No in-process TLS;
   no mTLS / OAuth / JWT / SAML / SCIM / RBAC / multi-tenant;
-  no WebSocket / SSE / TCP / pipe transports; no supervisor /
-  systemd / Windows Service registration; no hot reload; no
-  web UI; no token rotation endpoint. After Track I / Step 4,
+  no WebSocket / SSE / TCP / pipe transports; no in-repo
+  supervisor framework / pywin32 service wrapper / shipped
+  `.plist` artefact / Windows Service registration helper /
+  hot reload / zero-downtime restart (Track L / Step 4
+  added a narrow operator-facing systemd recipe and unit
+  template at
+  [`docs/operators/service/`](operators/service/);
+  Linux/systemd implementation-covered, Windows + macOS
+  prose-only; `runtime.py` NOT extended); no web UI; no
+  token rotation endpoint. After Track I / Step 4,
   `installer.py:_config_to_dict` preserves operator
   `auth.tokens` declarations byte-identical through install
   fast path round-trip; raw `${ENV:NAME}` strings remain
@@ -500,6 +571,23 @@ For the security report flow, see `SECURITY.md`.
   The single recipe for deploying `--transport http` safely
   behind an operator-owned reverse proxy. Required reading
   before any non-loopback HTTP exposure.
+- **Operator-facing service-supervision recipe and systemd
+  template (process lifecycle)** —
+  [`docs/operators/service/service-supervision.md`](operators/service/service-supervision.md)
+  +
+  [`docs/operators/service/mcp-server.service`](operators/service/mcp-server.service).
+  The single recipe for running an MCP server as a long-
+  lived OS-supervised service. Linux/systemd is
+  implementation-covered with all five lifecycle verbs
+  (`start` / `stop` / `restart` / `status` / `logs`) walked
+  through end-to-end; Windows (NSSM) and macOS (launchd)
+  are prose-only — no `.plist` and no NSSM install script
+  ship. Required reading before standing up a long-lived
+  service. Not a closure of "service supervision solved
+  forever" — exercises only the narrow one-OS-family
+  implementation slice plus cross-OS prose; broader
+  matrices recommended-only. Orthogonal to (not a
+  replacement for) the deployment-boundary recipe above.
 - **MCP client smoke harness (operator-runnable)** —
   [`scripts/dev/mcp_client_smoke.py`](../scripts/dev/mcp_client_smoke.py).
   Stdlib-only diagnostic script proving the MCP method

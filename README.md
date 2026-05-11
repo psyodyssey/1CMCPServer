@@ -154,8 +154,9 @@
 > G, H, I, J, K) полностью закрыты; Phase 7 как
 > линейная фаза не запланирована. Активный трек
 > сейчас — **Parallel Track L — Service Supervision
-> and OS Service Registration** (Step 1 — planning-
-> only, documentation-only). Цель Track L — закрыть
+> and OS Service Registration** (Steps 1–4 закрыты;
+> Step 5 активен — operator docs alignment; Step 6
+> closure впереди). Цель Track L — закрыть
 > следующий честный эксплуатационный gap: у продукта
 > уже есть рабочие MCP entrypoints, HTTP/stdio
 > transports, bearer auth, installer integrity,
@@ -164,26 +165,47 @@
 > supervision story (no systemd unit, no Windows
 > Service registration, no launchd plist, no
 > unified start / stop / restart / status / logs
-> operator vocabulary). Step 1 ship'нул два planning-
-> документа в `docs/architecture/`
-> ([`track-l-service-supervision-and-os-service-registration-plan.md`](docs/architecture/track-l-service-supervision-and-os-service-registration-plan.md),
-> [`track-l-service-supervision-and-os-service-registration-step-map.md`](docs/architecture/track-l-service-supervision-and-os-service-registration-step-map.md));
-> production code не правился; `pyproject.toml`
-> `version=0.5.1` preserved; registry invariant
-> carried through. Это **не** packaging ecosystem,
-> **не** transport / auth redesign, **не**
-> deployment-boundary redesign, **не** enterprise
-> identity stack, **не** clustering / HA /
-> orchestration platforms, **не** web UI, **не**
-> full observability stack, **не** new MCP tools,
-> **не** registry change, **не** 1cv8 work, **не**
-> "service supervision solved" / "production-ready
-> service supervision" / "all OS families
-> supported" / "clustered HA" / "zero-downtime
-> restart" claim — Step 4 PATH (docs-only PATH A
-> vs docs + template PATH B vs docs + template +
-> wrapper script PATH C) остаётся открытым до Step 3
-> contract на основе Step 2 audit evidence.
+> operator vocabulary). Step 3 contract pinned
+> **PATH B (docs + one declarative template)**, и
+> Step 4 ship'нул ровно две новых файла под
+> [`docs/operators/service/`](docs/operators/service/):
+> operator-facing recipe
+> [`service-supervision.md`](docs/operators/service/service-supervision.md)
+> со всеми пятью lifecycle verbs (start / stop /
+> restart / status / logs) end-to-end на systemd плюс
+> cross-OS prose для Windows (NSSM) и macOS
+> (launchd), и declarative systemd unit-file template
+> [`mcp-server.service`](docs/operators/service/mcp-server.service)
+> с `Type=simple`, placeholders only, RECOMMENDED
+> defaults (`Restart=on-failure`, `KillSignal=SIGINT`
+> чтобы route service stop в существующий
+> `KeyboardInterrupt` graceful path). Production code
+> не правился ни в одном из четырёх закрытых Track L
+> шагов; `runtime.py` остаётся byte-identical и
+> **не** превращён в service manager (продолжает
+> supervise только product-layer subprocesses из
+> `ProductConfig.runtime.services`, не MCP-серверы
+> сами); `pyproject.toml` `version=0.5.1` preserved
+> через Track J и Track K NO-BUMP closures; registry
+> invariant carried through. Это **не** packaging
+> ecosystem, **не** transport / auth redesign, **не**
+> deployment-boundary redesign (Track J §13 / §6 /
+> §7 / §8 carry-forward unchanged), **не**
+> enterprise identity stack, **не** clustering /
+> HA / orchestration platforms, **не** web UI,
+> **не** full observability stack, **не** new MCP
+> tools, **не** registry change, **не** 1cv8 work,
+> **не** "service supervision solved forever" /
+> "production-ready service supervision" / "all OS
+> families supported" / "clustered HA" /
+> "zero-downtime restart" claim — Track L's closure-
+> gate target = одна OS-family implementation slice
+> (systemd) плюс cross-OS prose для двух других;
+> broader matrices recommended-only. Step 5 (текущий
+> шаг) — узкое CLASS-1 docs-alignment; Step 6
+> closure с честным Q7-решением (default expectation
+> = NO-BUMP по симметрии с Track J и Track K
+> precedent) — впереди.
 > Registries `read=15 / write=25 / intelligence=16`
 > invariant carried through.
 
@@ -883,56 +905,92 @@ preserved byte-identical через все шесть Track L
 `docs/operators/service/` (PATH B: одна recipe +
 один unit-file template с placeholders only).
 
-Track L сейчас на **Step 1 (planning, docs-only)**.
-Step 1 ship'нул два planning-документа:
-[`docs/architecture/track-l-service-supervision-and-os-service-registration-plan.md`](docs/architecture/track-l-service-supervision-and-os-service-registration-plan.md)
-(14-секционный планирующий документ: purpose, current
-baseline, honest gap statement, why not already
-solved, goal, in-scope, out-of-scope, guardrails,
-acceptance criteria, honest constraints, relationship
-to Tracks G/H/I/J/K, Q1–Q7 directional defaults,
-step trajectory, honest summary) и
-[`docs/architecture/track-l-service-supervision-and-os-service-registration-step-map.md`](docs/architecture/track-l-service-supervision-and-os-service-registration-step-map.md)
-(track-invariants block с 16 hard constraints,
-hard out-of-scope list с 18 categorical denials,
-6-step boundary в формате «Goal / What changes /
-What does NOT change / Result», Q7 framing для
-Step 6, closure summary).
+Track L сейчас на **Step 5 (operator docs and
+service-supervision alignment, docs-only)**. Шаги 1–4
+закрыты последовательно:
 
-**Q1–Q7 directional defaults (plan §12).**
-- Q1 = closure-gate = one documented unit-file (or
-  equivalent) template + documented operator workflow
-  for register / start / stop / restart / status /
-  logs; broader code-level supervisor explicitly
-  rejected.
-- Q2 = OS-family target = **systemd / Linux first**
-  (broadest precedent; cleanest declarative model)
-  with cross-OS prose covering Windows / macOS.
-- Q3 = Step 4 PATH = default **PATH B** (docs + one
-  declarative template); PATH A (docs-only) and
-  PATH C (docs + template + wrapper script)
-  acceptable per Step 3 contract decision.
-- Q4 = template location = `docs/operators/service/`
-  by default (co-located with Track J's
-  `docs/operators/deployment-boundary.md`); wrapper
-  script (if PATH C) under `scripts/release/`.
-- Q5 = all five lifecycle verbs (start / stop /
-  restart / status / logs) **mandatory for closure**;
-  partial coverage explicitly rejected.
-- Q6 = **NO production code modification** —
-  existing foreground-blocking server entrypoints
-  are already the correct shape for `Type=simple`
-  systemd unit / Windows SCM-managed wrapper /
-  launchd plist; `Type=forking` / `daemonize=true`
-  rejected.
-- Q7 = **NO-BUMP** default (Track J / Track K
-  precedent applies: docs + one operator artefact,
-  no production code change, no new public API);
-  PATCH considered only if Step 4 = PATH C with
-  honest defect-class framing (default: not the
-  case); MINOR considered only if Step 4 ships
-  net-new CLI flag (default: rejected by Q6);
-  MAJOR forbidden by track scope.
+- **Step 1 (commit `e713f8e`)** — planning: два
+  planning-документа
+  ([`docs/architecture/track-l-service-supervision-and-os-service-registration-plan.md`](docs/architecture/track-l-service-supervision-and-os-service-registration-plan.md),
+  [`docs/architecture/track-l-service-supervision-and-os-service-registration-step-map.md`](docs/architecture/track-l-service-supervision-and-os-service-registration-step-map.md))
+  + narrow README / PROJECT-STATUS active-track flip.
+  Step 4 PATH explicitly preserved as open.
+- **Step 2 (commit `d58c8d9`)** — descriptive
+  baseline audit
+  ([`docs/architecture/track-l-service-supervision-and-os-service-registration-baseline-audit.md`](docs/architecture/track-l-service-supervision-and-os-service-registration-baseline-audit.md))
+  с inventory existing launch surfaces, 10 enumerated
+  absences (zero systemd units / launchd plists /
+  Windows Service helpers / pidfile / SIGTERM handler
+  / lifecycle vocabulary / journald-Event-Viewer
+  integration / EnvironmentFile recipe / Restart
+  guidance / service-account discipline), 4-class
+  breakdown с критичной находкой что
+  `apps/platform/src/onec_platform/runtime.py`
+  adjacent-but-orthogonal (in-process supervisor для
+  product-layer subprocesses, **не** для MCP
+  servers), Q1–Q6 directional resolutions + 14-item
+  Step 3 handoff list.
+- **Step 3 (commit `76342a5`)** — normative
+  contract
+  ([`docs/architecture/track-l-service-supervision-and-os-service-registration-contract.md`](docs/architecture/track-l-service-supervision-and-os-service-registration-contract.md))
+  с 14 sections, RFC 2119 MUST/SHOULD/MAY language:
+  pinned **PATH B (docs + one declarative template)**
+  for Step 4 (PATH A docs-only / PATH C hybrid
+  explicitly rejected с repo-grounded defence);
+  pinned systemd/Linux first as implementation-
+  covered closure-gate target; pinned cross-OS prose
+  для Windows + macOS mandatory; pinned all five
+  lifecycle verbs mandatory; pinned no production
+  code change; pinned exhaustive forbidden file
+  surface; pinned 22-check Step 4 verification
+  protocol; pinned `runtime.py` byte-identical NOT
+  extended.
+- **Step 4 (commit `efb4ea1`)** — narrow PATH B
+  implementation: два новых файла под
+  [`docs/operators/service/`](docs/operators/service/):
+  - operator-facing recipe
+    [`service-supervision.md`](docs/operators/service/service-supervision.md)
+    (972 lines, 15 top-level sections covering
+    purpose + supported closure target + preconditions
+    + service model с §4.3 runtime.py non-extension
+    explanation + §5 Start / §6 Stop / §7 Restart /
+    §8 Status / §9 Logs end-to-end на systemd + §10
+    environment/token configuration с full placeholder
+    vocabulary table + §11 reverse-proxy / TLS boundary
+    reminder Track H / Track J carry-forward + §12
+    cross-OS notes для Windows NSSM + macOS launchd
+    prose-only с explicit gap-naming + §13 honest non-
+    goals с 11 forbidden phrases + §14 cross-references
+    + §15 honest summary);
+  - declarative systemd unit-file template
+    [`mcp-server.service`](docs/operators/service/mcp-server.service)
+    (76 lines including comments; `Type=simple`;
+    placeholders only; RECOMMENDED defaults inline:
+    `Restart=on-failure`, `RestartSec=5s`,
+    `StartLimitBurst=5`, `StartLimitIntervalSec=600s`,
+    `KillSignal=SIGINT` чтобы route systemd's service-
+    stop в существующий `KeyboardInterrupt` graceful
+    path в `_stdio_transport.py:208` /
+    `_network_transport.py:618-624`,
+    `KillMode=mixed`, `TimeoutStopSec=15s`).
+  Production code не правился; `pyproject.toml`
+  byte-identical; `scripts/*` byte-identical;
+  `runtime.py` byte-identical; registries без
+  drift'а.
+
+Step 5 (этот текущий шаг) — узкое CLASS-1 docs-
+alignment: только те docs, у которых после Step 4
+появился прямой factual drift, перечитываются с
+точки зрения existing operator-facing surface
+(README Quickstart + active-track section,
+`docs/release-handoff.md` "What is in this handoff"
++ "What is NOT in this handoff" + "Known
+limitations" + "Where to read deeper" lists).
+Никаких code changes; никаких новых правил;
+никаких registry / `pyproject.toml` / production-
+code edits; `PROJECT-STATUS.md` / `CHANGELOG.md` /
+closed-tracks list — Step 6 territory остаётся
+нетронутой.
 
 Что **не** входит в Track L (явно для предотвращения
 silent expansion): new transport family / auth-scheme
@@ -966,28 +1024,32 @@ remote push.
 supervision layer, не на 1cv8 binary surface).
 Никаких реальных credentials в repo / docs / commit
 messages — templates / examples используют abstract
-placeholders only (`<USER>`, `<HOST>`, `<PORT>`,
-`<UNIT_NAME>`, `<SERVICE_NAME>`, `<LOG_PATH>`,
-`<VARNAME>`). Registries `read=15 / write=25 /
-intelligence=16` invariant без drift'а через
-открытый Step 1. `pyproject.toml` `version=0.5.1`
-preserved (Track K NO-BUMP closure); Track L Q7
-SemVer call — Step 6 territory; default expectation =
-NO-BUMP (mirroring Track J и Track K precedent).
+placeholders only (`<USER>`, `<GROUP>`, `<HOST>`,
+`<PORT>`, `<UNIT_NAME>`, `<SERVICE_NAME>`,
+`<LOG_PATH>`, `<VARNAME>`, `<MCP_TOKEN_VARNAME>`,
+`<PYTHONPATH>`, `<WORKING_DIR>`, `<ENV_FILE_PATH>`,
+`<PYTHON_BIN>`, `<MCP_SERVER_MODULE>`,
+`<TRANSPORT>`, `<CONFIG_PATH>`). Registries
+`read=15 / write=25 / intelligence=16` invariant
+без drift'а через все четыре закрытых Track L шага.
+`pyproject.toml` `version=0.5.1` preserved (Track K
+NO-BUMP closure через Track J NO-BUMP closure);
+Track L Q7 SemVer call — Step 6 territory; default
+expectation = NO-BUMP (mirroring Track J и Track K
+precedent — docs + один operator-facing artefact +
+один declarative template, no production code
+change, no new public API).
 
-Следующий шаг по Track L — **Step 2 (baseline audit
-of current long-running-process / service gap,
-docs-only)**. Один новый descriptive audit-документ
-с inventory existing launch surfaces, supervision-
-adjacent files, whole-repo grep results для
-`systemd` / `launchd` / `Restart=` / `sc.exe` /
-`nssm` / `pywin32` / `supervisor` / `daemon` /
-`pidfile` / `--background` / `--fork` /
-`--daemonize` patterns, 4-class breakdown,
-Q1–Q6 directional resolutions, Step 3 handoff list.
-Production-код Step 2 не правит. Никаких real
-credentials. **GitHub remote push — operator
-action, не часть трека.**
+Следующий шаг по Track L — **Step 6 (final
+integration pass and Track L closure)**. Step 6
+территория: Q7 SemVer call, CHANGELOG entry,
+PROJECT-STATUS Track L closure section, README
+move Track L в Closed parallel tracks list (11 → 12
+закрытых post-phase parallel tracks
+A/B/C/D/E/F/G/H/I/J/K/L), final honest closure
+narrative. Step 6 production-код не правит.
+Никаких реальных credentials. **GitHub remote push
+— operator action, не часть трека.**
 
 Подробности по последнему закрытому треку — в секции
 «Track K detail (закрыт)» ниже; предыдущий трек
