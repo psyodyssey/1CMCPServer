@@ -2,20 +2,84 @@
 
 ## Текущий шаг
 
-Активного шага нет. Phase 1–6 закрыты ранее;
+**Parallel Track M / Step 1 — planning packaging
+ecosystem and distribution boundary (in progress /
+documentation only).** Phase 1–6 закрыты ранее;
 двенадцать post-phase parallel track'ов (A, B, C,
 D, E, F, G, H, I, J, K, L) полностью закрыты
 последовательно (см. блоки «Статус» ниже для Track
 L / Track K / Track J / Track I closure narrative).
-Phase 7 как линейная фаза не запланирована.
-Открытие следующего параллельного трека — отдельное
-operator decision; логичные кандидаты перечислены в
-README секции «Active parallel track» (без
-автоматического открытия). `pyproject.toml`
+Track M — **тринадцатый** post-phase parallel
+track, открыт после closure'а Track L; цель —
+закрыть следующий честный продуктовый gap:
+платформа уже имеет рабочие MCP entrypoints,
+HTTP/stdio transports, bearer auth, installer
+integrity, deployment-boundary recipe, real MCP
+client smoke proof и service-supervision recipe +
+systemd template, но у неё всё ещё нет взрослой
+packaging/distribution story (`pyproject.toml`
+декларирует три `[project.scripts]` console
+entries но `[tool.hatch.build.targets.wheel]
+packages = []` намеренно пуст per Track C / Step 3
+honest constraint с 24-line comment block; нет
+buildable wheel артефакта; нет source-archive
+release flow; нет operator-bundle artefact; нет
+ответа на вопрос "какой артефакт оператор consume'ит"
+в `docs/release-handoff.md` beyond cloning the
+repo). Step 1 — два planning-документа без code
+changes; Step 4 design-question (docs-only PATH A
+vs narrow `pyproject.toml` wheel-build flip PATH B
+vs operator-bundle artefact PATH C) **остаётся
+открытым** до Step 3 contract (на основе Step 2
+audit evidence). Это **не** broad packaging
+ecosystem (`.msi` / `.deb` / `.rpm` / `.dmg` /
+`.pkg` / `.apk` / `.snap` / `.flatpak`), **не**
+multi-package-manager publication (PyPI /
+Chocolatey / Homebrew / apt / conda-forge /
+NuGet), **не** signed-distribution chain
+(`cosign` / `sigstore` / Authenticode /
+Notarisation / SBOM / SLSA), **не** GUI installer /
+wizard, **не** transport / auth / deployment-
+boundary / service-supervision redesign, **не**
+full enterprise identity stack, **не** clustering /
+HA / orchestration platforms, **не** web UI,
+**не** full observability stack, **не** новые MCP
+tools (registries `read=15 / write=25 /
+intelligence=16` invariant carried through), **не**
+new CLI flag на existing servers, **не** new
+`[project.scripts]` entries, **не** new
+dependencies, **не** standalone `apps/platform`
+daemon entrypoint, **не** hot reload / zero-
+downtime restart, **не** automatic update / OTA,
+**не** rollback / AST / multi-version 1С matrix
+expansion, **не** 1cv8 work. `pyproject.toml`
 `version=0.5.1` preserved через Track J / Track K /
-Track L NO-BUMP closures.
+Track L NO-BUMP closures; Track M Q7 SemVer call —
+Step 6 territory; default expectation = NO-BUMP
+если Step 4 PATH A (docs-only); PATCH default если
+Step 4 PATH B (narrow `[tool.hatch.build.targets.wheel]
+packages = [...]` flip closing the long-standing
+Track C / Step 3 honest constraint about the empty
+wheel build — legitimate defect-class repair
+framing); MINOR considered only если Step 4
+ship'нет net-new operator-facing capability beyond
+making existing declarations functional (rejected
+by Q4 / step-map invariant #15 — no new CLI flag);
+MAJOR forbidden by track scope.
 
 ## Статус
+
+`in progress` (для Parallel Track M / Step 1 как
+documentation-only opening — два planning-документа
+ship'нуты в `docs/architecture/`
+(`track-m-packaging-ecosystem-and-distribution-boundary-plan.md`
++ `track-m-packaging-ecosystem-and-distribution-boundary-step-map.md`),
+никаких code changes, никаких изменений
+`pyproject.toml`, никаких изменений registry,
+никаких новых MCP tool'ов, никаких запусков
+1cv8.exe в этом шаге; никаких реальных credentials
+в repo / docs / commit message; Track M / Step 2 —
+следующий шаг и не открывается в этом же заходе).
 
 `closed` (для всего Parallel Track L — Service
 Supervision and OS Service Registration — Steps 1–6
@@ -14210,7 +14274,179 @@ read/write/intelligence-серверов, с честно
   in-repo daemon framework / pywin32 service
   wrapper / launchd plist artefacts as a separate
   track. Эти кандидаты — recommendation only, не
-  auto-opened.
+  auto-opened. **Историческая правка (Track M /
+  Step 1):** "full packaging ecosystem track" из
+  списка recommended-next-track candidates был
+  частично выбран как следующий открываемый трек
+  — открыт как **Track M — Packaging Ecosystem and
+  Distribution Boundary** (на момент написания этой
+  правки Track M открыт только на Step 1,
+  planning, docs-only; полное closure Track M —
+  Step 6; broader-packaging-ecosystem parts из
+  recommended-list (`.msi` / `.deb` / signed
+  distribution / GUI installer / wizard) explicitly
+  оставлены за пределами scope как отдельные
+  potential tracks — Track M sticks к одной narrow
+  distribution-boundary slice). См. секцию
+  «Parallel Track M / Step 1 — planning packaging
+  ecosystem and distribution boundary (завершён)»
+  ниже для подробностей.
+
+### Parallel Track M / Step 1 — planning packaging ecosystem and distribution boundary (завершён)
+
+- **Цель.** Открыть тринадцатый post-phase parallel
+  track — Track M — как **planning-only**
+  документационный шаг, который закрывает следующий
+  честный продуктовый gap: у платформы уже есть
+  рабочие MCP entrypoints (Track G), HTTP/stdio
+  transports (Tracks G/H), bearer auth (Track H),
+  installer integrity (Track I), deployment-
+  boundary recipe (Track J), real MCP client smoke
+  proof (Track K), и service-supervision recipe +
+  systemd template (Track L), но у неё всё ещё нет
+  взрослой packaging/distribution story. Step 1 —
+  два planning-документа без code changes; Step 4
+  design-question (docs-only PATH A vs narrow
+  `pyproject.toml` wheel-build flip PATH B vs
+  operator-bundle artefact PATH C) **остаётся
+  открытым** до Step 2 audit + Step 3 contract.
+- **Что shipped в Step 1.**
+  - `docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-plan.md` —
+    14-секционный planning-документ: §1 purpose /
+    why track exists, §2 current post-Track-L
+    baseline (existing `pyproject.toml` declared
+    surface, existing release-side scripts, what is
+    not in repo today), §3 honest gap statement
+    (four independently verifiable observations),
+    §4 why gap not already solved (rejection of
+    five candidate "we already have this"
+    arguments), §5 goal of the track, §6 in-scope,
+    §7 out-of-scope (21 explicit denials),
+    §8 guardrails (14 hard invariants), §9
+    acceptance criteria for eventual closure (11
+    items), §10 honest constraints after closure,
+    §11 relationship to Tracks G/H/I/J/K/L table,
+    §12 Q1–Q7 open questions с directional
+    recommendations only (no fake certainty), §13
+    step trajectory preview table, §14 honest
+    summary.
+  - `docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-step-map.md` —
+    6-step map в формате «Goal / What changes /
+    What does NOT change / Result» для каждого
+    шага; track-invariants block с 21 hard
+    constraints включая Track L deliverables byte-
+    identical, no new CLI flag, no new
+    `[project.scripts]` entries, no new
+    dependencies; hard out-of-scope list с 21
+    categorical denials; Step 4 explicitly
+    preserves PATH A / B / C openness; Step 6 —
+    Q7 framing с NO-BUMP / PATCH / MINOR /
+    MAJOR-forbidden conditions.
+- **Q1–Q7 directional defaults (plan §12).**
+  - Q1 = closure-gate target = documented
+    distribution-boundary recipe + at most one
+    declarative buildable artefact (default
+    expectation: PATH B if Step 2 audit confirms
+    feasibility without ecosystem expansion).
+  - Q2 = installation story included (build
+    artefact + documented operator install procedure
+    mandatory for closure; build artefact alone
+    insufficient).
+  - Q3 = default artefact class = **single wheel**
+    (`.whl`) buildable via `python -m build` after
+    narrow `pyproject.toml` `packages = [...]` flip.
+    sdist / operator-bundle acceptable as Step 3
+    alternatives.
+  - Q4 = cross-OS neutral (Python wheel platform-
+    neutral; OS-specific tooling notes prose only).
+  - Q5 = Track L service files cross-referenced but
+    not bundled inside the Track M artefact.
+  - Q6 = `pyproject.toml` change = narrow flip of
+    `[tool.hatch.build.targets.wheel] packages = []`
+    к populated list (Step 3 PATH B); no
+    `[project.urls]` / classifiers / keywords /
+    `MANIFEST.in`.
+  - Q7 = **NO-BUMP** default если Step 4 PATH A;
+    **PATCH** default если Step 4 PATH B (closing
+    the long-standing Track C / Step 3 honest
+    constraint about the empty wheel build —
+    legitimate defect-class repair framing); MINOR
+    considered only если Step 4 ship'нет net-new
+    operator-facing capability beyond making
+    existing declarations functional (rejected by
+    Q4 / step-map invariant #15); MAJOR forbidden
+    by track scope.
+- **Что Step 1 НЕ делал.**
+  - Не правил production-код (никаких изменений в
+    `apps/*/src/`, `packages/*/src/`).
+  - Не правил `pyproject.toml`
+    (`version=0.5.1` preserved; wheel-build empty
+    preserved per Track C / Step 3 honest constraint).
+  - Не открывал и не правил Step 2 audit / Step 3
+    contract / Step 4 implementation.
+  - Не менял registries (`read=15 / write=25 /
+    intelligence=16` invariant carried through;
+    никаких новых MCP tool'ов в Step 1).
+  - Не правил `SECURITY.md`,
+    `docs/release-handoff.md`,
+    `apps/platform/README.md`,
+    `scripts/release/README.md`, `scripts/dev/README.md`,
+    `CHANGELOG.md`, manuals, Closed parallel tracks
+    list (Track M не moved туда — Track M active).
+  - Не правил `docs/operators/deployment-boundary.md`
+    (Track J artefact), `docs/operators/service/*`
+    (Track L artefacts), или
+    `scripts/dev/mcp_client_smoke.py` (Track K
+    artefact) — все byte-identical.
+  - Не запускал `1cv8.exe` (Track M работает на
+    packaging / distribution layer, не на 1cv8
+    binary surface).
+  - Не вводил никаких реальных credentials в repo /
+    docs / commit message.
+  - Не делал remote push / GitHub release —
+    operator action, не часть трека.
+  - Не открывал Track M Step 2 в этом же commit'е.
+  - Не использовал premature closure language —
+    Track M framed как **active** (Step 1
+    in-progress, Step 2–6 впереди); фразы
+    "packaging solved forever" / "PyPI release
+    ready" / "signed binary distribution" / "all
+    package managers supported" / "production-
+    ready packaging" / "enterprise-ready packaging"
+    появляются в touched docs **только** как
+    explicit DENIALS.
+- **Документ scope.** Ровно четыре файла: 2 новых
+  planning-документа в `docs/architecture/` +
+  README.md (Quickstart paragraph дополнен Track M
+  active narrative; Active parallel track section
+  reopened) + PROJECT-STATUS.md (header rewrite +
+  this section).
+- **Verify-release.ps1 -AllowDirtyTree.** GREEN на
+  8 checks; никаких реальных credentials в Step 1
+  diff'е; registries без drift'а.
+- **Selfcheck после Step 1.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без
+  drift'а; selfcheck_status=ok; никаких реальных
+  credentials в Step 1 diff'е.
+- **Следующий шаг.** **Parallel Track M / Step 2 —
+  baseline audit of current packaging / distribution
+  state (docs-only).** Новый short audit-документ
+  с inventory `pyproject.toml` declared surface
+  (`[project]` metadata, `[project.scripts]`
+  declarations, empty wheel-build with Track C
+  honest-constraint comment block); inventory
+  `scripts/release/` artefacts; inventory release-
+  handoff prose; whole-repo grep results для
+  packaging-vocabulary patterns (`wheel` / `sdist` /
+  `dist/` / `release/` / `MANIFEST.in` / `setup.py`
+  / `.msi` / `.deb` / `.rpm` / `.dmg` / `.pkg` /
+  `signing` / `PyPI` / `Chocolatey` / `Homebrew` /
+  `cosign` / `sigstore` / `SBOM` / etc.); 4-class
+  breakdown; directional Q1–Q6 resolutions с
+  evidence-grounded recommendations + Step 3
+  handoff list. Production-код Step 2 не правит.
+  Никаких real credentials. **GitHub remote push —
+  operator action, не часть трека.**
 
 ## Phase 6 закрыта
 
