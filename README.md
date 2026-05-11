@@ -195,65 +195,74 @@
 > restart" claim — Track L's closure-gate target =
 > одна OS-family implementation slice (systemd)
 > плюс cross-OS prose для двух других; broader
-> matrices recommended-only. Двенадцать post-phase
-> parallel track'ов (A, B, C, D, E, F, G, H, I, J,
-> K, L) полностью закрыты; Phase 7 как линейная
-> фаза не запланирована. Активный трек сейчас —
-> **Parallel Track M — Packaging Ecosystem and
-> Distribution Boundary**, в данный момент на
-> **Step 5 (operator docs and packaging alignment,
-> docs-only)** после закрытия Steps 1–4. Цель Track M
-> — закрыть следующий честный продуктовый gap: у
-> платформы уже есть рабочие MCP entrypoints,
-> HTTP/stdio transports, bearer auth, installer
-> integrity, deployment-boundary recipe, real MCP
-> client smoke proof и service-supervision recipe +
-> systemd template, но до Track M у неё не было
-> взрослой packaging/distribution story. Steps 1–4
-> закрыли gap по PATH B (narrow declarative flip +
-> operator recipe): Step 1 ship'нул два planning-
-> документа, Step 2 — baseline audit текущего
-> packaging state, Step 3 — нормативный contract,
-> Step 4 — ровно два файла:
-> [`docs/operators/packaging/distribution-boundary.md`](docs/operators/packaging/distribution-boundary.md)
-> (14-секционный operator-facing recipe со всеми
-> пятью lifecycle verbs build / install / uninstall /
-> upgdrade / verify и точным enumeration of wheel
-> contents/non-contents) плюс narrow `pyproject.toml`
-> wheel-build flip (`[tool.hatch.build.targets.wheel]
-> packages = [...]` теперь содержит 11 src-layout
-> пакетов, comment block указывает на recipe).
-> Supported artefact class теперь — один buildable
-> pure-Python wheel (`1c_agent_platform-0.5.1-py3-none-any.whl`,
-> `py3-none-any` platform tag). Production code не
-> правился ни в одном из четырёх закрытых шагов;
-> `pyproject.toml` `version=0.5.1` preserved; никакие
-> новые dependencies / `[project.scripts]` / MCP tools
-> / registry entries не добавлены. Это **не** broad
-> packaging ecosystem (`.msi` / `.deb` / `.rpm` /
-> `.dmg` / `.pkg` / `.snap` / `.flatpak`), **не**
-> multi-package-manager publication (PyPI /
-> Chocolatey / Homebrew / apt / conda-forge / NuGet —
-> wheel buildable but **not** published anywhere),
-> **не** signed-distribution chain (`cosign` /
-> `sigstore` / Authenticode / Notarisation / SBOM /
-> SLSA), **не** GUI installer / wizard, **не**
-> transport / auth / deployment-boundary / service-
-> supervision redesign, **не** enterprise identity,
-> **не** clustering / HA / orchestration, **не** web
-> UI, **не** full observability stack, **не** new
-> MCP tools, **не** new CLI flag на existing
-> servers, **не** new dependencies, **не** 1cv8
+> matrices recommended-only. И **Parallel Track M —
+> Packaging Ecosystem and Distribution Boundary** —
+> intentionally narrow packaging-boundary track,
+> закрывший long-standing Track C / Step 3 honest
+> constraint о intentionally-empty wheel build. Step 3
+> contract pinned **PATH B (narrow declarative flip +
+> operator recipe)**, и Step 4 ship'нул ровно два
+> файла: новый operator-facing recipe под
+> [`docs/operators/packaging/`](docs/operators/packaging/)
+> ([`distribution-boundary.md`](docs/operators/packaging/distribution-boundary.md))
+> со всеми пятью lifecycle verbs (`build` / `install`
+> / `uninstall` / `upgrade` / `verify`) end-to-end +
+> точное enumeration of 11-package wheel contents и
+> non-contents + Windows/POSIX cross-OS posture, плюс
+> narrow `pyproject.toml` wheel-build flip
+> (`[tool.hatch.build.targets.wheel] packages =
+> [...]` теперь содержит 11 src-layout пакетов;
+> comment block указывает на recipe). Supported
+> artefact class теперь — один buildable
+> pure-Python wheel
+> (`1c_agent_platform-<VERSION>-py3-none-any.whl`,
+> `py3-none-any` platform tag, 11 src-layout packages
+> + три locked `[project.scripts]` console entries +
+> `dist-info/` metadata — никаких credentials,
+> `.env`, real ProductConfig JSON, Track J/L recipe
+> content, `docs/` / `examples/` / `scripts/`
+> excluded by construction).
+> **Q7 = PATCH** (`0.5.1 → 0.5.2`): Step 4 закрыл
+> defect-class declared-but-non-functional surface —
+> `[project.scripts]` console entries декларировались
+> с Track G (`0.4.0`), но `pip install <wheel>`
+> previously не работал, потому что
+> `[tool.hatch.build.targets.wheel] packages = []`
+> делал `python -m build` бесполезным. Step 4
+> declarative flip восстанавливает functionality
+> already-declared surface; Track I PATCH precedent
+> applies directly (declared-but-broken → declared-
+> and-working = PATCH); MINOR rejected by step-map
+> invariant #15 (no new declared surface, no new CLI
+> flag, no new tool); MAJOR forbidden by track scope.
+> Это **не** broad packaging ecosystem (`.msi` /
+> `.deb` / `.rpm` / `.dmg` / `.pkg` / `.snap` /
+> `.flatpak`), **не** multi-package-manager
+> publication (wheel buildable but **не** published в
+> PyPI / Chocolatey / Homebrew / apt / conda-forge /
+> NuGet), **не** signed-distribution chain
+> (`cosign` / `sigstore` / Authenticode /
+> Notarisation / SBOM / SLSA), **не** GUI installer /
+> wizard, **не** transport / auth / deployment-
+> boundary / service-supervision redesign, **не**
+> enterprise identity, **не** clustering / HA /
+> orchestration, **не** web UI, **не** full
+> observability stack, **не** new MCP tools, **не**
+> new CLI flag на existing servers, **не** new
+> `[project.scripts]` entries (три existing entries
+> locked), **не** new dependencies, **не** 1cv8
 > work, **не** "packaging solved forever" / "PyPI
 > release ready" / "signed binary distribution" /
 > "all package managers supported" / "production-
 > ready packaging" / "enterprise-ready packaging"
 > claim — Track M's closure-gate covers только один
-> narrow distribution-boundary slice. Track M
-> остаётся открытым до **Step 6 (final integration
-> pass and Track M closure)**, где будет принято
-> финальное Q7 SemVer решение и unified closed-tracks
-> narrative.
+> narrow distribution-boundary slice; broader
+> matrices recommended-only. Тринадцать post-phase
+> parallel track'ов (A, B, C, D, E, F, G, H, I, J,
+> K, L, M) полностью закрыты последовательно; Phase 7
+> как линейная фаза не запланирована; активного
+> parallel track'а сейчас нет. Открытие следующего
+> параллельного трека — отдельное operator decision.
 > Registries `read=15 / write=25 / intelligence=16`
 > invariant carried through.
 
@@ -843,7 +852,7 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 ## Closed parallel tracks
 
 После закрытия Phase 6 были последовательно открыты и
-закрыты двенадцать post-phase completion track'ов:
+закрыты тринадцать post-phase completion track'ов:
 
 - **Parallel Track A — Full Real 1cv8-backed Write Path** —
   закрыт на Step 7 (final integration pass and Track A
@@ -885,20 +894,38 @@ version-matrix smoke, etc.). Phase 7 как отдельная
   integration pass and Track L closure; PATH B docs +
   one declarative systemd unit template; Q7 = NO-BUMP,
   Track L закрыт под existing `0.5.1`).
+- **Parallel Track M — Packaging Ecosystem and
+  Distribution Boundary** — закрыт на Step 6 (final
+  integration pass and Track M closure; PATH B narrow
+  `pyproject.toml` wheel-build flip + one operator
+  recipe; **Q7 = PATCH**, `pyproject.toml` version
+  bumped `0.5.1 → 0.5.2` за declared-but-non-functional
+  `[project.scripts]` surface, ставший functional
+  через `python -m build` после Step 4 flip).
 
 ## Active parallel track
 
-После closure'а Track L открыт тринадцатый post-phase
-track — **Parallel Track M — Packaging Ecosystem and
-Distribution Boundary**. Цель — закрыть следующий
-честный продуктовый gap: у платформы уже есть рабочие
-MCP entrypoints, HTTP/stdio transports, bearer auth,
-installer integrity, deployment-boundary recipe, real
-MCP client smoke proof и service-supervision recipe +
-systemd template, но до Track M у неё не было взрослой
-packaging/distribution story.
+Активного parallel track'а сейчас нет. После Track M
+closure (см. «Track M detail (закрыт)» ниже)
+тринадцать post-phase parallel track'ов (A, B, C, D,
+E, F, G, H, I, J, K, L, M) полностью закрыты
+последовательно; Phase 7 как линейная фаза не
+запланирована. Открытие следующего параллельного
+трека — отдельное operator decision; recommended-next-
+track кандидаты перечислены в финале секции «Track M
+detail (закрыт)».
 
-Конкретно: в репозитории на момент открытия Track M
+## Track M detail (закрыт)
+
+**Цель Track M** была — закрыть следующий честный
+продуктовый gap: у платформы уже были рабочие MCP
+entrypoints (Track G), HTTP/stdio transports
+(Tracks G/H), bearer auth (Track H), installer
+integrity (Track I), deployment-boundary recipe
+(Track J), real MCP client smoke proof (Track K) и
+service-supervision recipe + systemd template
+(Track L), но не было взрослой packaging/distribution
+story. В репозитории на момент открытия Track M
 (commit `e21e185`) `pyproject.toml` декларировал три
 `[project.scripts]` console entries
 (`mcp-read-server` / `mcp-write-server` /
@@ -906,207 +933,292 @@ packaging/distribution story.
 `[tool.hatch.build.targets.wheel] packages = []` был
 **намеренно пуст** per Track C / Step 3 honest
 constraint (с 24-line comment block в `pyproject.toml`
-объясняющим: "`python -m build` produces no usable
-artifact for this project"); не было buildable wheel
-артефакта; не было source-archive release flow; не
-было operator-bundle artefact; не было OS-native
+явно объяснявшим: "`python -m build` produces no
+usable artifact for this project"); не было buildable
+wheel артефакта; не было source-archive release flow;
+не было operator-bundle artefact; не было OS-native
 package shipped; не было PyPI publication metadata;
 не было signed-distribution chain; не было GUI
 installer / wizard; не было ответа на вопрос "какой
 артефакт оператор consume'ит" в
 `docs/release-handoff.md` beyond cloning the repo.
+Step 2 baseline audit формализовал четыре
+независимо-верифицируемые observation'а: (1) wheel
+build пуст по declarative artefact-surface; (2)
+`scripts/release/README.md` явно говорит "no install
+ecosystem"; (3) `docs/release-handoff.md` не содержал
+operator-facing recipe для wheel; (4) declared
+`[project.scripts]` entries функционально undeliverable
+через `pip install`.
 
-Track M formalize'ит эту gap как disciplined six-step
-deliverable: planning → audit → contract → narrow
-implementation (only if needed) → docs alignment →
-closure. Track M **не** добавляет новые MCP tools,
-**не** redesign'ит existing transport / auth /
-deployment-boundary / service-supervision surfaces,
-**не** меняет registries, **не** широко расходится в
-adjacent territories.
+**Что Track M явно НЕ решает.** Production code
+changes; transport / auth / deployment-boundary /
+service-supervision redesign (Tracks G/H/I/J/L
+carry-forward); broader packaging ecosystem (`.msi` /
+`.deb` / `.rpm` / `.dmg` / `.pkg` / `.snap` /
+`.flatpak`); multi-package-manager publication (no
+PyPI, no Chocolatey, no Homebrew, no apt, no
+conda-forge, no NuGet — wheel buildable но
+**не** published anywhere); signed-distribution chain
+(no signing keys, no `cosign` / `sigstore` /
+Authenticode / Notarisation / SBOM / SLSA
+attestation); GUI installer / wizard / setup.exe;
+enterprise identity stack (SSO / SAML / OIDC / SCIM /
+RBAC / ABAC / multi-tenant); clustering / HA /
+orchestration platforms; web UI / dashboard
+frontend; full observability stack; new MCP tools;
+registry changes; new CLI flag на existing servers;
+new `[project.scripts]` entries (три existing entries
+locked); new dependencies; `/healthz` endpoint (Track
+J §8 defer preserved); standalone `apps/platform`
+daemon entrypoint; automatic update / OTA / self-
+upgrade; rollback / AST / multi-version 1С matrix
+expansion; 1cv8 work; "packaging solved forever" /
+"PyPI release ready" / "signed binary distribution" /
+"all package managers supported" / "production-ready
+packaging" / "enterprise-ready packaging" /
+"hostile-internet distribution ready" claim — Track
+M's closure-gate covers **только** одну узкую
+distribution-boundary slice (single buildable
+pure-Python wheel + operator recipe для пяти lifecycle
+verbs); broader matrices remain recommended-only.
 
-**Track M progress (Steps 1–4 закрыты, Step 5
-активен).**
+**Step 4 PATH B (narrow declarative flip + operator
+recipe).** Step 3 contract pinned **PATH B**: ровно
+два файла. PATH A (docs-only) explicitly rejected
+because Step 2 audit "zero buildable wheel artefact
+at HEAD `79c541f`" cannot be closed honestly by prose
+alone — recipe describing builds that produce nothing
+operator-useful is not closure. PATH C (operator-
+bundle artefact alongside / instead of wheel)
+explicitly rejected because hatchling backend +
+`[project.scripts]` + src-layout уже declared, и
+flipping `packages = []` к populated list mechanically
+narrower чем construction of a parallel `release/` /
+`bundle/` directory layout. Step 4 ship'нул два
+файла:
 
-- **Step 1 (planning, docs-only)** — ship'нул два
-  planning-документа:
-  [`docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-plan.md`](docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-plan.md)
-  (14-секционный план) и
-  [`docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-step-map.md`](docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-step-map.md)
-  (track-invariants block, hard out-of-scope list,
-  6-step boundary, Q7 framing). Production code не
-  правился; `pyproject.toml` byte-identical;
-  registries без drift'а.
-- **Step 2 (baseline audit, docs-only)** — один новый
-  descriptive audit-документ
-  [`docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-baseline-audit.md`](docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-baseline-audit.md)
-  с inventory существующего `pyproject.toml` declared
-  surface, `scripts/release/` artefacts, release-handoff
-  prose, whole-repo grep results, 4-class breakdown
-  и Q1–Q6 directional resolutions. Production code не
-  правился; `pyproject.toml` byte-identical;
-  registries без drift'а.
-- **Step 3 (normative contract, docs-only)** — один
-  новый normative contract-документ
-  [`docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-contract.md`](docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-contract.md)
-  (15-секционный RFC-2119-style contract) — pinned
-  **PATH B** (single buildable pure-Python wheel +
-  operator-facing recipe), exact §5.2 11-package
-  wheel contents list, exact §5.3 non-contents list,
-  5 mandatory lifecycle verbs (build / install /
-  uninstall / upgrade / verify), Q7 = **PATCH default
-  (0.5.1 → 0.5.2)** при PATH B closure (легитимный
-  defect-class repair framing закрытия long-standing
-  Track C / Step 3 empty-wheel-build constraint).
-  Production code не правился; `pyproject.toml`
-  byte-identical; registries без drift'а.
-- **Step 4 (narrow packaging implementation)** —
-  ровно два файла per contract §8.1:
-  [`docs/operators/packaging/distribution-boundary.md`](docs/operators/packaging/distribution-boundary.md)
-  (14-секционный operator-facing recipe со всеми
-  пятью lifecycle verbs end-to-end, точным
-  enumeration of wheel contents/non-contents,
-  Windows/POSIX cross-OS posture, ортогональностью
-  install-fast-path / Track J / Track L, и §9.2
-  explicit-denial списком) и narrow `pyproject.toml`
-  wheel-build flip (
-  `[tool.hatch.build.targets.wheel] packages =
-  [...]` теперь содержит 11 src-layout пакетов из
-  contract §5.2 verbatim; comment block заменён на
-  указатель на recipe). Supported artefact class —
-  один buildable pure-Python wheel
-  `1c_agent_platform-0.5.1-py3-none-any.whl`
-  (`py3-none-any` platform tag), содержит ровно 11
-  importable Python пакетов + три locked
-  `[project.scripts]` console entries +
-  `dist-info/` metadata; **никаких** credentials,
-  `.env`, real ProductConfig JSON, Track J/L recipe
-  content, `docs/` / `examples/` / `scripts/` / `.git/`
-  / CI artefacts (всё исключено by construction).
-  Production code byte-identical (никаких изменений
-  под `apps/*/src/`, `packages/*/src/`); никаких новых
-  dependencies; `[project.scripts]` byte-identical;
-  registries без drift'а. Optional B1 build-proof:
-  `python -m build` на control host (с operator-side
-  prerequisite `pip install build`) производит wheel
-  с ровно 11 ожидаемыми package-roots и
-  `dist-info/`.
-- **Step 5 (operator docs and packaging alignment,
-  docs-only)** — текущий шаг. Узкое выравнивание
-  operator-facing / release-facing docs под новый
-  post-Step-4 baseline без расширения scope.
+- [`docs/operators/packaging/distribution-boundary.md`](docs/operators/packaging/distribution-boundary.md)
+  — 912-line operator-facing recipe (under contract
+  §8.4 ≤1000 soft / ≤1200 hard caps). 14 top-level
+  sections: §1 Purpose с explicit denial list, §2
+  Supported distribution boundary (artefact class,
+  single-wheel rationale, what Track M closes), §3
+  Wheel contents (точный 11-package list — таблица +
+  toml-блок), §4 Wheel non-contents (точный exclusion
+  list по contract §5.3), §5 Build verb
+  (`python -m build` + operator-side prerequisite
+  `pip install build` + expected output filename +
+  `.gitignore` policy reminder), §6 Install verb
+  (`pip install <WHEEL_PATH>` + venv pattern +
+  expected operator-visible result: три console
+  scripts на PATH + 11 importable modules), §7
+  Uninstall verb (`pip uninstall 1c-agent-platform` +
+  что НЕ touch — operator-side config / .env /
+  systemd unit / NSSM / launchd plist), §8 Upgrade
+  verb (`pip install --upgrade <NEW_WHEEL_PATH>` +
+  restart-after-upgrade recommendation для Track L
+  supervisors), §9 Verify verb (`mcp-read-server
+  --help` minimum + Track K smoke harness
+  recommendation-only deeper verify), §10
+  Relationship to current runtime surface (Tracks
+  G/H/I/J/K/L invariants byte-identical, `runtime.py`
+  не service manager), §11 Relationship to install
+  fast path / deployment boundary / service
+  supervision (orthogonal-but-complementary axes
+  table), §12 Cross-OS posture (Windows / POSIX
+  operator notes), §13 Honest non-goals (11 §9.2
+  explicit denials + Track M scope discipline), §14
+  Cross-references (Track M Step 1/2/3 docs + Track
+  J/L recipes + Track K harness + install fast path).
+- `pyproject.toml` — single narrow flip:
+  `[tool.hatch.build.targets.wheel]` comment block
+  заменён на 16-строчный pointer на recipe + mirroring
+  §9.2/§9.3 denial discipline; `packages = []`
+  flipped to ровно 11 src-layout package paths из
+  contract §5.2 verbatim (`apps/mcp-read-server/src/
+  mcp_read_server`, `apps/mcp-write-server/src/
+  mcp_write_server`, `apps/mcp-intelligence-server/
+  src/mcp_intelligence_server`, `apps/platform/src/
+  onec_platform`, `packages/mcp-common/src/
+  mcp_common`, `packages/onec-process-runner/src/
+  onec_process_runner`, `packages/onec-policy-engine/
+  src/onec_policy_engine`, `packages/onec-audit/src/
+  onec_audit`, `packages/onec-health/src/onec_health`,
+  `packages/onec-troubleshooting/src/
+  onec_troubleshooting`, `packages/onec-config/src/
+  onec_config`). Net +7 LOC. Никаких изменений в
+  `[build-system]`, `[project]`, `[project.scripts]`
+  (три entries locked), `[tool.ruff]`,
+  `[tool.pytest.ini_options]`. Никаких новых
+  dependencies / optional-dependencies / classifiers /
+  keywords / urls / `MANIFEST.in` / `setup.py` /
+  `setup.cfg`.
 
-**Что Track M уже зафиксировал (после Step 4).**
+Optional B1 build-buildability proof: на control host
+с operator-side prerequisite `pip install build`,
+`python -m build` производит
+`dist/1c_agent_platform-<VERSION>-py3-none-any.whl`
+(`py3-none-any` platform tag) содержащий ровно 11
+package-roots + `1c_agent_platform-<VERSION>.dist-info/`
+metadata directory. Никаких credentials, `.env`, real
+ProductConfig JSON, Track J/L recipe content, `docs/`
+/ `examples/` / `scripts/` / `.git/` / CI artefacts
+не входят в wheel (excluded by construction
+hatchling-ом + §5.3 discipline).
 
-- Supported artefact class — **один buildable pure-
-  Python wheel** (`py3-none-any`, filename pattern
-  `1c_agent_platform-<VERSION>-py3-none-any.whl`).
-- Wheel contains exactly 11 src-layout Python
-  packages: `mcp_read_server`, `mcp_write_server`,
-  `mcp_intelligence_server`, `onec_platform`,
-  `mcp_common`, `onec_process_runner`,
-  `onec_policy_engine`, `onec_audit`, `onec_health`,
-  `onec_troubleshooting`, `onec_config`. Плюс три
-  locked console-scripts entrypoints
-  (`mcp-read-server`, `mcp-write-server`,
-  `mcp-intelligence-server`).
-- Lifecycle verbs документированы end-to-end в
-  operator recipe: `python -m build` →
-  `pip install <WHEEL_PATH>` → `pip uninstall
-  1c-agent-platform` → `pip install --upgrade
-  <NEW_WHEEL_PATH>` → `mcp-read-server --help` (минимум
-  verify; deeper verify через Track K smoke harness
-  recommendation-only).
-- Recipe честно фиксирует install-fast-path
-  (`scripts/release/install.ps1`) как **orthogonal-
-  but-complementary** axis: wheel ships Python код,
-  install-fast-path materializes operator
-  `ProductConfig` JSON; они дополняют друг друга,
-  не заменяют.
-- Все Track G / H / I / J / K / L runtime / transport
-  / auth / deployment / service-supervision
-  invariants — byte-identical после Step 4 (никакого
-  redesign'а).
+**Что Track M даёт.** Operator теперь имеет:
 
-**Что Track M по-прежнему НЕ закрыл (Step 5 и Step 6
-territory).**
+- Один **buildable pure-Python wheel** как supported
+  artefact class — `1c_agent_platform-0.5.2-py3-none-any.whl`
+  (после Step 6 PATCH bump; см. ниже).
+- **Five lifecycle verbs** documented end-to-end в
+  одном recipe: `build` (`python -m build`) →
+  `install` (`pip install <WHEEL_PATH>`) → `uninstall`
+  (`pip uninstall 1c-agent-platform`) → `upgrade`
+  (`pip install --upgrade <NEW_WHEEL_PATH>`) → `verify`
+  (`mcp-read-server --help`).
+- **Exact wheel-contents declaration** — 11 src-layout
+  Python packages + три locked console-script
+  entrypoints; **exact wheel-non-contents declaration**
+  — no credentials, no `.env`, no real ProductConfig
+  JSON, no Track L systemd template, no Track J recipe
+  content, no `docs/` / `examples/` / `scripts/`
+  content, no `.git/`, no CI configuration.
+- **Cross-OS posture** — wheel installs identically на
+  Linux / macOS / Windows; only requirement — Python
+  3.11+; cross-OS specifics (`py -m build` на Windows,
+  `python -m venv` на POSIX) documented как operator-
+  side choices.
+- **Orthogonal-but-complementary framing** to
+  Track B/I install fast path (config materialiser),
+  Track J deployment-boundary recipe (reverse-proxy /
+  TLS termination), и Track L service-supervision
+  recipe + systemd template (cross-OS supervisors).
+  Все три axes сохраняют свои existing recipes и
+  contracts byte-identical после Track M closure;
+  Track M добавил четвёртую axis (Python code
+  delivery) без redesign первых трёх.
 
-- Step 5 — текущий шаг: узкое выравнивание operator-
-  facing / release-facing docs (этот README, release-
-  handoff, scripts/release/README) под новый
-  baseline; никаких production / pyproject / scripts
-  изменений. Closure narrative и Q7 SemVer call **не**
-  входят в Step 5.
-- **Step 6 (final integration pass and Track M
-  closure)** — будущая работа: final unified closed-
-  tracks narrative (включая Track M); единое финальное
-  решение по Q7 (default expectation = PATCH
-  `0.5.1 → 0.5.2` per contract §11.4 W5, легитимный
-  defect-class repair framing закрытия long-standing
-  Track C / Step 3 empty-wheel-build constraint);
-  CHANGELOG / PROJECT-STATUS обновление, отражающее
-  Track M closure. Эта работа **ещё не выполнена** —
-  Track M остаётся открытым до Step 6.
+**Q7 = PATCH** (`0.5.1 → 0.5.2`). Защита решения:
 
-Это **не** broad packaging ecosystem (`.msi` / `.deb` /
-`.rpm` / `.dmg` / `.pkg` / `.snap` / `.flatpak`),
-**не** multi-package-manager publication (wheel
-buildable but **not** published anywhere — no PyPI,
-no Chocolatey, no Homebrew, no apt, no conda-forge,
-no NuGet), **не** signed-distribution chain (no
-signing keys, no `cosign` / `sigstore` / Authenticode
-/ Notarisation / SBOM / SLSA attestation), **не**
-GUI installer / wizard / setup.exe, **не** transport
-family redesign (Track G / Track H carry-forward),
-**не** auth-scheme redesign (Track H / Track D /
-Track I carry-forward), **не** deployment-boundary
-redesign (Track J §13 / §6 / §7 / §8 carry-forward),
-**не** service-supervision redesign (Track L recipe +
-systemd template carry-forward), **не** enterprise
-identity stack (SSO / SAML / OIDC / SCIM / RBAC /
-ABAC / multi-tenant), **не** clustering / HA / load
-balancing / orchestration platforms (Kubernetes /
-Compose-with-replicas / Nomad / Consul / etcd /
-Zookeeper), **не** web UI / dashboard frontend,
-**не** full observability stack (OpenTelemetry /
-Jaeger / Prometheus / OpenMetrics / log aggregation
-/ distributed tracing instrumentation), **не** новые
-MCP tools (registry invariant `read=15 / write=25 /
-intelligence=16` carried through), **не** new CLI
-flag на existing servers (Q4 invariant — flag
-surface локирован), **не** new `[project.scripts]`
-entries (the three existing entries locked), **не**
-new dependencies, **не** `/healthz` endpoint
-(Track J §8 defer preserved), **не** standalone
-`apps/platform` daemon entrypoint, **не** hot reload
-/ zero-downtime restart, **не** automatic update /
-OTA / self-upgrade, **не** rollback / AST / multi-
-version 1С matrix expansion, **не** 1cv8 work,
-**не** "packaging solved forever" / "PyPI release
-ready" / "signed binary distribution" / "all package
-managers supported" / "production-ready packaging" /
-"enterprise-ready packaging" / "hostile-internet
-distribution ready" claim — Track M's closure-gate
-covers **only** один narrow distribution-boundary
-slice; broader matrices recommended-only.
+- **Defect-class declared-but-non-functional surface.**
+  `[project.scripts]` console entries
+  (`mcp-read-server` / `mcp-write-server` /
+  `mcp-intelligence-server`) декларировались с
+  Track G (`0.4.0`), но `pip install <wheel>` flow
+  был non-functional, потому что
+  `[tool.hatch.build.targets.wheel] packages = []`
+  делал `python -m build` бесполезным per Track C /
+  Step 3 honest constraint. Step 4 declarative flip
+  восстанавливает functionality already-declared
+  surface — внешний pip-consumer теперь получает
+  installable binaries из `pip install <WHEEL_PATH>`
+  именно так, как было обещано declared surface.
+- **Track I PATCH precedent applies directly.** Track
+  I имел `+15 LOC` production code (`installer.py:
+  _config_to_dict`) + previously-broken installer
+  round-trip; declared surface стал работать. Track M
+  ship'нул `+7 LOC` `pyproject.toml` declarative flip +
+  operator recipe; declared `[project.scripts]`
+  surface стал работать через `pip install`. Defect
+  class идентичен — "declared but broken" →
+  "declared and working".
+- **SemVer §6 framing.** PATCH = "backward-compatible
+  bug fixes". Track M Step 4 — backward-compatible
+  defect-class repair already-declared surface; ничего
+  removed, ничего renamed, ничего semantically
+  изменено в существующем code. Operators using
+  `python -m <server>` invocation continue работать
+  byte-identical (alternative supported).
+- **MINOR rejected by step-map invariant #15.** No
+  new declared surface, no new CLI flag, no new MCP
+  tool, no new `[project.scripts]` entry, no new
+  dependency, no new operator-facing capability
+  beyond making existing declarations functional.
+  Contract §10.4 explicitly excludes MINOR per same
+  reasoning.
+- **MAJOR forbidden by track scope.**
 
-Никаких 1cv8.exe runs (трек работает на packaging /
-distribution layer, не на 1cv8 binary surface).
-Никаких реальных credentials в repo / docs / commit
-messages — operator-facing examples используют
-abstract placeholders only. Registries
-`read=15 / write=25 / intelligence=16` invariant без
-drift'а через закрытые Steps 1–4. `pyproject.toml`
-`version=0.5.1` preserved через закрытые Steps 1–4
-(Track J / Track K / Track L NO-BUMP closures carried
-forward); финальный Track M Q7 SemVer call — **Step 6
-territory**.
+Pyproject.toml на Step 6 receives **только** the
+`version` field bump `"0.5.1" → "0.5.2"`; everything
+else (build-system, project metadata, project.scripts,
+tool.ruff, tool.pytest.ini_options, tool.hatch.build.
+targets.wheel packages list) byte-identical to Step 4
+closure. Никакого добавления `[project.urls]`,
+classifiers, keywords, dependencies, optional-
+dependencies.
 
-Подробности по последнему закрытому треку — в секции
-«Track L detail (закрыт)» ниже; предыдущий трек
-описан в «Track K detail (закрыт)»; ещё раньше —
-«Track J detail (закрыт)», «Track I detail (закрыт)»,
-«Track H detail (закрыт)».
+**Closure scope (narrowest honest).** Step 6 touched:
+`README.md` (Quickstart blockquote summary flipped от
+active → closed; Closed parallel tracks list extended
+от двенадцать до тринадцать с Track M entry; Active
+parallel track section compressed back к no-active-
+track wording; new "Track M detail (закрыт)" section
+added above "Track L detail (закрыт)" — этот document);
+`PROJECT-STATUS.md` (header rewritten от
+"Track M / Step 1 in progress" к "no active step +
+Track M fully closed под `0.5.2`"; per-step closure
+sections для Step 2 / Step 3 / Step 4 / Step 5 / Step
+6 inserted после existing Step 1 section);
+`CHANGELOG.md` (new top section `## 0.5.2 — Parallel
+Track M — Packaging Ecosystem and Distribution
+Boundary` за PATCH bump narrative); `pyproject.toml`
+(`version = "0.5.1"` → `version = "0.5.2"` only —
+никаких других изменений). **NOT touched на Step 6:**
+`SECURITY.md`; `docs/release-handoff.md` (Step 5 уже
+выровнял); `apps/platform/README.md`;
+`docs/operators/packaging/distribution-boundary.md`
+(Step 4 deliverable immutable); `docs/operators/
+deployment-boundary.md` (Track J artefact);
+`docs/operators/service/service-supervision.md` и
+`mcp-server.service` (Track L artefacts); `scripts/
+release/README.md` (Step 5 уже выровнял); `scripts/
+dev/README.md` (Step 5 уже выровнял); Track M Step
+1/2/3 architecture docs (frozen anchors);
+`LICENSE`; manuals (`docs/operator-manual.md`,
+`administrator-manual.md`, `developer-manual.md`,
+`runbooks.md`); production code (`apps/*/src/`,
+`packages/*/src/`); все остальные `scripts/*` files;
+`examples/`.
+
+**Verify-release.** GREEN на 8 checks pre-commit
+(`-AllowDirtyTree`) и post-commit (clean tree);
+selfcheck registries `read=15 / write=25 /
+intelligence=16` без drift'а; никаких реальных
+credentials в closure commit'е; никаких 1cv8.exe
+runs; никакого remote push.
+
+**Track M closure итог.** Тринадцать post-phase
+parallel track'ов (A, B, C, D, E, F, G, H, I, J, K,
+L, M) полностью закрыты. Phase 7 как линейная фаза не
+запланирована. Открытие следующего параллельного
+трека — отдельное operator decision. **Recommended-
+next-track candidates (recommendation only, без
+автоматического открытия):** TLS-in-process / mTLS
+expansion (отдельный enterprise-grade identity
+track); полный packaging ecosystem track (`.msi` /
+`.deb` / `.rpm` / `.dmg` / `.pkg` / `.snap` /
+`.flatpak` / GUI installer / wizard / signed
+distribution chain / PyPI publication / multi-
+package-manager publication — Track M sticks к
+одному narrow buildable-wheel slice, broader
+packaging ecosystem остаётся отдельной potential
+track-territory); multi-version 1С matrix expansion
+(post-Track-E follow-up); полный rollback / AST work
+(post-Track-F / post-Track-A follow-ups); полный
+observability stack track (OpenTelemetry / Prometheus
+/ log aggregation); web UI / dashboard frontend
+track; in-repo daemon framework / pywin32 service
+wrapper / launchd plist artefacts (cross-OS
+implementation slices для Track L coverage
+extension); editable-install / workspace-discovery
+dev-time tooling track (out of Track M scope —
+Track M ship'нул deploy-time `pip install` flow,
+не dev-time editable). Эти кандидаты — recommendation
+only, не auto-opened.
+
+## Track L detail (закрыт)
 
 ## Track L detail (закрыт)
 

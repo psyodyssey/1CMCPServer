@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "1c-agent-platform"
-version = "0.5.1"
+version = "0.5.2"
 description = "Platform for working with 1C configurations through MCP"
 requires-python = ">=3.11"
 readme = "README.md"
