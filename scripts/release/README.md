@@ -212,35 +212,54 @@ With switches:
   — Track C plan that introduced this wrapper.
 
 
-## Packaging-facing install flow (honest constraint)
+## Packaging-facing install flow (post-Track-M reality)
 
-**The project does not ship a meaningful Python wheel today.** The
-canonical install path is `scripts/release/install.ps1` (this
-directory), which materialises a product config through the
-`onec_platform.run_install_fast_path_from_json_file` boundary
-helper, NOT through `pip install <wheel>`.
+The long-standing Track C / Step 3 honest constraint — that
+`[tool.hatch.build.targets.wheel] packages = []` was deliberately
+empty and `python -m build` produced no usable artefact — was
+closed by **Track M / Step 4** (commit `31313db`). The flip and
+the operator-facing recipe ship two complementary pieces:
 
-`pyproject.toml` declares `[tool.hatch.build.targets.wheel]
-packages = []` deliberately:
+- a buildable `py3-none-any` Python wheel (filename pattern
+  `1c_agent_platform-<VERSION>-py3-none-any.whl`) containing the
+  eleven src-layout packages spread across `apps/*/src/` and
+  `packages/*/src/`, plus the three locked `[project.scripts]`
+  console entries — and **nothing else** (no credentials, no
+  `.env`, no `examples/`, no `docs/`, no `scripts/`);
+- a single operator recipe at
+  [`docs/operators/packaging/distribution-boundary.md`](../../docs/operators/packaging/distribution-boundary.md)
+  covering all five lifecycle verbs (`build` / `install` /
+  `uninstall` / `upgrade` / `verify`) end-to-end with
+  placeholder-only examples.
 
-- the source layout spreads 11 importable Python packages across
-  `apps/*/src/` and `packages/*/src/`; the project has not yet
-  committed to a single-wheel or multi-wheel distribution story;
-- the build toolchain (`build` / `hatch` / `hatchling`) is not part
-  of the documented dev prerequisites, and no one in the
-  documented operator flow runs `python -m build`;
-- `python -m build` therefore produces no usable artifact and
-  attempting it is not a supported workflow.
+`install.ps1` (this directory) and the Track M wheel are
+**orthogonal-but-complementary** axes, not replacements:
 
-To work with the platform locally, use:
+| Axis | Provided by |
+|---|---|
+| Python code delivery (11 packages + 3 console scripts) | the wheel (Track M / Step 4) |
+| Operator `ProductConfig` JSON materialisation | `install.ps1` (this directory, Track B / Track I) |
+| Reverse-proxy / TLS-termination deployment posture | `docs/operators/deployment-boundary.md` (Track J) |
+| Cross-OS service supervision | `docs/operators/service/service-supervision.md` (Track L) |
+
+To work with the platform locally without building the wheel,
+the development / verification entrypoints remain:
 
 | Action | Entrypoint |
 |--------|-----------|
-| Set PYTHONPATH | `scripts/dev/bootstrap_paths.ps1` |
+| Set PYTHONPATH from a repository checkout | `scripts/dev/bootstrap_paths.ps1` |
 | Materialise a product config | `scripts/release/install.ps1` |
 | Verify release readiness | `scripts/release/verify-release.ps1` |
 | Run selfcheck / REPL / ad-hoc Python | `scripts/dev/launch.ps1` |
 
-This is a documented Track C honest constraint, not a hidden gap.
-A future packaging track may revisit it. No `.msi`, `.deb`, GUI
-wizard, or signed binary distribution is currently in scope.
+The build front-end (`build`) is an **operator-side
+prerequisite** (`pip install build` on a control host), **not**
+a project dependency. The wheel is delivered out-of-band from
+the control host to a deployment host the operator owns;
+**no publication** to PyPI, Chocolatey, Homebrew, apt,
+conda-forge, NuGet, or any other package index is in scope.
+No `.msi`, `.deb`, `.rpm`, `.dmg`, `.pkg`, `.snap`, `.flatpak`,
+GUI installer, wizard, or signed binary distribution is in
+scope. The Track M / Step 3 contract (the normative source-of-
+truth for these boundaries) lives at
+[`docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-contract.md`](../../docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-contract.md).

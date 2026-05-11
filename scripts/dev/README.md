@@ -2,9 +2,13 @@
 
 Скрипты для локальной разработки 1C Agent Platform.
 
-На текущем этапе это временный bootstrap для монорепы: настоящий
-packaging / workspace setup (editable install, workspace discovery)
-появится позже.
+На текущем этапе это временный bootstrap для монорепы:
+editable install и workspace discovery всё ещё out of scope. Track M /
+Step 4 ввёл узкий supported distribution boundary — один buildable
+`py3-none-any` wheel (см.
+[`docs/operators/packaging/distribution-boundary.md`](../../docs/operators/packaging/distribution-boundary.md)),
+но он покрывает `pip install` deployment flow, не dev-time editable
+install.
 
 Если ты только пришёл в проект — начни с `launch.ps1` (умbrella-вход
 в типовые локальные действия). Остальные скрипты ниже — это нижний
@@ -187,5 +191,8 @@ import/wiring skeleton-модулей и registry counts, без запуска
 
 ## Статус
 
-Это временный bootstrap-этап до появления нормального packaging/workspace
-setup (editable install, workspace discovery, CLI-скрипты и т.п.).
+Это временный bootstrap-этап. Track M / Step 4 закрыл deploy-time
+packaging boundary (один buildable wheel, см.
+[`docs/operators/packaging/distribution-boundary.md`](../../docs/operators/packaging/distribution-boundary.md));
+dev-time editable install, workspace discovery и CLI-скрипты под
+local-dev workflow по-прежнему out of scope.

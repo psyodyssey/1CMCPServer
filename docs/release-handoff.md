@@ -190,6 +190,53 @@ The operator-facing surface you are receiving:
   pinned PATH B + systemd-first + the five lifecycle
   verbs lives at
   [`docs/architecture/track-l-service-supervision-and-os-service-registration-contract.md`](architecture/track-l-service-supervision-and-os-service-registration-contract.md).
+- **Operator-facing packaging / distribution-boundary
+  recipe and buildable wheel** (Track M / Step 4
+  deliverable, PATH B docs + narrow `pyproject.toml`
+  flip) at
+  [`docs/operators/packaging/distribution-boundary.md`](operators/packaging/distribution-boundary.md):
+  the **artefact-class sibling** of the deployment-
+  boundary and service-supervision recipes. Recipe
+  covers all five lifecycle verbs (`build` / `install`
+  / `uninstall` / `upgrade` / `verify`) end-to-end
+  against a single buildable pure-Python wheel
+  (`1c_agent_platform-<VERSION>-py3-none-any.whl`,
+  `py3-none-any` platform tag). The wheel contains
+  exactly the eleven src-layout Python packages
+  (`mcp_read_server`, `mcp_write_server`,
+  `mcp_intelligence_server`, `onec_platform`,
+  `mcp_common`, `onec_process_runner`,
+  `onec_policy_engine`, `onec_audit`, `onec_health`,
+  `onec_troubleshooting`, `onec_config`) plus the
+  three locked `[project.scripts]` console
+  entrypoints; `pip`-managed metadata; and **nothing
+  else** (no operator credentials, no `.env`, no real
+  `ProductConfig` JSON, no Track L systemd template,
+  no Track J recipe content, no `docs/` / `examples/`
+  / `scripts/` content, no `.git/`, no CI configuration
+  — all excluded by construction). Operator command
+  surface: `python -m build` on a control host (with
+  operator-side prerequisite `pip install build`,
+  **not** added to `[project.dependencies]`) →
+  `pip install <WHEEL_PATH>` on the deployment host
+  (Python 3.11+; venv recommended). The wheel and the
+  install-fast-path
+  (`scripts/release/install.ps1`) are
+  **orthogonal-but-complementary** axes: the wheel
+  ships Python code, the install-fast-path
+  materialises operator `ProductConfig` JSON; see
+  recipe §11 for the end-to-end flow. This is **not**
+  a claim of "packaging solved forever" / "PyPI
+  release ready" / "signed binary distribution" /
+  "all package managers supported" / "production-
+  ready packaging" / "enterprise-ready packaging" —
+  the wheel is delivered out-of-band between a
+  control host and a deployment host the operator
+  owns; **no publication to any package index**
+  occurs. The Track M Step 3 contract that pinned
+  PATH B + the eleven-package wheel contents + the
+  five lifecycle verbs lives at
+  [`docs/architecture/track-m-packaging-ecosystem-and-distribution-boundary-contract.md`](architecture/track-m-packaging-ecosystem-and-distribution-boundary-contract.md).
 - **Standalone manuals** under `docs/`:
   `operator-manual.md`, `administrator-manual.md`,
   `developer-manual.md`, `runbooks.md`.
@@ -202,13 +249,22 @@ The operator-facing surface you are receiving:
 These are **honest constraints**. They are not hidden gaps —
 they are intentional limits of the current scaffolding.
 
-- **No wheel-based install.** `pyproject.toml` declares
-  `[tool.hatch.build.targets.wheel] packages = []` deliberately.
-  The build toolchain (`build` / `hatch` / `hatchling`) is not
-  part of the documented dev prerequisites; `python -m build`
-  produces no usable artifact. See the comment in
-  `pyproject.toml` and the "Packaging-facing install flow"
-  section of `scripts/release/README.md`.
+- **No publication of the wheel anywhere.** Track M / Step 4
+  flipped `[tool.hatch.build.targets.wheel] packages = []` to
+  the eleven src-layout package paths, so `python -m build`
+  now produces a usable `py3-none-any` wheel (see "Operator-
+  facing packaging / distribution-boundary recipe and
+  buildable wheel" above and
+  [`docs/operators/packaging/distribution-boundary.md`](operators/packaging/distribution-boundary.md)).
+  The wheel is **not** published to any package index — no
+  PyPI, no Chocolatey, no Homebrew, no apt, no conda-forge,
+  no NuGet, no signed-distribution chain. The wheel is
+  delivered out-of-band from a control host to a deployment
+  host the operator owns. The build front-end (`build`)
+  remains an **operator-side prerequisite** (`pip install
+  build`); it is deliberately **not** added to
+  `[project.dependencies]`. No `.msi`, no `.deb`, no GUI
+  installer, no wizard is shipped or planned within Track M.
 - **No GUI installer / `.msi` / `.deb` / signed binary
   distribution.**
 - **No publication to package managers** (PyPI / Chocolatey /
@@ -237,12 +293,13 @@ they are intentional limits of the current scaffolding.
   are prose-only; the recipe is not a packaging ecosystem
   and the platform's in-process `runtime.py` was not
   extended into a service manager.
-  The wheel build remains empty
-  (`[tool.hatch.build.targets.wheel] packages = []`), so
-  the `[project.scripts]` console entries materialise as
-  installable binaries only when a future packaging track
-  ships an actual wheel — meanwhile the documented
-  invocation is `python -m <server>`. **Install fast path
+  Track M / Step 4 has since flipped
+  `[tool.hatch.build.targets.wheel] packages = [...]` to the
+  eleven src-layout package paths, so the `[project.scripts]`
+  console entries now materialise as `pip`-installed binaries
+  after `pip install <WHEEL_PATH>`; the `python -m <server>`
+  invocation remains a supported alternative for operators
+  running from a checkout. **Install fast path
   auth round-trip preserved (Track I / Step 4):**
   `installer.py:_config_to_dict` now emits the operator's
   `auth.tokens` declarations symmetric to the existing
