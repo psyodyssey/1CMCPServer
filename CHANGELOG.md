@@ -6,27 +6,370 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
-## 0.5.1 — Parallel Track I (PATCH bump) and Parallel Track J (docs-only closure under 0.5.1, no further bump)
+## 0.5.1 — Parallel Track I (PATCH bump), Parallel Track J (docs-only closure under 0.5.1, no further bump), and Parallel Track K (diagnostic-tooling-only closure under 0.5.1, no further bump)
 
-Version 0.5.1 closes two parallel post-phase tracks. The
+Version 0.5.1 closes three parallel post-phase tracks. The
 `0.5.0 → 0.5.1` PATCH bump itself was made by **Parallel
 Track I** (defect-class installer round-trip integrity fix).
 **Parallel Track J** (TLS and Reverse-Proxy Deployment
-Boundary) subsequently closes under the same `0.5.1` version
+Boundary) subsequently closed under the same `0.5.1` version
 without further bump (**Q7 = NO-BUMP**), because Track J was
 an intentionally documentation-only deployment-boundary
 formalization track with zero production code changes, zero
 new public API surface, zero new CLI flag or MCP tool, zero
 registry change, and zero observable runtime behaviour
-change. Each track has its own subsection below; both close
+change. **Parallel Track K** (Real MCP Client Integration
+Test) then closed under the same `0.5.1` version without
+further bump (**Q7 = NO-BUMP**), because Track K was an
+intentionally diagnostic-tooling-only track: zero production
+code changes, zero defect-class fix, one new operator-
+runnable harness file under `scripts/dev/` (symmetric to
+the existing `scripts/dev/selfcheck.py`) without
+`[project.scripts]` exposure or other public API surface,
+zero new MCP tool, zero registry change, and zero observable
+runtime behaviour change for ordinary product consumers.
+Each track has its own subsection below; all three close
 under the single `0.5.1` release line.
 
-After Tracks I and J close, the registry invariant remains
+After Tracks I, J and K close, the registry invariant remains
 `read = 15 / write = 25 / intelligence = 16`, the HTTP
 transport runtime is byte-identical to its Track H / Step 4
 shape (with the Track I defect fix layered on top), and
 `pyproject.toml` `version` stays at `0.5.1`. Active parallel
 track = none.
+
+### Parallel Track K — Real MCP Client Integration Test (NO-BUMP closure under 0.5.1)
+
+Track K is the eleventh post-phase parallel track. It closes
+under existing `0.5.1` without further version bump. Track K
+closed one of the project's last remaining honest gaps —
+the lack of real MCP-client-facing end-to-end proof for the
+already-existing stdio / HTTP transport surfaces — by
+shipping a single stdlib-only operator-runnable diagnostic
+harness file at `scripts/dev/mcp_client_smoke.py` (341 LOC),
+plus four planning / audit / contract architecture documents
+under `docs/architecture/`. The runtime that Track K probes
+externally is byte-identical to the post-Track-J runtime;
+Track K added no new code under `apps/*/src/` or
+`packages/*/src/`, no new endpoint, no new flag, no new MCP
+tool, no registry change. Track K's harness exercises the
+narrow closure-gate scenario only (`initialize` +
+`tools/list` + one read-only `tools/call` against
+`mcp-read-server` over both stdio and HTTP transports, plus
+an HTTP missing-`Authorization` failure-equivalence probe);
+it is **not** a claim that every MCP client is supported,
+or that interoperability is solved forever, or that client
+compatibility is production-ready.
+
+The **Q7 = NO-BUMP** decision is grounded in repo facts:
+
+- **Zero production code change** across all six Track K
+  steps. `apps/*/src/`, `packages/*/src/`,
+  `_network_transport.py`, `_stdio_transport.py`,
+  `installer.py` byte-identical to the Track J closure
+  state (`dd86261`).
+- **Zero defect-class fix.** Step 2 audit explicitly
+  established that the runtime is internally consistent
+  with a plausible MCP interpretation (`_handle_request`
+  recognises `initialize` / `tools/list` / `tools/call`
+  with correct envelope shapes; `protocolVersion =
+  "2024-11-05"`; HTTP path enforces bearer auth +
+  failure-equivalence + redaction + `/mcp` POST-only +
+  1 MiB body cap). Track K added externally-replayable
+  proof of that existing behaviour, not a fix for any
+  broken behaviour, silent failure, or operator
+  workaround.
+- **Zero new external capability for ordinary product
+  consumers.** The harness `scripts/dev/mcp_client_smoke.py`
+  lives under `scripts/dev/`, in the same category as the
+  existing `scripts/dev/selfcheck.py` and the existing
+  `scripts/dev/launch.ps1`. It is **not** declared in
+  `[project.scripts]`; it is **not** importable as a
+  public module from `mcp_common` or any other package;
+  it is **not** part of the install fast path; pip-
+  installing the project (when a future packaging track
+  enables that) does not expose it. Pre-Track-K
+  operators already could write equivalent diagnostic
+  scripts using only stdlib; Track K formalises that
+  capability under a contract-locked file rather than
+  introducing a new capability.
+- **Zero new public API surface.** No new public types,
+  functions, imports, `__all__` exports,
+  `[project.scripts]` entries, `ProductConfig` schema
+  fields, CLI flags on existing servers, or HTTP
+  endpoints. `mcp_common/__init__.py` `__all__`
+  byte-identical to Track J closure state.
+- **SemVer §6 / Keep-a-Changelog.** PATCH is for
+  backward-compatible bug fixes; Track K fixed no bug.
+  PATCH inertia is rejected by the prompt's Q7 default-
+  bias rule.
+- **Track I PATCH precedent does not transfer.** Track I
+  had `+15 / -0 LOC` of production code AND a previously-
+  broken silent-data-loss round-trip; Track K has neither
+  (zero production LOC; nothing was previously broken).
+- **Track J NO-BUMP precedent applies directly.** Track
+  J also closed under `0.5.1` without bump after shipping
+  one operator-facing artefact
+  (`docs/operators/deployment-boundary.md`) plus four
+  architecture documents. Track K follows the same
+  pattern, with one operator-runnable diagnostic artefact
+  (`scripts/dev/mcp_client_smoke.py`) plus four
+  architecture documents.
+- **Track A / B / C / E precedent applies.** Those
+  docs-heavy tracks also closed without separate version
+  entries in this `CHANGELOG.md`.
+- **Step 1 plan §12 Q7 and Step 3 contract §3.Q7 /
+  §11.5** explicitly authorize NO-BUMP if Step 4 does
+  not ship a defect-class fix observable by end users.
+  Step 4 shipped an operator-runnable diagnostic
+  harness, not a defect fix. Both conditions hold.
+
+#### Per-step outcomes (Track K)
+
+- **Step 1 (planning real MCP client integration test)** —
+  two planning documents under
+  `docs/architecture/track-k-real-mcp-client-integration-test-{plan,step-map}.md`
+  (plan + step-map) plus narrative updates to README.md /
+  PROJECT-STATUS.md to open the track. Q1–Q7 directional
+  defaults only (no fake certainty). Step 4 PATH
+  explicitly preserved as open between PATH A docs-only,
+  PATH B narrow ≤300 LOC harness, and PATH C hybrid.
+  No production code; no registry change; no SemVer
+  bump. Commit `02783df`.
+- **Step 2 (client integration baseline audit)** — one
+  new descriptive documentation-only document
+  (`docs/architecture/track-k-real-mcp-client-integration-test-baseline-audit.md`,
+  1076 lines, 10 sections). Inventoried existing client-
+  integration approximations (`selfcheck.py`,
+  `verify-release.ps1`, in-process `_handle_request`
+  switch); inventoried what real-MCP-client end-to-end
+  proof would require; produced 4-class breakdown
+  (already-covered / adjacent-but-insufficient /
+  clearly-missing / out-of-scope); resolved Q1–Q6
+  directionally (Q1 = Class B closure gate; Q2 = stdio
+  + HTTP; Q3 = narrowing toward PATH B; Q4 = mandatory
+  closure scenario locked; Q5 = insufficient-on-its-own
+  list; Q6 = no production code modification needed);
+  produced 14-item Step 3 handoff list. Commit
+  `62069a5`.
+- **Step 3 (client integration contract)** — one new
+  prescriptive normative document
+  (`docs/architecture/track-k-real-mcp-client-integration-test-contract.md`,
+  1302 lines, 15 sections, RFC 2119 MUST / MUST NOT /
+  SHOULD / SHOULD NOT / MAY language). Pinned **PATH B
+  (narrow harness)** for Step 4 (PATH A docs-only and
+  PATH C hybrid explicitly rejected); pinned closure-
+  gate scenario (`initialize` + `tools/list` + one
+  read-only `tools/call` against `mcp-read-server`
+  over both transports + HTTP 401 failing-mode probe);
+  pinned synthetic-token discipline
+  (`secrets.token_urlsafe(N≥32)`; token value MUST
+  NEVER be printed); pinned Step 4 file surface (exactly
+  one new file at canonical pinned location
+  `scripts/dev/mcp_client_smoke.py`); pinned ≤300 LOC
+  stdlib-only soft cap / ≤400 LOC stdlib-only hard cap;
+  pinned 22-check Step 4 verification harness; pinned
+  forbidden file surface for Step 4 / Step 5 / Step 6;
+  carry-forward of Track G / Track H §10 / §13 / Track
+  I / Track J §13 / §6 / §7 / §8 preserved byte-
+  identical. Commit `ead4a0e`.
+- **Step 4 (narrow MCP client smoke harness, PATH B)** —
+  one new stdlib-only harness file at
+  [`scripts/dev/mcp_client_smoke.py`](../scripts/dev/mcp_client_smoke.py)
+  (341 LOC, under the contract §10.6 ≤400 hard cap).
+  Zero modified files; zero production code changes;
+  zero `pyproject` changes; no new dependencies. CLI:
+  `--server {read,write,intelligence}` default `read`;
+  `--transport {stdio,http,both}` default `both`.
+  Builds its own PYTHONPATH (mirrors
+  `bootstrap_paths.ps1`'s 11 src paths) so it works
+  even without operator pre-bootstrap. For each
+  `(server, transport)` pair: `initialize` →
+  `tools/list` → one read-only `tools/call`, with
+  per-method envelope-shape assertions; HTTP also
+  exercises a missing-`Authorization` 401 +
+  `WWW-Authenticate: Bearer realm="mcp"` + JSON-RPC
+  `-32001` probe. Synthetic token via
+  `secrets.token_urlsafe(32)` at run time, exported via
+  `os.environ["MCP_CLIENT_SMOKE_TOKEN"]` and passed to
+  the server subprocess via `--auth-token-env`; token
+  value never appears in source, output, or commit
+  message. Subprocess lifecycle: stderr → DEVNULL;
+  ephemeral port via `socket.bind(("127.0.0.1", 0))`;
+  port readiness poll with 10s timeout; cleanup
+  close-stdin → `proc.terminate()` → `wait(5s)` →
+  escalate to `proc.kill()`. Verification run results
+  captured in the Step 4 commit body: primary
+  closure-gate `--server read --transport both` → exit 0,
+  raw final line `OK (server=read transport=both)`;
+  spot-check `--server write --transport stdio` → `OK`;
+  spot-check `--server intelligence --transport http` →
+  `OK`. Commit `979eced`.
+- **Step 5 (operator docs and client-integration
+  alignment)** — narrow CLASS-1 docs-alignment. Three
+  files modified, zero new files: `README.md`
+  Quickstart paragraph + Active parallel track section
+  refreshed to reflect Steps 1–4 closed and Step 5
+  active (Track K still framed as **active** in this
+  commit; closed-tracks list and Track K detail section
+  deferred to Step 6); `docs/release-handoff.md`
+  "What is in this handoff" + "Where to read deeper"
+  lists — one bullet each pointing at the new harness
+  with diagnostic-tooling framing; `scripts/dev/README.md`
+  "Содержимое" section — added `mcp_client_smoke.py`
+  alongside the existing four dev scripts. The phrases
+  "client integration solved" / "production-ready
+  client compatibility" / "all clients supported" /
+  "interop fully proven" appear in touched docs only
+  as explicit DENIALS (honest-non-goals framing).
+  PROJECT-STATUS.md / CHANGELOG.md / `pyproject.toml` /
+  closed-tracks list deliberately untouched (Step 6
+  territory). Commit `ef9c6c7`.
+- **Step 6 (final integration pass and Track K
+  closure)** — closure-only commit. README move of
+  Track K into Closed parallel tracks list (десять →
+  одиннадцать); Active parallel track section
+  compressed back to "no active track" wording; new
+  "Track K detail (закрыт)" section added above
+  "Track J detail (закрыт)"; Quickstart paragraph
+  flipped from active → no-active-track wording.
+  PROJECT-STATUS.md header rewritten from "Track K /
+  Step 1 in progress" to "no active step + Track K
+  fully closed" with `closed` status block;
+  historical-edit annotation at the tail of the
+  Track J Step 6 section updated; per-step closure
+  sections for Step 2 / Step 3 / Step 4 / Step 5 /
+  Step 6 inserted. CHANGELOG.md (this document) —
+  `0.5.1` heading restructured to embrace three
+  tracks (Track I PATCH bump, Track J NO-BUMP
+  closure, Track K NO-BUMP closure). `pyproject.toml`
+  **NOT** touched (Q7 = NO-BUMP). `SECURITY.md`,
+  `docs/release-handoff.md` (Step 5 already aligned),
+  `scripts/dev/README.md` (Step 5 already aligned),
+  `scripts/dev/mcp_client_smoke.py` (Step 4 deliverable
+  immutable), `apps/platform/README.md`,
+  `docs/operators/deployment-boundary.md`, Track K
+  Step 1–4 architecture docs, production code,
+  `apps/*/src/`, `packages/*/src/`, остальные
+  `scripts/*`, `examples/*`, manuals — all
+  byte-identical to their Step 5 closure state.
+
+#### Honest constraints carried forward (Track K)
+
+These are **not new** with Track K — they are properties
+of the post-Track-J baseline that Track K probes externally
+but does not change:
+
+- **stdio baseline preserved.** `--transport stdio`
+  remains the trusted-local-subprocess channel from
+  Track G / Step 4. No auth, no network listener, no
+  bind. Track K did not touch `_stdio_transport.py`.
+- **HTTP baseline preserved.** `--transport http`
+  remains the single `/mcp` POST endpoint from
+  Track H / Step 4 with bearer auth, 1 MiB body cap,
+  failure-equivalent 401, complete redaction
+  discipline, plain HTTP/1.1 (no in-process TLS),
+  no consumption of forwarded headers. Track K did
+  not touch `_network_transport.py`.
+- **Installer auth round-trip preserved.** Track I /
+  Step 4 emit branch in `installer.py:_config_to_dict`
+  preserved byte-identical. Track K did not touch
+  `installer.py`.
+- **Deployment boundary preserved.** Track J Step 4
+  recipe at `docs/operators/deployment-boundary.md`
+  preserved byte-identical. Reverse proxy still
+  terminates TLS; forwarded headers still not
+  consumed; `/healthz` still not shipped. Track K did
+  not touch `docs/operators/deployment-boundary.md`.
+- **Registries `read = 15 / write = 25 /
+  intelligence = 16`** carried through unchanged
+  across all six Track K steps. Selfcheck
+  `selfcheck_status=ok` confirmed at every step.
+- **Harness target framing.** Closure-gate target =
+  `mcp-read-server` over both transports; other
+  servers (`mcp-write-server`, `mcp-intelligence-server`)
+  were spot-checked (one transport each) but are
+  recommended-only verification surfaces, not
+  acceptance gates. This is documented in the Step 3
+  contract §7 and re-asserted in the harness commit
+  body.
+
+#### What Track K explicitly does NOT do
+
+For absolute clarity (carry-forward from Step 1 plan §7,
+Step 3 contract §13, and Step 4 commit body honest
+constraints):
+
+- No new transport family — no WebSocket / SSE / TCP /
+  Unix-socket / named-pipe transport.
+- No in-process TLS / HTTPS termination — Track H §13.1
+  forbid carried forward through Track J §5.
+- No mTLS / client certificate authentication — Track H
+  §13.3 carried forward.
+- No auth-scheme redesign — no JWT / OAuth 2.0 / OIDC /
+  SAML / SCIM / federated identity; no RBAC / ABAC /
+  per-tool ACL / per-tenant isolation / multi-tenant;
+  no token rotation endpoint / refresh tokens /
+  session cookies.
+- No deployment-boundary redesign — Track J §13 / §6 /
+  §7 / §8 carry-forward unchanged.
+- No rate limiting / WAF / IDS / DDoS protection /
+  anomaly detection in the listener.
+- No service supervisor / systemd unit / Windows
+  Service registration / launchd / hot reload /
+  restart watcher / auto-update.
+- No packaging ecosystem (`.msi` / `.deb` / signed
+  distribution / GUI installer / wizard / PyPI
+  publication / wheel publication beyond
+  `[project.scripts]`).
+- No web UI / dashboard frontend.
+- No observability stack (OpenTelemetry / Jaeger /
+  Prometheus / OpenMetrics / log aggregation /
+  distributed tracing).
+- No standalone `apps/platform` entrypoint.
+- No `/healthz` / `/readyz` / `/livez` endpoint.
+- No new MCP tools or registry change.
+- No multi-version 1С matrix expansion.
+- No rollback / AST work.
+- No 1cv8 work — Track K operates at the MCP client /
+  transport layer, not at the 1cv8 binary surface;
+  there were zero `1cv8.exe` runs in any Track K
+  step.
+- No real credentials — synthetic bearer token only,
+  generated at run time via
+  `secrets.token_urlsafe(32)`, never printed.
+- No "client integration solved forever" / "all
+  clients supported" / "production-ready client
+  compatibility" / "interop fully proven" claim. The
+  harness gate exercises only the narrow closure-gate
+  scenario against one primary server over two
+  transports plus two spot-checks; broader matrices
+  (third-party real MCP clients like Claude Desktop,
+  all servers / all mutating tools / all permutations,
+  hostile-internet posture, enterprise-grade identity
+  matrix) are recommended-only and remain explicitly
+  out of scope.
+- No deployment / packaging / enterprise-ready /
+  hostile-network-ready posture claim. Track J
+  trusted-internal-network-behind-operator-reverse-
+  proxy model carries forward unchanged.
+- No remote push (operator action; not part of any
+  Track K step).
+
+#### Active parallel track after Track K closure
+
+None. Eleven post-phase parallel tracks (A / B / C /
+D / E / F / G / H / I / J / K) closed sequentially.
+Phase 7 as a linear phase is not planned. Opening of
+any next parallel track is a separate operator
+decision. Recommended-only candidates (not auto-
+opened): TLS-in-process / mTLS expansion as a
+separate enterprise-grade identity track; service
+supervision / packaging ecosystem track; multi-
+version 1С matrix expansion (post-Track-E follow-up);
+full rollback / AST work (post-Track-F / post-
+Track-A follow-ups); observability stack track; web
+UI / dashboard frontend track.
 
 ### Parallel Track J — TLS and Reverse-Proxy Deployment Boundary (NO-BUMP closure under 0.5.1)
 
@@ -283,10 +626,18 @@ For absolute clarity (carry-forward from Step 3 contract
 
 #### Active parallel track after Track J closure
 
-None. Ten post-phase parallel tracks (A / B / C / D /
-E / F / G / H / I / J) closed sequentially. Phase 7 as
-a linear phase is not planned. Opening of any next
-parallel track is a separate operator decision.
+None at the time of Track J Step 6 commit. **Historical
+update at Track K Step 6:** the first of the
+recommended-next-track candidates ("real MCP client
+integration test track") was subsequently opened as
+Track K and fully closed under the same `0.5.1`
+version line (see the Track K subsection above for
+the full per-step narrative and Q7 = NO-BUMP
+reasoning). After Track K closure, eleven post-phase
+parallel tracks (A / B / C / D / E / F / G / H / I /
+J / K) closed sequentially. Phase 7 as a linear phase
+is not planned. Opening of any next parallel track is
+a separate operator decision.
 
 ### Parallel Track I — Installer Auth Round-Trip Integrity (PATCH bump 0.5.0 → 0.5.1)
 
