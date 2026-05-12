@@ -334,12 +334,64 @@
 > solved" / "all signals covered" claim — Track N's
 > closure-gate covers **только** одну integration-
 > and-naming slice; broader observability matrices
-> remain recommended-only. **Четырнадцать post-phase
+> remain recommended-only. Четырнадцать post-phase
 > parallel track'ов (A, B, C, D, E, F, G, H, I, J,
-> K, L, M, N) полностью закрыты последовательно;**
-> Phase 7 как линейная фаза не запланирована;
-> активного parallel track'а сейчас нет. Открытие
-> следующего параллельного трека — отдельное
+> K, L, M, N) полностью закрыты последовательно;
+> Phase 7 как линейная фаза не запланирована.
+> **Активный параллельный трек — Parallel Track O —
+> Dev-Time Editable Install and Workspace
+> Discovery**, открытый на Step 1 (planning only)
+> после Track N closure (commit `2737a52`, `0.5.2`).
+> Step 1 — planning-only: ship'нул две новых
+> architecture doc'и
+> ([`plan`](docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-plan.md)
+> +
+> [`step-map`](docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-step-map.md))
+> с Q1–Q7 directional defaults; никакого production
+> code, `pyproject.toml`, `scripts/*`, `SECURITY.md`,
+> `docs/release-handoff.md`, `apps/platform/
+> README.md`, `CHANGELOG.md`, manuals, или registry
+> change. Track O закрывает следующий честный gap:
+> после Track M ввёл узкий supported deploy-time
+> wheel distribution boundary (`pip install
+> <WHEEL_PATH>`), у проекта всё ещё нет formal
+> **dev-time** boundary — нет documented
+> `pip install -e .` flow для contributors editing
+> the repo, нет supported workspace discovery story
+> за пределами PowerShell-only `scripts/dev/
+> bootstrap_paths.ps1`, нет cross-OS bootstrap
+> parity. Gap явно acknowledged в репо:
+> `scripts/dev/README.md:5-11` verbatim говорит
+> "editable install и workspace discovery всё ещё
+> out of scope" — этот sentence был committed во
+> время Track M / Step 4 как explicit hand-off
+> marker. Track O — dedicated narrow track,
+> **orthogonal to Track M** (deploy-time wheel
+> distribution remains Track M's scope; dev-time
+> editable workflow is Track O's scope). Это **не**
+> containerised dev environment (no Dockerfile /
+> docker-compose / .devcontainer/), **не** IDE-
+> specific integration (no .vscode / .idea /
+> Cursor / Zed bundles), **не** remote-dev
+> workflow (no Codespaces / GitPod / Coder),
+> **не** multi-Python-version matrix (Python 3.11
+> pin preserved), **не** formatter / linter /
+> test-runner policy redesign, **не** alternative
+> build-backend evaluation, **не** transport / auth
+> / deployment / service / packaging / observability
+> redesign, **не** новые MCP tools, **не**
+> registry change, **не** 1cv8 work, **не** remote
+> push, **не** installable-from-git-URL story,
+> **не** "developer workflow solved forever" / "all
+> IDE integrations supported" / "all package
+> managers supported for dev install" /
+> "containerised dev environment shipped" /
+> "remote-dev shipped" / "enterprise developer
+> experience" claim. Tracks A–N closed state
+> carried byte-identical. Открытие следующих Track
+> O шагов (Step 2 baseline audit / Step 3 normative
+> contract / Step 4 narrow implementation / Step 5
+> docs alignment / Step 6 closure) — отдельное
 > operator decision. Registries `read=15 / write=25
 > / intelligence=16` invariant carried through.
 
@@ -992,15 +1044,157 @@ version-matrix smoke, etc.). Phase 7 как отдельная
 
 ## Active parallel track
 
-Активного parallel track'а сейчас нет. После Track N
-closure (см. «Track N detail (закрыт)» ниже)
-четырнадцать post-phase parallel track'ов (A, B, C,
-D, E, F, G, H, I, J, K, L, M, N) полностью закрыты
-последовательно; Phase 7 как линейная фаза не
-запланирована. Открытие следующего параллельного
-трека — отдельное operator decision; recommended-
-next-track кандидаты перечислены в финале секции
-«Track N detail (закрыт)».
+**Parallel Track O — Dev-Time Editable Install and
+Workspace Discovery** — открыт на Step 1 (planning
+only) после Track N closure (commit `2737a52`,
+`0.5.2`). Track O is the fifteenth post-phase
+parallel track and the first to address the
+contributor-facing dev-time boundary as an axis
+distinct from Track M's deploy-time packaging
+boundary.
+
+**Цель Track O.** Convertировать current honest gap
+
+> "после Track M введён узкий supported deploy-time
+> wheel distribution boundary, но у проекта всё ещё
+> нет formal **dev-time** boundary — нет documented
+> `pip install -e .` flow для contributors editing
+> the repo, нет supported workspace discovery story
+> за пределами PowerShell-only
+> `scripts/dev/bootstrap_paths.ps1`, нет cross-OS
+> bootstrap parity"
+
+в disciplined six-step closure track формы Tracks
+A–N (planning → audit → contract → narrow
+implementation → docs alignment → final integration
+pass). Track O закрывает следующий честный gap,
+который Track M / Step 4 explicitly hand-off'нул в
+`scripts/dev/README.md:5-11` ("editable install и
+workspace discovery всё ещё out of scope"). Track O
+**orthogonal to Track M**: deploy-time wheel
+distribution остаётся в scope Track M; dev-time
+editable workflow для contributors — это новая,
+отдельная axis.
+
+**Step 1 — planning only (этот commit).** Ship'нуты
+ровно два новых architecture doc'а:
+
+- [`docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-plan.md`](docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-plan.md)
+  — 14-section planning document (purpose / current
+  post-Track-N baseline / honest gap statement
+  grounded в `scripts/dev/README.md:5-11` explicit
+  hand-off sentence / why gap not closed by Track M
+  / goal / in-scope / out-of-scope / guardrails /
+  acceptance criteria / honest constraints /
+  relationship-to-Tracks-G/H/I/J/K/L/M/N table /
+  Q1–Q7 open questions с directional defaults / step
+  trajectory preview / honest summary).
+- [`docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-step-map.md`](docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-step-map.md)
+  — six-step boundary (Goal / What changes / What
+  does NOT change / Result) + 31 track invariants
+  block + hard out-of-scope carry-through list +
+  Step 6 Q7 framing.
+
+**Q1–Q7 directional defaults.**
+
+- Q1 (closure-gate target) → **(A) one supported
+  dev-time workflow recipe** as narrowest honest
+  closure; PATH B (recipe + narrow declarative
+  slice) acceptable fallback per Step 2 audit; PATH
+  C (recipe + bootstrap helper script) rejected by
+  default.
+- Q2 (primary problem focus) → **(A) narrow
+  contributor-facing dev-time editable install +
+  workspace discovery + bootstrap boundary**;
+  (B) installable-from-git-URL rejected; (C)
+  broader DX (formatter/linter/test policies)
+  rejected.
+- Q3 (Step 4 PATH openness) → **PATH A docs-only
+  primary**, PATH B held in reserve; **Step 4
+  PATH not locked at Step 1**; Step 3 contract
+  is the lock point.
+- Q4 (minimum closure scope) → closure document
+  MUST eventually answer: how developer installs
+  from checkout; whether `pip install -e .` is
+  supported; how workspace discovery works (which
+  src-layout paths are dev-time PYTHONPATH entries
+  vs. wheel-build `packages` entries — currently
+  the same 11, per Track M); what is first-class
+  vs. recommended-only vs. out-of-scope.
+- Q5 (insufficient closure proof) → "just clone the
+  repo" / "`pip install -e .` maybe works" / ad-hoc
+  tribal knowledge / scattered comments / generic
+  developer folklore — все insufficient.
+- Q6 (production code change) → likely **NOT
+  required**; this is declarative / dev-tooling /
+  docs boundary; Step 2 audit must verify
+  honestly.
+- Q7 (SemVer expectation) → **(A) NO-BUMP** if
+  Step 4 PATH A; (B) PATCH considered only под
+  PATH B with honest defect-class declarative
+  repair closing `scripts/dev/README.md:5-11`
+  out-of-scope sentence; (C) MINOR explicitly
+  rejected by guardrails; MAJOR forbidden by track
+  scope.
+
+**Step 1 явно НЕ делает:** не открывает Step 2; не
+пишет audit doc; не меняет production code; не
+меняет `pyproject.toml`; не меняет `scripts/*`; не
+меняет `SECURITY.md`; не меняет `docs/release-
+handoff.md`; не меняет `CHANGELOG.md`; не меняет
+`apps/platform/README.md`; не меняет manuals; не
+меняет existing operator recipes (Track J/L/M/N
+byte-identical); не меняет registries (`read=15 /
+write=25 / intelligence=16` invariant carried
+through); не запускает `1cv8.exe`; не делает
+remote push; не фиксирует Q1–Q7 как decided
+answers (только defaults / directional
+recommendations); не добавляет Track O в Closed
+parallel tracks list (still 14 entries A–N; что
+произойдёт только на Step 6).
+
+**Что Track O явно НЕ решает (carry-through через
+все шесть шагов).** No containerised dev
+environment (no Dockerfile / docker-compose /
+.devcontainer/); no IDE-specific integration (no
+.vscode / .idea / Cursor / Zed / Sublime / Vim
+project files bundled); no remote-dev workflow (no
+Codespaces / GitPod / Coder template); no multi-
+Python-version matrix (Python 3.11 pin preserved);
+no formatter / linter / test-runner policy
+redesign (existing `[tool.ruff]` and
+`[tool.pytest.ini_options]` operator-side
+discretion); no alternative build-backend
+evaluation (hatchling remains); no transport /
+auth / deployment / service / packaging /
+observability redesign; no enterprise identity
+stack; no clustering / HA / orchestration; no web
+UI / dashboard frontend; no `/healthz` (Track J §6
+defer preserved); no new MCP tools; no registry
+changes; no new CLI flag on existing servers; no
+new `[project.scripts]` entries; no new
+dependencies; no new entrypoint module; no
+`1cv8.exe` runs; no rollback / AST / multi-version
+1С matrix expansion; no installable-from-git-URL
+story; no remote push; no "developer workflow
+solved forever" / "all IDE integrations
+supported" / "all package managers supported for
+dev install" / "containerised dev environment
+shipped" / "remote-dev shipped" / "enterprise
+developer experience" / "production-ready DX" /
+"DX matrix complete" claim.
+
+**Selfcheck note.** `scripts/dev/selfcheck.py`
+`status=ok` на post-Step-1 commit; registries
+`read=15 / write=25 / intelligence=16` invariant
+preserved. `scripts/release/verify-release.ps1
+-AllowDirtyTree` GREEN на 8 checks.
+
+**Канонический next step:** Parallel Track O /
+Step 2 — descriptive baseline audit of current
+dev-time editable install / workspace discovery /
+bootstrap state. Открытие Step 2 — отдельное
+operator decision; никакой автоматизации.
 
 ## Track N detail (закрыт)
 
