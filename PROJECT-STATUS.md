@@ -2,17 +2,49 @@
 
 ## Текущий шаг
 
-**Активного шага нет.** Phase 1–6 закрыты ранее;
-тринадцать post-phase parallel track'ов (A, B, C,
-D, E, F, G, H, I, J, K, L, M) полностью закрыты
-последовательно. Последний закрытый трек — **Parallel
-Track M — Packaging Ecosystem and Distribution
-Boundary** (Steps 1–6 завершены, Step 6 — этот
-closure commit). См. блок «Статус» ниже для Track M /
-Track L / Track K / Track J / Track I closure
-narrative и список рекомендованных (но не открытых
-автоматически) кандидатов на следующий parallel
-track.
+**Parallel Track N / Step 1 — planning observability
+and diagnostics boundary** (`in progress` на уровне
+Track N в целом; Step 1 сам по себе **завершён** в
+этом коммите как planning-only documentation step).
+Phase 1–6 закрыты ранее; тринадцать post-phase
+parallel track'ов (A, B, C, D, E, F, G, H, I, J,
+K, L, M) полностью закрыты последовательно. Последний
+закрытый трек — **Parallel Track M — Packaging
+Ecosystem and Distribution Boundary** (closure
+commit `a3bdc48`, Q7 = PATCH, `0.5.1 → 0.5.2`);
+**Parallel Track N — Observability and Diagnostics
+Boundary** открыт как четырнадцатый post-phase
+parallel track. Track N — disciplined six-step
+closure track формы Tracks A–M: Step 1 (planning,
+этот commit) / Step 2 (descriptive baseline audit) /
+Step 3 (normative contract) / Step 4 (narrow
+implementation slice, default PATH A docs-only,
+fallback PATH B/C ≤ 200 LOC stdlib-only) / Step 5
+(docs / operator / release alignment) / Step 6
+(final integration pass + Q6 versioning decision).
+Step 1 — **planning-only**: ship'нул две новых
+architecture doc'и
+([`docs/architecture/track-n-observability-and-diagnostics-boundary-plan.md`](docs/architecture/track-n-observability-and-diagnostics-boundary-plan.md),
+[`docs/architecture/track-n-observability-and-diagnostics-boundary-step-map.md`](docs/architecture/track-n-observability-and-diagnostics-boundary-step-map.md))
+с Q1–Q7 directional defaults; никакого production
+code change; никакого `pyproject.toml` / `scripts/*` /
+`SECURITY.md` / `docs/release-handoff.md` / `CHANGELOG.md`
+/ `apps/platform/README.md` change; никакого registry
+change (`read=15 / write=25 / intelligence=16`
+invariant carried through); никаких 1cv8.exe runs;
+никаких real credentials; никакого remote push. См.
+секцию «Parallel Track N / Step 1 — planning
+observability and diagnostics boundary (завершён)»
+ниже для подробностей. Track M closure block внизу
+этого статус-документа preserved byte-identical — см.
+блок «Статус» ниже для Track M / Track L / Track K /
+Track J / Track I closure narrative и список
+рекомендованных (но не открытых автоматически)
+кандидатов на следующий parallel track. **Каноничный
+next step — Parallel Track N / Step 2 — descriptive
+baseline audit of current observability / diagnostics
+state** (открытие — отдельное operator decision; не
+автоматизируется).
 
 ## Статус
 
@@ -14935,6 +14967,282 @@ read/write/intelligence-серверов, с честно
   of Track M scope — Track M ship'нул deploy-time
   `pip install` flow, не dev-time editable). Эти
   кандидаты — recommendation only, не auto-opened.
+  **Историческая правка (Track N / Step 1):** "полный
+  observability stack track (OpenTelemetry /
+  Prometheus / log aggregation)" из списка
+  recommended-next-track candidates был частично
+  выбран как следующий открываемый трек — открыт как
+  **Track N — Observability and Diagnostics Boundary**
+  (на момент написания этой правки Track N открыт
+  только на Step 1, planning, docs-only; полное
+  closure Track N — Step 6). Важное scope-уточнение:
+  Track N **намеренно намного уже** того, что фраза
+  "full observability stack track" в этом списке
+  подразумевала. Полный OpenTelemetry program,
+  Prometheus/OpenMetrics rollout, Grafana/Tempo/Loki/
+  Jaeger platform, SIEM/SOC integration, distributed
+  tracing, alerting/paging/on-call workflows, log-
+  aggregation forwarder, structured-logging library
+  rollout — **explicitly остаются за пределами scope
+  Track N** как отдельные potential tracks. Track N
+  sticks к одной narrow observability/diagnostics-
+  boundary slice (документация supported diagnostic
+  surface, опционально один narrow ≤ 200 LOC
+  stdlib-only code slice). См. секцию «Parallel
+  Track N / Step 1 — planning observability and
+  diagnostics boundary (завершён)» ниже для
+  подробностей.
+
+### Parallel Track N / Step 1 — planning observability and diagnostics boundary (завершён)
+
+- **Цель.** Открыть четырнадцатый post-phase parallel
+  track — Track N — как **planning-only**
+  документационный шаг, который закрывает следующий
+  честный продуктовый gap: у платформы уже есть
+  рабочие MCP entrypoints (Track G), HTTP/stdio
+  transports (Tracks G/H), bearer auth (Track H),
+  installer integrity (Track I), deployment-boundary
+  recipe (Track J), real MCP client smoke proof
+  (Track K), service-supervision recipe + systemd
+  template (Track L), и packaging/distribution
+  boundary + buildable wheel (Track M), но у неё
+  всё ещё нет first-class observability /
+  diagnostics boundary — нет единого operator-facing
+  document, который позитивно называет, какие из
+  существующих ad-hoc diagnostic surfaces (stderr на
+  трёх MCP server entrypoints, exit codes,
+  `scripts/dev/selfcheck.py` single-line status +
+  structured summary, `scripts/release/verify-release.ps1`
+  8-check gate output, `scripts/dev/mcp_client_smoke.py`
+  structured progress lines, HTTP transport auth-
+  failure response `401 + WWW-Authenticate: Bearer
+  realm="mcp" + JSON-RPC -32001`, install fast-path
+  output с password-position redaction по Track D,
+  Track L systemd integration через `systemctl
+  status` / `journalctl -u`) первоклассные supported
+  diagnostic signals, какие recommended-only, и что
+  именно продукт **не** обещает (no full OTel / no
+  Prometheus / no Grafana / no SIEM / no distributed
+  tracing / no alerting / no on-call / no
+  `/healthz`). Track J / Track L / Track M каждый
+  denying "full observability stack" в своём scope —
+  никто не определял позитивно, что supported
+  diagnostic surface IS. Step 1 — два planning-
+  документа без code changes; Step 4 design-question
+  (docs-only PATH A vs. narrow code-bearing
+  diagnostic slice PATH B vs. narrow log-shape
+  contract slice PATH C) **остаётся открытым** до
+  Step 2 audit + Step 3 contract.
+- **Что shipped в Step 1.**
+  - `docs/architecture/track-n-observability-and-diagnostics-boundary-plan.md` —
+    14-секционный planning-документ: §1 purpose /
+    why track exists, §2 current post-Track-M
+    baseline (existing diagnostic surfaces §2.1,
+    what is not in repo today §2.2, what Track N
+    therefore must close §2.3), §3 honest gap
+    statement (пять independently verifiable
+    observations: нет central observability
+    document, нет log-shape contract, нет
+    documented triage recipe, нет machine-readable
+    health signal documented, нет central non-goals
+    document), §4 why gap not already solved
+    (rejection of шести candidate "we already have
+    this" arguments: selfcheck IS diagnostic
+    surface / verify-release IS diagnostic surface /
+    mcp_client_smoke IS diagnostic surface / stderr
+    IS observability / Track L recipe already
+    covers this / operators write their own
+    observability / Track J/L/M already deny full
+    observability), §5 goal of the track, §6
+    in-scope, §7 out-of-scope (32 explicit denials
+    включая full OTel program / Prometheus /
+    Grafana-Tempo-Loki-Jaeger / SIEM / distributed
+    tracing / alerting / web UI / `/healthz` / log-
+    aggregation forwarder / structured-logging
+    library / log-level redesign / new CLI flag /
+    new entrypoint module / new dependencies),
+    §8 guardrails (22 hard invariants), §9
+    acceptance criteria for eventual closure (11
+    items), §10 honest constraints after closure,
+    §11 relationship to Tracks G/H/I/J/K/L/M
+    table, §12 Q1–Q7 open questions с directional
+    recommendations only (no fake certainty),
+    §13 step trajectory preview table, §14 honest
+    summary.
+  - `docs/architecture/track-n-observability-and-diagnostics-boundary-step-map.md` —
+    6-step map в формате «Goal / What changes /
+    What does NOT change / Result» для каждого
+    шага; track-invariants block с 25 hard
+    constraints включая Tracks A–M deliverables
+    byte-identical, Track K diagnostic harness
+    byte-identical, Track J deployment-boundary
+    recipe byte-identical, Track L service-
+    supervision recipe + systemd template byte-
+    identical, Track M distribution-boundary recipe
+    + wheel-build flip byte-identical (11 src-
+    layout packages array preserved); hard out-of-
+    scope list с 27+ categorical denials; Step 4
+    explicitly preserves PATH A / B / C openness;
+    Step 6 — Q6 framing с NO-BUMP / PATCH /
+    MINOR-forbidden conditions.
+- **Q1–Q7 directional defaults (plan §12).**
+  - Q1 = что считается "observability/diagnostics"
+    для closure → **PATH A docs-only** как
+    narrowest honest closure (PATH B / PATH C
+    considered fallback per Step 2 audit).
+  - Q2 = diagnostic artefact only vs. triage story
+    too → **(B) triage story included** as
+    operator-facing closure target (3–5 canonical
+    failure modes end-to-end MUST cover); recipe
+    alone qualifies as Track N closure even при
+    PATH A.
+  - Q3 = artefact class в Step 4 → **(A) no
+    artefact** как narrowest closure path; (B)
+    `selfcheck --json` структура narrow slice как
+    fallback if Step 2 audit reveals strong
+    machine-readable-signal honest gap; (C) log-
+    shape contract slice rejected by default
+    (touches all three MCP server entrypoints); (D)
+    diagnostic-bundle helper rejected by default
+    (duplicates Track K / Track L surfaces).
+  - Q4 = cross-OS vs. one primary observation OS →
+    **(B) Linux/systemd/journald primary**,
+    симметрично Track L closure target; cross-OS
+    prose для Windows (NSSM / Event Viewer) и
+    macOS (launchd / Console.app); recipe SHOULD
+    extend Track L's `journalctl -u mcp-server`
+    surface into documented signal vocabulary.
+  - Q5 = current selfcheck / verify-release / client
+    smoke в supported diagnostics surface → **(A)
+    all three first-class**, each с named role
+    (`selfcheck.py` = pre-flight gate /
+    `verify-release.ps1` = release-side gate /
+    `mcp_client_smoke.py` = transport-boundary
+    smoke); zero code cost.
+  - Q6 = NO-BUMP / PATCH / MINOR → **(A) NO-BUMP**
+    if Step 4 PATH A; PATCH considered только если
+    Step 4 PATH B/C ships honest defect-class
+    diagnostic-surface repair (мирror Track I /
+    Track M PATCH precedents); MINOR explicitly
+    rejected by guardrails §8.5 (no new CLI flag),
+    §8.6 (no new entrypoint module), §8.7 (no new
+    dependencies); MAJOR forbidden by track scope.
+  - Q7 = как избежать silent expansion в full
+    observability platform → **(C) both denial
+    discipline + numeric caps** simultaneously
+    locked through every step (explicit denial of
+    OTel / Prometheus / Grafana / Tempo / Loki /
+    Jaeger / SIEM / distributed tracing / alerting /
+    on-call в каждом track doc + Step 3 contract
+    pins ≤ 3 files Step 4 file-surface cap + ≤ 200
+    LOC stdlib-only LOC cap + no new dependency +
+    no new entrypoint module + no new CLI flag).
+- **Что Step 1 НЕ делал.**
+  - Не правил production-код (никаких изменений в
+    `apps/*/src/`, `packages/*/src/`).
+  - Не правил `pyproject.toml` (`version=0.5.2`
+    preserved от Track M closure bump; wheel-build
+    `packages = [...]` 11-element array preserved
+    byte-identical к Track M / Step 4 flip).
+  - Не открывал и не правил Step 2 audit / Step 3
+    contract / Step 4 implementation / Step 5
+    alignment / Step 6 closure.
+  - Не менял registries (`read=15 / write=25 /
+    intelligence=16` invariant carried through;
+    никаких новых MCP tool'ов в Step 1).
+  - Не правил `scripts/dev/selfcheck.py`,
+    `scripts/release/verify-release.ps1`,
+    `scripts/release/install.ps1`,
+    `scripts/release/_install_runner.py`,
+    `scripts/dev/bootstrap_paths.ps1`,
+    `scripts/dev/launch.ps1`,
+    `scripts/dev/run_dev_check.ps1`,
+    `scripts/dev/mcp_client_smoke.py` (Track K
+    artefact) — все byte-identical.
+  - Не правил `SECURITY.md`,
+    `docs/release-handoff.md`,
+    `apps/platform/README.md`,
+    `scripts/release/README.md`,
+    `scripts/dev/README.md`, `CHANGELOG.md`,
+    manuals, Closed parallel tracks list (Track N
+    не moved туда — Track N active).
+  - Не правил `docs/operators/deployment-boundary.md`
+    (Track J artefact), `docs/operators/service/*`
+    (Track L artefacts), или
+    `docs/operators/packaging/distribution-boundary.md`
+    (Track M artefact) — все byte-identical.
+  - Не запускал `1cv8.exe` (Track N работает на
+    observability/diagnostics-documentation layer,
+    не на 1cv8 binary surface).
+  - Не вводил никаких реальных credentials в repo /
+    docs / commit message.
+  - Не делал remote push / GitHub release —
+    operator action, не часть трека.
+  - Не открывал Track N Step 2 в этом же commit'е.
+  - Не использовал premature closure language —
+    Track N framed как **active** (Step 1
+    in-progress по уровню Track, Step 1 сам по себе
+    завершён; Step 2–6 впереди); фразы
+    "observability solved forever" / "production-
+    ready observability" / "full OTel
+    instrumentation" / "Prometheus platform
+    shipped" / "distributed tracing ready" /
+    "SIEM-ready" / "enterprise-ready observability"
+    / "alerting solved" появляются в touched docs
+    **только** как explicit DENIALS.
+  - Не делал false implementation claims — Q1–Q7
+    presented как **defaults** / **directional
+    recommendations**, не как decided answers;
+    Step 3 contract — место для locking.
+- **Документ scope.** Ровно четыре файла: 2 новых
+  planning-документа в `docs/architecture/` +
+  README.md (Quickstart paragraph дополнен Track N
+  active narrative; "Active parallel track" section
+  reopened с Track N описанием) + PROJECT-STATUS.md
+  (header rewrite + эта section). Track M closure
+  block внизу этого статус-документа preserved
+  byte-identical.
+- **Verify-release.ps1 -AllowDirtyTree.** GREEN на
+  8 checks; никаких реальных credentials в Step 1
+  diff'е; registries `read=15 / write=25 /
+  intelligence=16` без drift'а.
+- **Selfcheck после Step 1.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без
+  drift'а; `selfcheck_status=ok`; никаких реальных
+  credentials в Step 1 diff'е.
+- **Следующий шаг.** **Parallel Track N / Step 2 —
+  baseline audit of current observability /
+  diagnostics state (docs-only).** Новый descriptive
+  audit-документ
+  (`docs/architecture/track-n-observability-and-diagnostics-boundary-baseline-audit.md`)
+  с inventory stderr emission across трёх MCP
+  server entrypoints (which startup banner lines
+  emitted, где в code, with what shape); inventory
+  exit-code paths (SystemExit / KeyboardInterrupt /
+  unhandled-exception / config-load-failure /
+  auth-config-failure); inventory selfcheck.py
+  output shape; inventory verify-release.ps1 output
+  shape; inventory mcp_client_smoke.py output
+  shape; inventory HTTP transport auth-failure
+  responses (Track H 401 + WWW-Authenticate +
+  JSON-RPC -32001); inventory install fast-path
+  output shape (Track D password-position
+  redaction); inventory Track L systemd
+  integration observation surface; whole-repo grep
+  results для observability-vocabulary patterns
+  (`log` / `logging` / `INFO` / `WARN` / `ERROR` /
+  `DEBUG` / `--log-level` / `selfcheck` / `verify` /
+  `triage` / `troubleshoot` / `diagnostic` /
+  `health` / `monitoring` / `metrics` / `tracing` /
+  `prometheus` / `otel` / `opentelemetry` /
+  `jaeger` / `tempo` / `loki` / `grafana` / `siem`);
+  4-class breakdown (already-reusable / adjacent-
+  but-insufficient / clearly-missing / explicitly-
+  out-of-scope); directional Q1–Q5 resolutions с
+  evidence-grounded recommendations + Step 3
+  handoff list (≥ 10 items). Production-код Step 2
+  не правит. Никаких real credentials. **GitHub
+  remote push — operator action, не часть трека.**
 
 ## Phase 6 закрыта
 
