@@ -693,6 +693,50 @@ For the security report flow, see `SECURITY.md`.
   and-naming slice; no metrics platform, no tracing,
   no alerting, no `/healthz`, no log-aggregation
   forwarder, no structured-logging library ships.
+- **Contributor-facing dev-time editable install
+  and workspace discovery recipe** (Track O / Step 4
+  deliverable, PATH A docs-only) at
+  [`docs/dev/editable-install-and-workspace-discovery.md`](dev/editable-install-and-workspace-discovery.md).
+  The single recipe for contributors editing the
+  repo in place. First-class install verb is
+  `pip install -e .` (run from repo root in a Python
+  3.11 environment; mechanically supported by
+  hatchling's PEP 660 default against the Track M
+  `[tool.hatch.build.targets.wheel] packages` 11-
+  element array). Recommended-only Windows-only
+  alternative is dot-sourcing
+  `scripts/dev/bootstrap_paths.ps1`. Includes
+  supported tooling preconditions (Python 3.11 +
+  `pip` mandatory; venv tool recommended;
+  build/ruff/pytest/IDE not required by recipe),
+  workspace-discovery answer (eleven src-layout
+  package roots verbatim from `pyproject.toml:51-63`
+  with dual-role explanation — Track M wheel-build
+  packages array + dev-time PYTHONPATH), verification
+  step (`python scripts/dev/selfcheck.py` →
+  `selfcheck_status = ok` inheriting Track N FC4),
+  relationship-to-Track-M orthogonal-and-
+  complementary statement, cross-OS posture (Windows
+  primary; POSIX served by editable install only;
+  non-3.11 out of scope), and authoritative non-
+  goals. This is **orthogonal-and-complementary** to
+  the operator-facing packaging recipe above:
+  deploy-time wheel distribution is Track M's scope;
+  dev-time editable workflow for contributors is
+  Track O's scope; both share byte-identically the
+  eleven-element `packages` array as the workspace.
+  **Not** a closure of "developer workflow solved
+  forever" / "all IDE integrations supported" / "all
+  package managers supported for dev install" /
+  "containerised dev environment shipped" /
+  "remote-dev shipped" / "enterprise developer
+  experience" / "production-ready DX" / "DX matrix
+  complete" — covers only the narrow contributor-
+  facing install + workspace-discovery + bootstrap
+  boundary; no containerised dev, no IDE
+  integrations, no remote-dev, no multi-Python-
+  version matrix, no formatter/linter/test-runner
+  policy ships.
 - **Administrator-facing reference** — `docs/administrator-manual.md`.
 - **Developer-facing reference** — `docs/developer-manual.md`.
 - **Reproducible scenarios** — `docs/runbooks/`, including the

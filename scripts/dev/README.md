@@ -2,13 +2,18 @@
 
 Скрипты для локальной разработки 1C Agent Platform.
 
-На текущем этапе это временный bootstrap для монорепы:
-editable install и workspace discovery всё ещё out of scope. Track M /
-Step 4 ввёл узкий supported distribution boundary — один buildable
-`py3-none-any` wheel (см.
-[`docs/operators/packaging/distribution-boundary.md`](../../docs/operators/packaging/distribution-boundary.md)),
-но он покрывает `pip install` deployment flow, не dev-time editable
-install.
+Dev-time editable install и workspace discovery теперь
+documented как first-class contributor workflow в
+[`docs/dev/editable-install-and-workspace-discovery.md`](../../docs/dev/editable-install-and-workspace-discovery.md)
+(Track O / Step 4 deliverable). First-class install
+verb — `pip install -e .`; recommended-only Windows-
+only alternative — dot-source `bootstrap_paths.ps1`
+(см. ниже). Track M / Step 4 ввёл orthogonal deploy-
+time wheel distribution boundary (один buildable
+`py3-none-any` wheel, см.
+[`docs/operators/packaging/distribution-boundary.md`](../../docs/operators/packaging/distribution-boundary.md))
+— это **другая** axis (operator-facing, не
+contributor-facing).
 
 Если ты только пришёл в проект — начни с `launch.ps1` (умbrella-вход
 в типовые локальные действия). Остальные скрипты ниже — это нижний
@@ -191,8 +196,11 @@ import/wiring skeleton-модулей и registry counts, без запуска
 
 ## Статус
 
-Это временный bootstrap-этап. Track M / Step 4 закрыл deploy-time
-packaging boundary (один buildable wheel, см.
-[`docs/operators/packaging/distribution-boundary.md`](../../docs/operators/packaging/distribution-boundary.md));
-dev-time editable install, workspace discovery и CLI-скрипты под
-local-dev workflow по-прежнему out of scope.
+Track O / Step 4 закрыл dev-time editable install и workspace discovery
+boundary — см. [`docs/dev/editable-install-and-workspace-discovery.md`](../../docs/dev/editable-install-and-workspace-discovery.md)
+для contributor-facing recipe (first-class `pip install -e .` +
+recommended-only `bootstrap_paths.ps1` dot-source на Windows).
+Track M / Step 4 закрыл orthogonal deploy-time wheel distribution
+boundary (`pip install <WHEEL_PATH>`, см.
+[`docs/operators/packaging/distribution-boundary.md`](../../docs/operators/packaging/distribution-boundary.md))
+— другая axis (operator-facing).

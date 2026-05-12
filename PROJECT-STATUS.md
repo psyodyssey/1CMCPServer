@@ -2,70 +2,85 @@
 
 ## Текущий шаг
 
-**Parallel Track O / Step 1 — planning dev-time
-editable install and workspace discovery**
-(`in progress` на уровне Track O в целом; Step 1
-сам по себе **завершён** в этом коммите как
-planning-only documentation step). Phase 1–6
-закрыты ранее; четырнадцать post-phase parallel
-track'ов (A, B, C, D, E, F, G, H, I, J, K, L, M,
-N) полностью закрыты последовательно. Последний
-закрытый трек — **Parallel Track N — Observability
-and Diagnostics Boundary** (closure commit
-`2737a52`, Q6 = NO-BUMP, под existing `0.5.2`);
-**Parallel Track O — Dev-Time Editable Install and
-Workspace Discovery** открыт как пятнадцатый
-post-phase parallel track. Track O — disciplined
-six-step closure track формы Tracks A–N: Step 1
-(planning, этот commit) / Step 2 (descriptive
-baseline audit) / Step 3 (normative contract) /
-Step 4 (narrow implementation slice, default PATH
-A docs-only, fallback PATH B narrow declarative
-slice / PATH C bootstrap helper) / Step 5 (docs /
-operator / release alignment) / Step 6 (final
-integration pass + Q7 versioning decision). Step 1
-— **planning-only**: ship'нул две новых
-architecture doc'и
-([`plan`](docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-plan.md),
-[`step-map`](docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-step-map.md))
-с Q1–Q7 directional defaults; никакого production
-code change; никакого `pyproject.toml` /
-`scripts/*` / `SECURITY.md` / `docs/release-
-handoff.md` / `CHANGELOG.md` / `apps/platform/
-README.md` / manuals change; никакого registry
-change (`read=15 / write=25 / intelligence=16`
-invariant carried through); никаких 1cv8.exe
-runs; никаких real credentials; никакого remote
-push; никакого touching existing Track J/L/M/N
-operator recipes. Track O закрывает следующий
-честный gap: после Track M ввёл узкий supported
-deploy-time wheel distribution boundary
-(`pip install <WHEEL_PATH>`), у проекта всё ещё
-нет formal **dev-time** boundary — нет documented
-`pip install -e .` flow для contributors editing
-the repo, нет supported workspace discovery story
-за пределами PowerShell-only `scripts/dev/
-bootstrap_paths.ps1`, нет cross-OS bootstrap
-parity. Gap явно acknowledged в репо:
-`scripts/dev/README.md:5-11` verbatim говорит
-"editable install и workspace discovery всё ещё
-out of scope" — этот sentence был committed во
-время Track M / Step 4 как explicit hand-off
-marker. Track O **orthogonal to Track M**:
-deploy-time wheel distribution остаётся в scope
-Track M; dev-time editable workflow для
-contributors — это новая, отдельная axis. См.
-секцию «Parallel Track O / Step 1 — planning
-dev-time editable install and workspace discovery
-(завершён)» ниже для подробностей. Track N
-closure block + всё previous status preserved
-byte-identical — см. блоки «Статус» ниже для
-Track N / Track M / Track L / Track K / Track J /
-Track I closure narrative и список рекомендованных
-кандидатов на следующий parallel track.
+**Parallel Track O / Step 5 — developer docs and
+dev-time workflow alignment** (`in progress` на
+уровне Track O в целом; Steps 1–4 **closed**
+sequentially; Step 5 сам по себе **завершён** в
+этом коммите как narrow CLASS-1 / CLASS-2 docs-
+alignment step; Step 6 final integration pass и Q7
+SemVer lock впереди). Phase 1–6 закрыты ранее;
+четырнадцать post-phase parallel track'ов (A, B,
+C, D, E, F, G, H, I, J, K, L, M, N) полностью
+закрыты последовательно. Последний закрытый
+трек — **Parallel Track N — Observability and
+Diagnostics Boundary** (closure commit `2737a52`,
+Q6 = NO-BUMP, под existing `0.5.2`); **Parallel
+Track O — Dev-Time Editable Install and Workspace
+Discovery** открыт как пятнадцатый post-phase
+parallel track. Track O — disciplined six-step
+closure track формы Tracks A–N: Step 1 (planning,
+commit `4122431`) / Step 2 (descriptive baseline
+audit, commit `c8941a4`) / Step 3 (normative
+contract, commit `2a24fc4`) / Step 4 (narrow
+PATH A implementation, commit `24b2ee7`) / Step 5
+(docs / dev / release alignment, **этот commit**)
+/ Step 6 (final integration pass + Q7 versioning
+decision, **впереди**). Step 4 ship'нул ровно один
+новый файл —
+[`docs/dev/editable-install-and-workspace-discovery.md`](docs/dev/editable-install-and-workspace-discovery.md)
+(586 lines, под soft cap ≤700 RECOMMENDED) —
+first-class contributor-facing recipe со всеми
+contract-required elements (supported install
+verbs LOCKED: first-class `pip install -e .` +
+recommended-only `bootstrap_paths.ps1` Windows-
+only dot-source; supported tooling preconditions:
+Python 3.11 + pip mandatory; workspace-discovery
+answer: 11 src-layout package roots verbatim from
+`pyproject.toml:51-63` с dual-role explanation —
+Track M wheel-build packages array + dev-time
+PYTHONPATH; verification step: `python scripts/
+dev/selfcheck.py` → `selfcheck_status = ok` with
+Track N FC4 inheritance; HTTP-envelope-style
+relationship table к Track M deploy-time wheel
+workflow as orthogonal-and-complementary axes;
+cross-OS posture Linux/POSIX served by editable
+install + Windows primary + non-3.11 out of scope;
+authoritative non-goals 7-sub-section enumeration;
+6 mandatory cross-references к Track M
+distribution-boundary + pyproject.toml +
+bootstrap_paths.ps1 + launch.ps1 + selfcheck.py +
+scripts/dev/README.md; 8 mandatory explicit
+denials of forbidden maturity claims). Step 5 —
+**narrow CLASS-1 docs-alignment** под post-Step-4
+reality: README Quickstart + "Active parallel
+track" section + этот PROJECT-STATUS header +
+новые per-step sections для Steps 2/3/4/5 + Step
+3 contract §3.5 / §13.4 authorised narrow line-
+replacement of `scripts/dev/README.md:5-11` +
+`:192-198` hand-off-marker sentences с pointer на
+новый recipe + one narrow CLASS-2 cross-link bullet
+в [`docs/release-handoff.md`](docs/release-handoff.md)
+"Where to read deeper". Никакого production code
+change; никакого `pyproject.toml` / `scripts/*.ps1`
+/ `scripts/*.py` / `SECURITY.md` / `CHANGELOG.md` /
+`apps/platform/README.md` / manuals touch (вне
+authorised narrow `scripts/dev/README.md`
+replacement); никакого registry change (`read=15
+/ write=25 / intelligence=16` invariant carried
+through через все пять Track O шагов); никаких
+1cv8.exe runs; никаких real credentials; никакого
+remote push; никакой premature Track O closure
+language — closure narrative + Closed-tracks list
+extension (14 → 15) + "Track O detail (закрыт)"
+section + Q7 SemVer lock + CHANGELOG entry
+остаются **строго Step 6 territory**. См. секции
+«Parallel Track O / Step 1–5 (завершён)» ниже для
+подробностей. Track N closure block + всё previous
+status preserved byte-identical — см. блоки
+«Статус» ниже для Track N / Track M / Track L /
+Track K / Track J / Track I closure narrative.
 **Каноничный next step — Parallel Track O / Step
-2 — descriptive baseline audit of current dev-time
-editable install / workspace discovery state**
+6 — final integration pass and track closure**
 (открытие — отдельное operator decision; не
 автоматизируется).
 
@@ -16221,6 +16236,400 @@ read/write/intelligence-серверов, с честно
   handoff list (≥ 10 items). Production-код Step 2
   не правит. Никаких real credentials. **GitHub
   remote push — operator action, не часть трека.**
+
+### Parallel Track O / Step 2 — dev-time baseline audit (завершён)
+
+- **Цель.** Один descriptive baseline-audit
+  document под Track O / Step 2 — `documentation-
+  only`, grounded в repo evidence на HEAD
+  `4122431`, version `0.5.2`, registries `read=15
+  / write=25 / intelligence=16`. Convertирует Step
+  1 directional Q1–Q7 defaults в evidence-grounded
+  directional resolutions для Step 3 contract.
+- **Что shipped в Step 2.**
+  - `docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-baseline-audit.md` —
+    9-секционный descriptive audit с file:line
+    citations: §1 Purpose / scope; §2 Method /
+    evidence sources (pyproject.toml + .python-
+    version + all scripts/dev/* + scripts/release/
+    README.md + distribution-boundary.md + .gitignore
+    + CI workflow + whole-repo grep + filesystem
+    checks); §3 Current baseline (18 sub-sections
+    enumerating: hatchling build backend; [project]
+    metadata; absent [project.dependencies]; three
+    [project.scripts] console entries; [tool.ruff]
+    + [tool.pytest.ini_options] с tests/ not
+    existing; 11-element wheel-build packages array
+    Track M lock; .python-version Python 3.11 pin;
+    bootstrap_paths.ps1 PowerShell-only; launch.ps1
+    umbrella; run_dev_check.ps1; selfcheck.py;
+    mcp_client_smoke.py acknowledgement; **scripts/
+    dev/README.md:5-11 + :192-198 verbatim hand-off
+    marker**; **phase-1-entry.md:79-82 older
+    anchor**; scripts/release/README.md dev-vs-deploy
+    delimiter; distribution-boundary.md zero
+    dev-time hits; .gitignore; CI workflow;
+    tests/ directory does not exist); §4 Existing
+    reusable surfaces (8 items including 11-element
+    src-layout list synchronised between two files,
+    hatchling PEP 660 latent capability,
+    launch.ps1 umbrella, selfcheck.py); §5 Adjacent-
+    but-insufficient surfaces (7 items each
+    individually insufficient); §6 Clearly missing
+    pieces (5 items + explicit "what is NOT missing
+    because not in scope"); §7 Directional Q1–Q6
+    resolutions; §8 Step 3 handoff note (14+
+    items); §9 Honest summary.
+  - **Key finding.** Gap is **integration-and-
+    naming**, not tooling generation. Every workflow
+    Track O must formalise already exists in the
+    repo. Production code change very likely
+    **not** required.
+- **Что Step 2 НЕ делал.**
+  - Не правил production-код, `pyproject.toml`,
+    `scripts/*`, `SECURITY.md`, `docs/release-
+    handoff.md`, `apps/platform/README.md`,
+    `CHANGELOG.md`, `README.md`, `PROJECT-STATUS.md`,
+    existing operator recipes (Track J/L/M/N),
+    Track O Step 1 docs, или registries.
+  - Не использовал prescriptive language — Q1–Q6
+    presented как **directional**, не MUST / MUST
+    NOT. Locking territory остался для Step 3
+    contract.
+  - Не запускал `1cv8.exe`, не делал remote push.
+- **Документ scope.** Ровно один новый файл; ноль
+  modified.
+- **Verify-release.ps1 -AllowDirtyTree.** GREEN на
+  8 checks. Selfcheck status=ok; registries
+  unchanged.
+- **Следующий шаг.** Parallel Track O / Step 3 —
+  normative contract.
+
+### Parallel Track O / Step 3 — dev-time contract (завершён)
+
+- **Цель.** Один normative contract document под
+  Track O / Step 3 — translate Step 2 audit
+  evidence в RFC 2119 MUST / MUST NOT / SHOULD /
+  SHOULD NOT / MAY rules. Pin Step 4 PATH; pin
+  canonical recipe path; pin mandatory content
+  elements; pin forbidden-files surface; pin
+  verification protocol; pin first-class install
+  verb; pin recommended-only alternative. Closeable
+  all Step 4 design freedom.
+- **Что shipped в Step 3.**
+  - `docs/architecture/track-o-dev-time-editable-install-and-workspace-discovery-contract.md` —
+    14-секционный normative contract: §1 Purpose /
+    scope + RFC 2119 keyword usage + binding 22-
+    item Track O scope reminder (§1.4 forbidden
+    list); §2 Step boundary + re-litigation rule +
+    Q1–Q6 inheritance; §3 17 existing dev-time
+    surfaces preserved byte-identical с file:line
+    anchors + hatchling PEP 660 latent capability
+    lock as foundational anchor for first-class
+    install verb + hand-off marker preservation
+    rule (scripts/dev/README.md:5-11 + :192-198
+    byte-identical через Steps 3/4; Step 5 may
+    narrowly replace); §4 17-condition closure-
+    gate C1–C17 (single contributor-facing recipe
+    at locked path; six mandatory content elements
+    C2–C7; six mandatory cross-references C8;
+    cross-OS posture C9; closure narrative
+    discipline C10; production code byte-identical
+    C11; registries unchanged C12; verify-release/
+    selfcheck green C13–C14; no real credentials
+    C15; no 1cv8 C16; no remote push C17); §5
+    Primary supported dev-time workflow boundary
+    contract — **first-class supported verb
+    `pip install -e .` LOCKED** (grounded в Step 2
+    §3.1 / §3.5 / §4.2 evidence: hatchling PEP 660
+    + populated packages array + stdlib-only
+    runtime); **recommended-only alternative
+    `bootstrap_paths.ps1` LOCKED** (Windows-only);
+    cross-OS posture (Windows primary + POSIX
+    served by pip install -e . first-class +
+    non-3.11 out of scope); no new tooling
+    introduced; §6 Workspace-discovery and
+    editable-install boundary contract; §7
+    **PATH A docs-only LOCKED** (PATH B / PATH C
+    explicitly rejected с grounded justification);
+    §8 Exact Step 4 implementation surface (file
+    count cap = 1 new + 0 modified; canonical path
+    LOCKED as `docs/dev/editable-install-and-
+    workspace-discovery.md`; size cap ≤1000 hard /
+    ≤700 RECOMMENDED; exhaustive forbidden-file
+    surface; LOC cap 0 net code; dependency caps
+    0); §9 Forbidden evidence / insufficient-
+    evidence contract (13-item insufficient-on-
+    its-own list; 8 mandatory denial phrases; 7
+    must-not-appear categories); §10 Carry-forward
+    invariants (11 sub-sections Tracks A–N); §11
+    Verification contract V1–V12 + P1–P4; §12
+    Honest non-goals (6 sub-sections); §13 Step 4
+    handoff note с Q7 framed as NO-BUMP default
+    под PATH A mirroring Track J/K/L/N precedent;
+    §14 Honest summary.
+- **Что Step 3 НЕ делал.**
+  - Не правил production-код, `pyproject.toml`,
+    `scripts/*`, или любой другой file outside
+    `docs/architecture/`.
+  - Не реализовывал recipe — это Step 4 territory.
+  - Не закрывал Q7 — final lock остался на Step 6.
+  - Не запускал `1cv8.exe`, не делал remote push.
+- **Документ scope.** Ровно один новый файл; ноль
+  modified.
+- **Verify-release.ps1 -AllowDirtyTree.** GREEN на
+  8 checks. Selfcheck status=ok; registries
+  unchanged.
+- **Следующий шаг.** Parallel Track O / Step 4 —
+  narrow PATH A implementation.
+
+### Parallel Track O / Step 4 — dev-time workflow recipe (завершён)
+
+- **Цель.** Implement exactly the contract-pinned
+  PATH A docs-only slice — ship one contributor-
+  facing dev-time editable install / workspace
+  discovery recipe at the canonical path
+  `docs/dev/editable-install-and-workspace-discovery.md`
+  со всеми contract-required mandatory elements
+  (C2–C9), six mandatory cross-references (C8), 8
+  denial phrases (§9.2 of contract). Никакого
+  production code, scripts, pyproject change;
+  никакая registry drift.
+- **Что shipped в Step 4.**
+  - `docs/dev/editable-install-and-workspace-discovery.md`
+    (586 lines, под soft cap ≤700 RECOMMENDED и
+    hard cap ≤1000) — first-class contributor-
+    facing recipe:
+    - §1 Purpose / scope с 8 explicit denials of
+      forbidden maturity claims ("Developer
+      workflow solved forever" / "All IDE
+      integrations supported" / "All package
+      managers supported for dev install" /
+      "Containerised dev environment shipped" /
+      "Remote-dev shipped" / "Enterprise developer
+      experience" / "Production-ready DX" / "DX
+      matrix complete").
+    - §2 Supported install verbs — **first-class
+      `pip install -e .`** (Windows PowerShell +
+      POSIX bash/zsh fenced examples с venv setup);
+      **recommended-only `bootstrap_paths.ps1`**
+      dot-source (Windows-only) с when-to-use +
+      why-recommended-only rationale; cross-OS
+      posture table.
+    - §3 Supported tooling preconditions (Python
+      3.11 + pip required; venv tool recommended;
+      build / ruff / pytest / IDE not required by
+      recipe).
+    - §4 Workspace-discovery answer — eleven src-
+      layout package roots enumerated verbatim from
+      `pyproject.toml:51-63`; dual-role explanation
+      (Track M wheel-build + dev-time PYTHONPATH);
+      acceptable-duplication acknowledgement.
+    - §5 Verification step — `python scripts/dev/
+      selfcheck.py` (или `.\scripts\dev\launch.ps1
+      selfcheck`); canonical PASS line
+      `selfcheck_status = ok`; Track N FC4
+      inheritance.
+    - §6 Relationship to Track M — orthogonal-and-
+      complementary axes table; when-to-use which;
+      cross-references to `docs/operators/packaging/
+      distribution-boundary.md`; no content
+      duplication.
+    - §7 Authoritative non-goals (7 sub-sections
+      aggregating Step 1 plan §7 + Step 3 contract
+      §1.4 / §12 denials + 8 forbidden maturity
+      claims recap).
+    - §8 Cross-references — 6 mandatory anchors с
+      file-path links и role descriptions.
+    - §9 Honest summary.
+- **Что Step 4 НЕ делал.**
+  - Не правил production-код (`apps/*/src/`,
+    `packages/*/src/` byte-identical к Track N
+    closure state `2737a52`).
+  - Не правил `pyproject.toml` (`version=0.5.2`
+    preserved; packages array preserved; [tool.ruff]
+    + [tool.pytest.ini_options] byte-identical).
+  - Не правил `scripts/*` (selfcheck.py, verify-
+    release.ps1, install.ps1, _install_runner.py,
+    launch.ps1, bootstrap_paths.ps1,
+    run_dev_check.ps1, mcp_client_smoke.py,
+    scripts/dev/README.md — все byte-identical;
+    Step 5 may narrowly replace scripts/dev/
+    README.md hand-off-marker sentences per
+    contract §3.5).
+  - Не правил existing operator recipes (Track J/L/
+    M/N byte-identical).
+  - Не правил README.md / PROJECT-STATUS.md /
+    CHANGELOG.md / SECURITY.md / docs/release-
+    handoff.md / apps/platform/README.md
+    (Step 5/6 territory).
+  - Не правил Track O Step 1/2/3 architecture docs
+    (frozen anchors).
+  - Не правил registries; не добавлял MCP tools;
+    не запускал 1cv8.exe; не делал remote push.
+- **Документ scope.** Ровно один новый файл; ноль
+  modified. PATH A docs-only delivered as locked
+  by Step 3 contract.
+- **Verify-release.ps1 -AllowDirtyTree.** GREEN на
+  8 checks pre-commit; GREEN post-commit на clean
+  tree. Selfcheck status=ok; registries `read=15 /
+  write=25 / intelligence=16` без drift'а.
+- **Следующий шаг.** Parallel Track O / Step 5 —
+  developer docs and dev-time workflow alignment.
+
+### Parallel Track O / Step 5 — developer docs and dev-time workflow alignment (завершён)
+
+- **Цель.** Narrow CLASS-1 / CLASS-2 docs-
+  alignment under post-Step-4 reality. После Step
+  4 в репо появился canonical contributor-facing
+  dev-time editable install / workspace discovery
+  recipe; status docs всё ещё описывают Track O
+  как "Step 1 planning-only", и
+  `scripts/dev/README.md:5-11` + `:192-198` всё
+  ещё содержат hand-off-marker sentences, которые
+  recipe теперь делает obsolete. Step 5 узко
+  выравнивает только эти direct-drift surfaces, не
+  трогая Step 6 territory.
+- **Drift classification (CLASS 1 / 2 / 3).**
+  - **CLASS 1 (direct factual drift, updated в
+    Step 5):** `README.md` (Quickstart paragraph +
+    "Active parallel track" section both described
+    Step 1 planning-only state — теперь reflect
+    Steps 1–4 closed + Step 5 active); `PROJECT-
+    STATUS.md` (header described "Track O / Step 1
+    active planning" — теперь reflects Steps 1–4
+    closed + Step 5 active; per-step sections для
+    Steps 2/3/4/5 added below); `scripts/dev/
+    README.md` (verbatim hand-off-marker sentences
+    at lines 5-11 + 192-198 now factually wrong —
+    Step 4 recipe exists; Step 3 contract §3.5 +
+    §13.4 explicitly authorise narrow line-
+    replacement с pointer на новый recipe).
+  - **CLASS 2 (narrow useful cross-link, updated в
+    Step 5):** `docs/release-handoff.md` "Where to
+    read deeper" section — one new bullet pointing
+    at `docs/dev/editable-install-and-workspace-
+    discovery.md` (Track O / Step 4 deliverable),
+    mirroring Track N Step 5 precedent.
+  - **CLASS 3 (closure territory, deferred to Step
+    6):** `CHANGELOG.md`; `pyproject.toml`
+    (`version` lock at Step 6 per Q7 — default
+    NO-BUMP под PATH A); README "Closed parallel
+    tracks" list extension (14 → 15); README
+    "Track O detail (закрыт)" full section.
+  - **No drift (no touch):** `apps/platform/
+    README.md` (no dev-time / Track O mentions;
+    no drift); `SECURITY.md` (no relevant
+    content); все `scripts/*.ps1` / `scripts/*.py`
+    (Step 3 contract §3.5 forbids modifications to
+    all scripts except the narrow `scripts/dev/
+    README.md` replacement); `docs/operator-
+    manual.md`, `docs/administrator-manual.md`
+    (none mention Track O); `docs/developer-
+    manual.md` (PYTHONPATH mention at line 148 is
+    about manual-check script pattern, not
+    contributor install workflow — no direct
+    drift); existing operator recipes (Track J/L/
+    M/N byte-identical); Track O Step 1/2/3/4 docs
+    (frozen anchors); все Tracks A–N architecture
+    docs; CI workflow; `.python-version`;
+    registries.
+- **Что shipped в Step 5.**
+  - `README.md` Quickstart blockquote rewritten от
+    "Track O — Step 1 planning only" к "Steps 1–4
+    closed + Step 5 active" описанию; включает
+    enumeration четырёх closure commits (4122431 /
+    c8941a4 / 2a24fc4 / 24b2ee7); explicit
+    statement что closure / Closed-tracks list
+    extension / Track O detail / Q7 lock остаются
+    Step 6 territory.
+  - `README.md` "Active parallel track" section
+    переписан с per-step closure narratives для
+    Steps 1/2/3/4 + Step 5 active description;
+    forbidden maturity claims preserved как
+    explicit denials.
+  - `README.md` "Selfcheck note" обновлён с post-
+    Step-5 status; "Канонический next step"
+    обновлён с Step 6 description (closure
+    narrative + Q7 SemVer lock + Closed parallel
+    tracks list extension + "Track O detail
+    (закрыт)" section + CHANGELOG entry).
+  - `PROJECT-STATUS.md` header rewritten от Track
+    O Step 1 active к "Steps 1–4 closed + Step 5
+    active" с enumeration четырёх closure commits
+    и explicit deferral of closure territory to
+    Step 6.
+  - Эта секция и предыдущие три (Step 2 / Step 3
+    / Step 4 / Step 5) inserted после existing
+    Step 1 section в PROJECT-STATUS.md.
+  - `scripts/dev/README.md` narrow line-
+    replacement of hand-off-marker sentences at
+    lines 5-11 (intro section) и 192-198 (status
+    section) с pointer на новый recipe per Step 3
+    contract §3.5 / §13.4 authorisation.
+  - `docs/release-handoff.md` "Where to read
+    deeper" section: one new bullet pointing на
+    `docs/dev/editable-install-and-workspace-
+    discovery.md` recipe с minimal description of
+    first-class install verb + recommended-only
+    alternative + supported tooling preconditions
+    + workspace-discovery answer + verification
+    step + cross-OS posture + explicit "не
+    developer workflow solved forever / не
+    enterprise developer experience / не DX matrix
+    complete" framing.
+- **Что Step 5 НЕ делал.**
+  - Не закрывал Track O — Track O остаётся active
+    через Step 5 commit.
+  - Не двигал Track O в README "Closed parallel
+    tracks" list — list остаётся at 14 entries
+    (Track A through N).
+  - Не добавлял README "Track O detail (закрыт)"
+    section — Step 6 territory.
+  - Не правил `CHANGELOG.md` — Step 6 territory.
+  - Не правил `pyproject.toml` — `version=0.5.2`
+    preserved; Q7 lock at Step 6.
+  - Не правил production-код, `scripts/*.ps1` /
+    `scripts/*.py`, `SECURITY.md`,
+    `apps/platform/README.md`, manuals — no drift,
+    no touch (вне authorised narrow
+    `scripts/dev/README.md` line-replacement).
+  - Не правил existing operator recipes (Track J/
+    L/M/N) или Track O Step 1/2/3/4 architecture
+    docs (frozen anchors).
+  - Не менял registries; не добавлял MCP tools;
+    не запускал 1cv8.exe; не делал remote push.
+  - Не widening dev-workflow claims — все
+    forbidden maturity phrases ("developer
+    workflow solved forever" / "all IDE
+    integrations supported" / "all package
+    managers supported for dev install" /
+    "containerised dev environment shipped" /
+    "remote-dev shipped" / "enterprise developer
+    experience" / "production-ready DX" / "DX
+    matrix complete") появляются only as explicit
+    denials.
+- **Документ scope.** Четыре touched files:
+  - `README.md` (Quickstart paragraph + "Active
+    parallel track" section + "Selfcheck note" +
+    "Канонический next step" updated).
+  - `PROJECT-STATUS.md` (header rewrite + four new
+    per-step sections для Steps 2/3/4/5).
+  - `scripts/dev/README.md` (narrow line-
+    replacement of hand-off-marker sentences at
+    lines 5-11 + 192-198 per Step 3 contract §3.5
+    / §13.4).
+  - `docs/release-handoff.md` ("Where to read
+    deeper" — one new bullet).
+- **Verify-release.ps1 -AllowDirtyTree.** GREEN на
+  8 checks pre-commit; GREEN post-commit на clean
+  tree. Selfcheck status=ok; registries `read=15 /
+  write=25 / intelligence=16` без drift'а.
+- **Следующий шаг.** Parallel Track O / Step 6 —
+  final integration pass and track closure
+  (closure narrative + Q7 SemVer lock + Closed
+  parallel tracks list extension 14 → 15 + "Track
+  O detail (закрыт)" section + CHANGELOG entry).
 
 ## Phase 6 закрыта
 
