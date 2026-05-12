@@ -2,18 +2,71 @@
 
 ## Текущий шаг
 
-**Активного шага нет.** Phase 1–6 закрыты ранее;
-**пятнадцать** post-phase parallel track'ов (A,
-B, C, D, E, F, G, H, I, J, K, L, M, N, O)
-полностью закрыты последовательно. Последний
-закрытый трек — **Parallel Track O — Dev-Time
-Editable Install and Workspace Discovery** (Steps
-1–6 завершены, Step 6 — этот closure commit).
-См. блок «Статус» ниже для Track O / Track N /
-Track M / Track L / Track K / Track J / Track I
-closure narrative и список рекомендованных (но не
-открытых автоматически) кандидатов на следующий
-parallel track.
+**Parallel Track P / Step 1 — planning test suite
+shipping and verification boundary** (`in progress`
+на уровне Track P в целом; Step 1 сам по себе
+**завершён** в этом коммите как planning-only
+documentation step). Phase 1–6 закрыты ранее;
+пятнадцать post-phase parallel track'ов (A, B, C,
+D, E, F, G, H, I, J, K, L, M, N, O) полностью
+закрыты последовательно. Последний закрытый
+трек — **Parallel Track O — Dev-Time Editable
+Install and Workspace Discovery** (closure commit
+`720ac54`, Q7 = NO-BUMP, под existing `0.5.2`);
+**Parallel Track P — Test Suite Shipping and
+Verification Boundary** открыт как шестнадцатый
+post-phase parallel track. Track P — disciplined
+six-step closure track формы Tracks A–O: Step 1
+(planning, этот commit) / Step 2 (descriptive
+baseline audit) / Step 3 (normative contract) /
+Step 4 (narrow implementation slice, default
+expectation PATH B docs + narrow `tests/` slice +
+narrow pyproject dev-extra) / Step 5 (docs / dev
+/ release alignment) / Step 6 (final integration
+pass + Q7 versioning decision). Step 1 —
+**planning-only**: ship'нул две новых architecture
+doc'и
+([`plan`](docs/architecture/track-p-test-suite-shipping-and-verification-boundary-plan.md),
+[`step-map`](docs/architecture/track-p-test-suite-shipping-and-verification-boundary-step-map.md))
+с Q1–Q7 directional defaults; никакого production
+code change; никакого `pyproject.toml` /
+`scripts/*` / `SECURITY.md` / `docs/release-
+handoff.md` / `CHANGELOG.md` / `apps/platform/
+README.md` / manuals / existing operator recipes
+(Track J/L/M/N) / Track O dev recipe touch;
+никакого registry change (`read=15 / write=25 /
+intelligence=16` invariant carried through);
+никаких 1cv8.exe runs; никаких real credentials;
+никакого remote push. Track P закрывает следующий
+честный gap: у проекта есть три working
+verification gates (`selfcheck.py` pre-flight,
+`verify-release.ps1` release-side 8-check,
+`mcp_client_smoke.py` transport-boundary smoke),
+но shipped automated test suite как in-repo
+surface отсутствует. `pyproject.toml:31-32`
+declares `[tool.pytest.ini_options] testpaths =
+["tests"]` aspirationally — но `tests/` directory
+не существует на HEAD `720ac54`, и `scripts/dev/
+launch.ps1:28` + `:86` явно говорят "no test suite
+yet" / "It does NOT run pytest". Track P — dedicated
+narrow track, который materialises (или honestly
+re-frames) этот long-standing aspirational anchor.
+Track P **complementary к existing three gates**:
+selfcheck = pre-flight; verify-release = release-
+side; smoke = transport-boundary; tests =
+behavioural-unit/integration — разные axes, не
+замещения. См. секцию «Parallel Track P / Step 1 —
+planning test suite shipping and verification
+boundary (завершён)» ниже для подробностей.
+Track O closure block + всё previous status
+preserved byte-identical — см. блоки «Статус»
+ниже для Track O / Track N / Track M / Track L /
+Track K / Track J / Track I closure narrative и
+список рекомендованных кандидатов на следующий
+parallel track. **Каноничный next step — Parallel
+Track P / Step 2 — descriptive baseline audit of
+current verification state** (открытие —
+отдельное operator decision; не автоматизируется).
 
 ## Статус
 
@@ -16894,7 +16947,273 @@ read/write/intelligence-серверов, с честно
   POSIX-shell sibling — currently mitigated by
   `pip install -e .` covering POSIX). Эти
   кандидаты — recommendation only, не auto-
-  opened.
+  opened. **Историческая правка (Track P / Step 1):**
+  "test-suite shipping track (would close the empty
+  `tests/` aspiration in `pyproject.toml`)" из
+  списка recommended-next-track candidates был
+  выбран как следующий открываемый трек — открыт
+  как **Track P — Test Suite Shipping and
+  Verification Boundary** (на момент написания
+  этой правки Track P открыт только на Step 1,
+  planning, docs-only; полное closure Track P —
+  Step 6). Track P намеренно узкий: closes the
+  shipped automated test suite boundary for already-
+  existing repo behaviour, **complementary** к
+  existing three verification gates (selfcheck +
+  verify-release + smoke harness), без расползания
+  в performance / load / stress / fuzz / browser /
+  mutation / snapshot / live-1С / SaaS / multi-
+  Python-matrix / containerised-CI / coverage-gate-
+  absolutism territory. Other recommended candidates
+  above остаются за пределами scope Track P как
+  отдельные potential tracks. См. секцию «Parallel
+  Track P / Step 1 — planning test suite shipping
+  and verification boundary (завершён)» ниже для
+  подробностей.
+
+### Parallel Track P / Step 1 — planning test suite shipping and verification boundary (завершён)
+
+- **Цель.** Открыть шестнадцатый post-phase
+  parallel track — Track P — как **planning-only**
+  документационный шаг, который закрывает следующий
+  честный продуктовый gap: у проекта есть три
+  working verification gates (`selfcheck.py` pre-
+  flight, `verify-release.ps1` release-side 8-
+  check, `mcp_client_smoke.py` transport-boundary
+  smoke), но shipped automated test suite как in-
+  repo surface отсутствует. Gap явно acknowledged
+  в репо: `pyproject.toml:31-32` declares
+  `[tool.pytest.ini_options] testpaths = ["tests"]`
+  aspirationally — но `tests/` directory не
+  существует на HEAD `720ac54`; `scripts/dev/
+  launch.ps1:28` (в umbrella comment) verbatim
+  говорит "It does NOT run pytest (there is no
+  test suite yet)", и `:86` (в usage text) повторяет
+  "It does NOT run pytest (no test suite yet)" —
+  эти два anchor были committed во время Track B /
+  Step 4 (launch.ps1 introduction) и carried
+  forward byte-identically через Tracks C–O. Track
+  O / Step 2 baseline audit (§3.4) explicitly
+  noted that the aspirational `testpaths`
+  declaration was carried across all Tracks A–O
+  without materialising; Track O scope intentionally
+  left it to a future track. Track P — dedicated
+  narrow track, который materialises (или honestly
+  re-frames) этот long-standing aspirational
+  anchor, **complementary** к existing three gates
+  (selfcheck = pre-flight; verify-release =
+  release-side; smoke = transport-boundary; tests =
+  behavioural-unit/integration — разные axes, не
+  замещения). Step 1 — два planning-документа без
+  code changes; Step 4 design-question (PATH A
+  docs-only vs PATH B docs + narrow tests slice +
+  narrow pyproject dev-extra vs PATH C docs +
+  non-production helper) **остаётся открытым** до
+  Step 2 audit + Step 3 contract.
+- **Что shipped в Step 1.**
+  - `docs/architecture/track-p-test-suite-shipping-and-verification-boundary-plan.md` —
+    14-секционный planning-документ: §1 purpose /
+    why track exists; §2 current post-Track-O
+    baseline (existing verification surfaces:
+    selfcheck.py, verify-release.ps1,
+    mcp_client_smoke.py, _install_runner.py, CI
+    workflow; `pyproject.toml:31-32` aspirational
+    `testpaths` declaration; `scripts/dev/
+    launch.ps1:28` + `:86` "no test suite yet"
+    hand-off anchors; `tests/` directory not
+    existing); §3 honest gap statement (five
+    independently verifiable observations); §4 why
+    existing gates do NOT equal a shipped test
+    suite (five rejections of "selfcheck/verify-
+    release/smoke covers it"); §5 goal of the
+    track; §6 in-scope; §7 out-of-scope (25+
+    explicit denials including no performance / no
+    load / no stress / no fuzz / no browser / no
+    web-dashboard / no real-1cv8 / no live-network
+    / no multi-Python-matrix / no containerised-CI
+    / no snapshot / no mutation / no coverage-gate-
+    absolutism / no verification-philosophy-rewrite
+    / no transport/auth/deployment/service/
+    packaging/observability/dev-time-recipe
+    redesign / no new MCP tools / no new CLI flags
+    / no new `[project.scripts]` entries / no new
+    runtime dependencies); §8 guardrails (25 hard
+    invariants); §9 acceptance criteria (12 items);
+    §10 honest constraints after closure; §11
+    relationship to Tracks K/N/O table; §12 Q1–Q7
+    open questions с directional recommendations
+    only; §13 step trajectory preview table; §14
+    honest summary.
+  - `docs/architecture/track-p-test-suite-shipping-and-verification-boundary-step-map.md` —
+    6-step map в формате «Goal / What changes /
+    What does NOT change / Result» для каждого
+    шага; track-invariants block с 33 hard
+    constraints включая Tracks A–O deliverables
+    byte-identical, no new MCP tools, no new CLI
+    flag, no new `[project.scripts]` entries, no
+    new runtime dependencies, `.python-version`
+    preserved, CI workflow preserved by default,
+    `1cv8.exe` MUST NOT be invoked by tests, no
+    outbound network in any committed test, no
+    real credentials; hard out-of-scope list с
+    23+ categorical denials; Step 4 explicitly
+    preserves PATH A/B/C openness; Step 6 — Q7
+    framing с NO-BUMP default под PATH A
+    mirroring Track J/K/L/N/O precedent, PATCH
+    expected под PATH B materialising the
+    aspirational `testpaths` declaration mirroring
+    Track I / Track M precedents, MINOR explicitly
+    prohibited, MAJOR forbidden by track scope.
+- **Q1–Q7 directional defaults (plan §12).**
+  - Q1 = closure-gate target → **(B) recipe +
+    narrow tests slice** most likely outcome
+    (materialises aspirational `testpaths`
+    declaration; mirrors Track M / Step 4 closing
+    `packages = []` aspiration); (A) recipe-only
+    acceptable fallback; (C) non-production helper
+    alone rejected by default.
+  - Q2 = primary test class focus → **(A) unit
+    tests** on dataclasses / models / registry /
+    policy first; **(C) repo-local behavioural
+    tests** natural second; **(B) subprocess-
+    level integration** rejected (Track K's
+    harness already covers).
+  - Q3 = Step 4 PATH openness → **PATH B primary**,
+    PATH A in reserve; **Step 4 PATH not locked
+    at Step 1**; Step 3 contract locks.
+  - Q4 = minimum closure scope = mandatory answers
+    to: supported test-suite shape (pytest under
+    tests/); what tests cover / do not cover; how
+    contributor runs tests; relationship to
+    existing gates; explicit out-of-scope list.
+  - Q5 = insufficient closure proof: "aspirational
+    declaration is enough" / "selfcheck covers
+    it" / "verify-release covers it" / "smoke
+    covers it" / "manual checking works" / "tests
+    pass on my machine".
+  - Q6 = production code change → likely **NOT
+    required**; tests target existing behaviour;
+    Step 2 audit must verify.
+  - Q7 = SemVer expectation → **(A) NO-BUMP** если
+    Step 4 PATH A mirroring Track J/K/L/N/O
+    NO-BUMP precedent; **(B) PATCH** more likely
+    если Step 4 PATH B materialises aspirational
+    `testpaths` declaration (mirror Track I /
+    Track M PATCH precedents for declarative-
+    defect-class repair); (C) MINOR explicitly
+    rejected; MAJOR forbidden by track scope.
+- **Что Step 1 НЕ делал.**
+  - Не правил production-код (никаких изменений в
+    `apps/*/src/`, `packages/*/src/`).
+  - Не правил `pyproject.toml` (`version=0.5.2`
+    preserved; packages array preserved;
+    `[tool.pytest.ini_options]` preserved as
+    aspirational; `[tool.ruff]` byte-identical;
+    `[project.dependencies]` empty preserved;
+    `[project.scripts]` byte-identical; no
+    `[project.optional-dependencies]` block added
+    — that decision belongs to Step 4 PATH B/C if
+    Step 3 contract authorises).
+  - Не открывал и не правил Step 2 audit / Step 3
+    contract / Step 4 implementation / Step 5
+    alignment / Step 6 closure.
+  - Не менял registries (`read=15 / write=25 /
+    intelligence=16` invariant carried through;
+    никаких новых MCP tool'ов).
+  - Не правил `scripts/dev/selfcheck.py`,
+    `scripts/dev/mcp_client_smoke.py`,
+    `scripts/dev/launch.ps1` (including the two
+    "no test suite yet" anchors at lines 28 + 86 —
+    those remain byte-identical until Step 5 may
+    narrowly replace them per step-map invariant
+    11),
+    `scripts/dev/bootstrap_paths.ps1`,
+    `scripts/dev/run_dev_check.ps1`,
+    `scripts/dev/README.md`, all `scripts/release/*`
+    — все byte-identical.
+  - Не правил `SECURITY.md`, `docs/release-
+    handoff.md`, `apps/platform/README.md`,
+    `CHANGELOG.md`, manuals, Closed parallel
+    tracks list (Track P не moved туда — Track P
+    active; still 15 entries A–O).
+  - Не правил existing operator recipes
+    (`docs/operators/deployment-boundary.md` —
+    Track J; `docs/operators/service/*` — Track L;
+    `docs/operators/packaging/distribution-boundary.md`
+    — Track M; `docs/operators/observability.md` —
+    Track N) — все byte-identical.
+  - Не правил Track O dev recipe
+    (`docs/dev/editable-install-and-workspace-discovery.md`).
+  - Не правил `.github/workflows/dev-check.yml` —
+    byte-identical.
+  - Не правил `.python-version` — Python 3.11 pin
+    preserved.
+  - Не создавал `tests/` directory — материализация
+    aspirational declaration возможна только на
+    Step 4 PATH B/C, не Step 1.
+  - Не запускал `1cv8.exe`.
+  - Не вводил никаких реальных credentials.
+  - Не делал remote push / GitHub release —
+    operator action, не часть трека.
+  - Не открывал Track P Step 2 в этом же commit'е.
+  - Не использовал premature closure language —
+    Track P framed как **active** (Step 1
+    in-progress по уровню Track, Step 1 сам по
+    себе завершён; Step 2–6 впереди); фразы
+    "testing solved forever" / "full QA stack
+    shipped" / "complete confidence matrix" /
+    "production-grade certification" / "enterprise
+    test infrastructure" / "100% coverage
+    achieved" / "all behaviours covered"
+    появляются в touched docs **только** как
+    explicit DENIALS.
+  - Не делал false implementation claims — Q1–Q7
+    presented как **defaults** / **directional
+    recommendations**, не как decided answers;
+    Step 4 PATH openness preserved.
+- **Документ scope.** Ровно четыре файла: 2 новых
+  planning-документа в `docs/architecture/` +
+  README.md (Quickstart paragraph дополнен Track P
+  active narrative; "Active parallel track"
+  section reopened с Track P описанием) + PROJECT-
+  STATUS.md (header rewrite + эта section). Track O
+  closure block внизу этого статус-документа
+  preserved byte-identical.
+- **Verify-release.ps1 -AllowDirtyTree.** GREEN на
+  8 checks; никаких реальных credentials в Step 1
+  diff'е; registries `read=15 / write=25 /
+  intelligence=16` без drift'а.
+- **Selfcheck после Step 1.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без
+  drift'а; `selfcheck_status=ok`.
+- **Следующий шаг.** **Parallel Track P / Step 2 —
+  baseline audit of current verification state
+  (docs-only).** Новый descriptive audit-документ
+  (`docs/architecture/track-p-test-suite-shipping-and-verification-boundary-baseline-audit.md`)
+  с inventory of existing verification gates
+  (`selfcheck.py` 11 key=value lines, `verify-
+  release.ps1` 8 named checks, `mcp_client_smoke.py`
+  transport-boundary scenarios, `_install_runner.py`
+  structured findings, `.github/workflows/dev-
+  check.yml` selfcheck-only CI); inventory of
+  `pyproject.toml` test-related blocks
+  (`[tool.pytest.ini_options] testpaths = ["tests"]`
+  aspirational declaration; absent `[project.
+  optional-dependencies]` block); inventory of
+  `scripts/dev/launch.ps1:28` + `:86` "no test
+  suite yet" hand-off anchors; inventory of
+  `tests/` directory non-existence; whole-repo
+  grep results для test-vocabulary patterns
+  (`pytest`, `test_`, `_test.py`, `conftest`,
+  `tox`, `nox`, `unittest`, `coverage`, `cov`,
+  `assert`); 4-class breakdown (already-reusable /
+  adjacent-but-insufficient / clearly-missing /
+  explicitly-out-of-scope); directional Q1–Q6
+  resolutions с evidence-grounded recommendations
+  + Step 3 handoff list (≥ 10 items). Production-
+  код Step 2 не правит. Никаких real credentials.
+  **GitHub remote push — operator action, не
+  часть трека.**
 
 ## Phase 6 закрыта
 
