@@ -2,87 +2,246 @@
 
 ## Текущий шаг
 
-**Parallel Track O / Step 5 — developer docs and
-dev-time workflow alignment** (`in progress` на
-уровне Track O в целом; Steps 1–4 **closed**
-sequentially; Step 5 сам по себе **завершён** в
-этом коммите как narrow CLASS-1 / CLASS-2 docs-
-alignment step; Step 6 final integration pass и Q7
-SemVer lock впереди). Phase 1–6 закрыты ранее;
-четырнадцать post-phase parallel track'ов (A, B,
-C, D, E, F, G, H, I, J, K, L, M, N) полностью
-закрыты последовательно. Последний закрытый
-трек — **Parallel Track N — Observability and
-Diagnostics Boundary** (closure commit `2737a52`,
-Q6 = NO-BUMP, под existing `0.5.2`); **Parallel
-Track O — Dev-Time Editable Install and Workspace
-Discovery** открыт как пятнадцатый post-phase
-parallel track. Track O — disciplined six-step
-closure track формы Tracks A–N: Step 1 (planning,
-commit `4122431`) / Step 2 (descriptive baseline
-audit, commit `c8941a4`) / Step 3 (normative
-contract, commit `2a24fc4`) / Step 4 (narrow
-PATH A implementation, commit `24b2ee7`) / Step 5
-(docs / dev / release alignment, **этот commit**)
-/ Step 6 (final integration pass + Q7 versioning
-decision, **впереди**). Step 4 ship'нул ровно один
-новый файл —
+**Активного шага нет.** Phase 1–6 закрыты ранее;
+**пятнадцать** post-phase parallel track'ов (A,
+B, C, D, E, F, G, H, I, J, K, L, M, N, O)
+полностью закрыты последовательно. Последний
+закрытый трек — **Parallel Track O — Dev-Time
+Editable Install and Workspace Discovery** (Steps
+1–6 завершены, Step 6 — этот closure commit).
+См. блок «Статус» ниже для Track O / Track N /
+Track M / Track L / Track K / Track J / Track I
+closure narrative и список рекомендованных (но не
+открытых автоматически) кандидатов на следующий
+parallel track.
+
+## Статус
+
+`closed` (для всего Parallel Track O — Dev-Time
+Editable Install and Workspace Discovery — Steps
+1–6 закрыты последовательно; **Q7 = NO-BUMP**
+(Track O закрыт под existing `0.5.2`, без further
+bump); `pyproject.toml` `version` preserved byte-
+identical через все шесть Track O шагов; никаких
+изменений production code ни в одном из шести
+Track O шагов; никаких изменений `scripts/*.ps1`
+/ `scripts/*.py` logic; recipe documents existing
+latent hatchling PEP 660 editable-install
+capability без её изменения; registry invariant
+`read=15 / write=25 / intelligence=16` без
+drift'а; никаких 1cv8.exe runs; никаких реальных
+credentials в repo / docs / commit messages;
+никакого remote push). Шесть meaningful commit'ов
+в `main`: `4122431` Step 1 (planning, два planning
+doc'а — plan + step-map — с Q1–Q7 directional
+defaults) / `c8941a4` Step 2 (descriptive baseline
+audit с file:line citations across 17 existing
+dev-time surfaces; key finding: gap is
+integration-and-naming, not tooling generation) /
+`2a24fc4` Step 3 (normative contract pinning
+**PATH A docs-only** (PATH B narrow declarative
+slice / PATH C developer bootstrap helper script
+explicitly rejected с grounded justification);
+canonical recipe path
+`docs/dev/editable-install-and-workspace-discovery.md`
+locked; six mandatory content elements C2–C7
+locked; six mandatory cross-references C8 locked;
+cross-OS posture C9 locked; eight mandatory denial
+phrases locked (§9.2); exhaustive forbidden-files
+surface locked (§8.5); V1–V12 + P1–P4
+verification protocol locked; **first-class
+install verb `pip install -e .` LOCKED** (§5.1);
+**recommended-only alternative
+`scripts/dev/bootstrap_paths.ps1` dot-source
+LOCKED** (§5.2, Windows-only); Q7 framed NO-BUMP
+default под PATH A mirroring Track J/K/L/N
+precedent) / `24b2ee7` Step 4 (narrow PATH A
+implementation: ровно один новый файл —
 [`docs/dev/editable-install-and-workspace-discovery.md`](docs/dev/editable-install-and-workspace-discovery.md)
-(586 lines, под soft cap ≤700 RECOMMENDED) —
-first-class contributor-facing recipe со всеми
-contract-required elements (supported install
-verbs LOCKED: first-class `pip install -e .` +
-recommended-only `bootstrap_paths.ps1` Windows-
-only dot-source; supported tooling preconditions:
-Python 3.11 + pip mandatory; workspace-discovery
-answer: 11 src-layout package roots verbatim from
-`pyproject.toml:51-63` с dual-role explanation —
-Track M wheel-build packages array + dev-time
-PYTHONPATH; verification step: `python scripts/
-dev/selfcheck.py` → `selfcheck_status = ok` with
-Track N FC4 inheritance; HTTP-envelope-style
-relationship table к Track M deploy-time wheel
-workflow as orthogonal-and-complementary axes;
-cross-OS posture Linux/POSIX served by editable
-install + Windows primary + non-3.11 out of scope;
-authoritative non-goals 7-sub-section enumeration;
-6 mandatory cross-references к Track M
-distribution-boundary + pyproject.toml +
-bootstrap_paths.ps1 + launch.ps1 + selfcheck.py +
-scripts/dev/README.md; 8 mandatory explicit
-denials of forbidden maturity claims). Step 5 —
-**narrow CLASS-1 docs-alignment** под post-Step-4
-reality: README Quickstart + "Active parallel
-track" section + этот PROJECT-STATUS header +
-новые per-step sections для Steps 2/3/4/5 + Step
-3 contract §3.5 / §13.4 authorised narrow line-
-replacement of `scripts/dev/README.md:5-11` +
-`:192-198` hand-off-marker sentences с pointer на
-новый recipe + one narrow CLASS-2 cross-link bullet
-в [`docs/release-handoff.md`](docs/release-handoff.md)
-"Where to read deeper". Никакого production code
-change; никакого `pyproject.toml` / `scripts/*.ps1`
-/ `scripts/*.py` / `SECURITY.md` / `CHANGELOG.md` /
-`apps/platform/README.md` / manuals touch (вне
-authorised narrow `scripts/dev/README.md`
-replacement); никакого registry change (`read=15
-/ write=25 / intelligence=16` invariant carried
-through через все пять Track O шагов); никаких
-1cv8.exe runs; никаких real credentials; никакого
-remote push; никакой premature Track O closure
-language — closure narrative + Closed-tracks list
-extension (14 → 15) + "Track O detail (закрыт)"
-section + Q7 SemVer lock + CHANGELOG entry
-остаются **строго Step 6 territory**. См. секции
-«Parallel Track O / Step 1–5 (завершён)» ниже для
-подробностей. Track N closure block + всё previous
-status preserved byte-identical — см. блоки
-«Статус» ниже для Track N / Track M / Track L /
-Track K / Track J / Track I closure narrative.
-**Каноничный next step — Parallel Track O / Step
-6 — final integration pass and track closure**
-(открытие — отдельное operator decision; не
-автоматизируется).
+586 lines — first-class contributor-facing recipe
+со всеми contract-required elements: **first-class
+`pip install -e .` install verb** (Windows
+PowerShell + POSIX bash/zsh fenced venv-setup
+examples; mechanically supported by hatchling's
+PEP 660 default against Track M's populated
+`packages` array; installs 11 src-layout packages
++ 3 `[project.scripts]` console entries; zero
+third-party runtime dependencies), **recommended-
+only Windows-only alternative** dot-source
+`bootstrap_paths.ps1`, supported tooling
+preconditions Python 3.11 + pip mandatory,
+workspace-discovery answer naming 11 src-layout
+package roots verbatim from `pyproject.toml:51-63`
+с dual-role explanation, verification step
+`python scripts/dev/selfcheck.py` →
+`selfcheck_status = ok` inheriting Track N FC4,
+orthogonal-and-complementary statement к Track M
+deploy-time wheel workflow, 7-sub-section
+authoritative non-goals, 6 mandatory cross-
+references, cross-OS posture Windows primary +
+POSIX via editable install + non-3.11 out of
+scope, 8 mandatory explicit denials of forbidden
+maturity claims; ноль production code change) /
+`88121ad` Step 5 (developer docs and dev-time
+workflow alignment: четыре CLASS-1/2 modified
+files — README + PROJECT-STATUS + scripts/dev/
+README.md narrow line-replacement of hand-off-
+marker sentences at lines 5-11 + 192-198 per
+contract §3.5 / §13.4 authorisation + docs/
+release-handoff.md "Where to read deeper" bullet;
+CLASS 3 closure territory deferred to Step 6) +
+closure commit Step 6 (final integration pass and
+track closure; **NO-BUMP** `pyproject.toml`
+`version=0.5.2` preserved byte-identical; этот
+commit). Track O закрыл следующий честный продуктовый
+gap: после Track M ввёл узкий supported deploy-time
+wheel distribution boundary (`pip install <WHEEL_PATH>`
+для оператора), у проекта всё ещё не было formal
+dev-time boundary для contributors editing the
+repo — нет documented `pip install -e .` flow,
+нет supported workspace discovery story за
+пределами PowerShell-only `bootstrap_paths.ps1`,
+нет cross-OS bootstrap parity. Gap явно
+acknowledged в репо: `scripts/dev/README.md:5-11`
+verbatim говорил "editable install и workspace
+discovery всё ещё out of scope" — sentence
+committed во время Track M / Step 4 как explicit
+hand-off marker (в Step 5 заменён на pointer к
+новому recipe). Step 4 recipe позитивно
+классифицирует existing latent capabilities
+(hatchling PEP 660 editable install + 11-element
+src-layout workspace), pins **`pip install -e .`**
+as the first-class supported dev-time install verb,
+pins **`bootstrap_paths.ps1` dot-source** as the
+recommended-only Windows-only alternative,
+inherits Track N FC4 `selfcheck.py` verification
+gate, и provides orthogonal-and-complementary
+statement к Track M deploy-time wheel workflow.
+
+**Q7 = NO-BUMP** (`0.5.2` preserved). Защита
+решения (grounded в repo facts):
+
+- **PATH A docs-only.** Step 4 ship'нул ровно один
+  новый файл `docs/dev/editable-install-and-
+  workspace-discovery.md`; ноль production code
+  change; ноль `pyproject.toml` change; ноль
+  `scripts/*.ps1` / `scripts/*.py` logic change.
+  Step 5 narrowly replaced two prose sentences в
+  `scripts/dev/README.md` per contract §3.5
+  authorisation — no script-logic change.
+- **No new declared surface.** No new CLI flag on
+  existing servers (`--transport`, `--config-path`,
+  `--log-level`, `--bind`, `--auth-token-env`
+  surface locked); no new `[project.scripts]`
+  entry; no new MCP tool (registry invariant
+  `read=15 / write=25 / intelligence=16` carried
+  through через все шесть Track O шагов); no new
+  entrypoint module; no new dependency; no new
+  env-var convention.
+- **No defect-class repair.** Track I PATCH
+  precedent (`installer.py:_config_to_dict` +15
+  LOC) required a **declared-but-broken** surface
+  being made working; Track M PATCH precedent
+  (`pyproject.toml` 11-element packages flip +7
+  LOC) required a **declared-but-non-functional**
+  wheel-build being made functional. Track O имеет
+  **ноль** broken surfaces to repair —
+  `pip install -e .` was already mechanically
+  supported by hatchling's PEP 660 default against
+  Track M's populated packages array; recipe
+  **documents** that latent capability, does
+  **not** make it work.
+- **Track J / Track K / Track L / Track N NO-BUMP
+  precedents apply directly.** Track J = PATH A
+  docs-only deployment-boundary recipe → NO-BUMP.
+  Track K = single new diagnostic file under
+  `scripts/dev/` → NO-BUMP. Track L = docs + one
+  declarative systemd unit template → NO-BUMP.
+  Track N = PATH A docs-only observability recipe
+  → NO-BUMP. **Track O — purest-form Track N
+  analogue**: pure docs-only contributor-facing
+  recipe, no template, no helper, no code.
+- **Step 3 contract §13.5 / §11.4 explicitly
+  framed NO-BUMP** as the default under PATH A,
+  explicitly prohibited PATCH under PATH A (no
+  code change occurs), и explicitly prohibited
+  MINOR under any path (guardrails §1.4 — no new
+  CLI flag, no new declared surface). MAJOR
+  forbidden by track scope.
+- **SemVer §6 framing.** PATCH = backward-
+  compatible bug fixes. Track O Step 4 = backward-
+  compatible **documentation of existing latent
+  behaviour**, not a bug fix. Therefore NO-BUMP is
+  the only honest outcome.
+
+Никакого containerised dev environment (no
+Dockerfile / docker-compose / .devcontainer/);
+никакого IDE-specific integration; никакого
+remote-dev workflow; никакого multi-Python-version
+matrix; никакого formatter / linter / test-runner
+policy redesign; никакого alternative build-
+backend evaluation; никакого test-suite shipping
+(empty `tests/` остаётся out of scope); никакого
+installable-from-git-URL story; никаких new MCP
+tools; никакого registry change; никаких
+transport / auth / deployment-boundary / service-
+supervision / packaging / observability redesigns;
+никакого 1cv8 work; никакого remote push. Stdio
+transport runtime byte-identical к Track G /
+Step 4; HTTP transport runtime byte-identical к
+Track H / Step 4 (с Track I defect-fix layered on
+top); installer round-trip integrity byte-
+identical к Track I / Step 4; deployment-boundary
+recipe byte-identical к Track J / Step 4; real
+MCP client smoke harness byte-identical к Track K
+/ Step 4; service-supervision recipe + systemd
+template byte-identical к Track L / Step 4;
+packaging distribution-boundary recipe + wheel-
+build flip byte-identical к Track M / Step 4
+(11-element `packages` array preserved);
+observability recipe byte-identical к Track N /
+Step 4. `apps/platform/src/onec_platform/` +
+`packages/*/src/` byte-identical к Track N closure
+state `2737a52`. Это **не** "developer workflow
+solved forever" / "all IDE integrations supported"
+/ "all package managers supported for dev install"
+/ "containerised dev environment shipped" /
+"remote-dev shipped" / "enterprise developer
+experience" / "production-ready DX" / "DX matrix
+complete" claim — Track O's closure-gate covers
+**только** одну narrow integration-and-naming
+slice (contributor-facing recipe documenting
+existing latent capabilities); broader DX matrices
+remain recommended-only.
+
+**Recommended-next-track candidates** (recommendation
+only, без автоматического открытия): structured-
+logging library adoption track (post-Track-N
+follow-up); narrow `selfcheck --json` mode track
+(post-Track-N follow-up); `/healthz` / `/readyz`
+HTTP endpoint track (Track J §6 defer reversal
+would be separate decision); Windows / macOS
+implementation-covered service-supervision-
+extension track (post-Track-L follow-up: pywin32
+service wrapper + launchd `.plist` artefact);
+broader packaging ecosystem track (`.msi` /
+`.deb` / `.rpm` / `.dmg` / `.pkg` / signed
+distribution chain / PyPI publication / multi-
+package-manager publication); multi-version 1С
+matrix expansion (post-Track-E follow-up); full
+rollback / AST work (post-Track-F / post-Track-A
+follow-ups); web UI / dashboard frontend track;
+TLS-in-process / mTLS expansion (separate
+enterprise-grade identity track); enterprise
+identity stack track (SSO / OIDC / RBAC / SAML /
+SCIM / multi-tenant); test-suite shipping track
+(would close the empty `tests/` aspiration in
+`pyproject.toml`); cross-OS dev-bootstrap parity
+track (post-Track-O follow-up: would address the
+PowerShell-only nature of `bootstrap_paths.ps1`
+via a `bash`/`zsh` sibling — currently mitigated
+by `pip install -e .` covering POSIX). Эти
+кандидаты — recommendation only, не auto-opened.
 
 ## Статус
 
@@ -16630,6 +16789,112 @@ read/write/intelligence-серверов, с честно
   (closure narrative + Q7 SemVer lock + Closed
   parallel tracks list extension 14 → 15 + "Track
   O detail (закрыт)" section + CHANGELOG entry).
+
+### Parallel Track O / Step 6 — final integration pass and track closure (завершён)
+
+- **Цель.** Final integration pass над Track O
+  Steps 1–5 + честное Q7-решение + closure
+  narrative в README / PROJECT-STATUS / CHANGELOG.
+  Закрыть весь Track O. Active tracks remaining =
+  none после Step 6.
+- **Q7 = NO-BUMP** (`0.5.2` preserved byte-
+  identical). Защита решения (см. блок «Статус»
+  выше для full reasoning). Кратко: Step 4 был
+  PATH A docs-only; ноль production code change;
+  ноль `pyproject.toml` change; ноль
+  `scripts/*.ps1` / `scripts/*.py` logic change;
+  ноль new declared surface; ноль defect-class
+  repair (recipe documents existing latent
+  hatchling PEP 660 capability — does **not**
+  make it work); Track J / Track K / Track L /
+  Track N NO-BUMP precedents apply directly;
+  Step 3 contract §13.5 / §11.4 explicitly framed
+  NO-BUMP default под PATH A и prohibited PATCH
+  (no code change occurs) + MINOR (no new declared
+  surface); MAJOR forbidden by track scope; SemVer
+  §6 framing: PATCH = backward-compatible bug
+  fixes; Track O = backward-compatible
+  **documentation of existing latent behaviour**,
+  not a bug fix; NO-BUMP is the only honest
+  outcome.
+- **Closure scope (narrowest honest).** Touched:
+  `README.md` (Quickstart blockquote summary
+  flipped от active Track O к Track O closure
+  narrative; Closed parallel tracks list extended
+  от четырнадцать до **пятнадцать** с Track O
+  entry; Active parallel track section compressed
+  back к no-active-track wording; new "Track O
+  detail (закрыт)" section added above "Track N
+  detail (закрыт)"); `PROJECT-STATUS.md` (header
+  rewritten от "Track O / Step 5 active" к "no
+  active step + Track O fully closed под `0.5.2`";
+  новый top-level "## Статус" block — Step 6
+  closure narrative; per-step closure section для
+  Step 6 inserted после existing Step 5 section);
+  `CHANGELOG.md` (Track O closure narrative added
+  under existing `## 0.5.2 — ...` section с
+  explicit "Track O closed under existing 0.5.2
+  without further bump" framing, mirroring Track N
+  precedent under the same release line).
+  **NOT touched:** `pyproject.toml` (`version=
+  "0.5.2"` preserved byte-identical — NO-BUMP Q7
+  decision); `SECURITY.md`; `docs/release-
+  handoff.md` (Step 5 уже выровнял);
+  `apps/platform/README.md`; `docs/dev/editable-
+  install-and-workspace-discovery.md` (Step 4
+  deliverable immutable); `docs/operators/
+  deployment-boundary.md` (Track J artefact);
+  `docs/operators/service/*` (Track L artefacts);
+  `docs/operators/packaging/distribution-boundary.md`
+  (Track M artefact); `docs/operators/observability.md`
+  (Track N artefact); все `scripts/*.ps1` /
+  `scripts/*.py`; `scripts/dev/README.md` (Step 5
+  уже выровнял per contract §3.5 authorisation);
+  `scripts/release/README.md`; Track O Step 1/2/3
+  architecture docs (frozen anchors); production
+  code; `apps/*/src/`; `packages/*/src/`; manuals;
+  examples; CI workflow; `.python-version`;
+  `LICENSE`.
+- **Verify-release.** GREEN на 8 checks pre-commit
+  (`-AllowDirtyTree`) и post-commit (clean tree);
+  selfcheck registries `read=15 / write=25 /
+  intelligence=16` без drift'а; никаких реальных
+  credentials в closure commit'е; никаких 1cv8.exe
+  runs; никакого remote push.
+- **Track O closure итог.** **Пятнадцать** post-
+  phase parallel track'ов (A, B, C, D, E, F, G,
+  H, I, J, K, L, M, N, O) полностью закрыты.
+  Phase 7 как линейная фаза не запланирована.
+  Открытие следующего параллельного трека —
+  отдельное operator decision. **Recommended-
+  next-track candidates** (recommendation only,
+  без автоматического открытия): structured-
+  logging library adoption track (post-Track-N
+  follow-up); narrow `selfcheck --json` mode
+  track (post-Track-N follow-up); `/healthz` /
+  `/readyz` HTTP endpoint track; Windows / macOS
+  implementation-covered service-supervision-
+  extension track (post-Track-L follow-up: pywin32
+  service wrapper + launchd `.plist` artefact);
+  broader packaging ecosystem track (`.msi` /
+  `.deb` / `.rpm` / `.dmg` / `.pkg` / signed
+  distribution chain / PyPI publication / multi-
+  package-manager publication); multi-version 1С
+  matrix expansion (post-Track-E follow-up); full
+  rollback / AST work (post-Track-F / post-
+  Track-A follow-ups); web UI / dashboard frontend
+  track; TLS-in-process / mTLS expansion (separate
+  enterprise-grade identity track); enterprise
+  identity stack track (SSO / OIDC / RBAC / SAML
+  / SCIM / multi-tenant); test-suite shipping
+  track (would close the empty `tests/`
+  aspiration in `pyproject.toml`); cross-OS
+  dev-bootstrap parity track (post-Track-O follow-
+  up: PowerShell-only `bootstrap_paths.ps1` →
+  POSIX-shell sibling — currently mitigated by
+  `pip install -e .` covering POSIX). Эти
+  кандидаты — recommendation only, не auto-
+  opened.
 
 ## Phase 6 закрыта
 

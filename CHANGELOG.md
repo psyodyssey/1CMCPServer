@@ -6,18 +6,21 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
-## 0.5.2 — Parallel Track M (PATCH bump) and Parallel Track N (docs-only closure under 0.5.2, no further bump)
+## 0.5.2 — Parallel Track M (PATCH bump), Parallel Track N (docs-only closure under 0.5.2, no further bump), and Parallel Track O (docs-only closure under 0.5.2, no further bump)
 
-Version 0.5.2 closes two post-phase parallel tracks under
-the same release line. The `0.5.1 → 0.5.2` PATCH bump
-itself was made by **Parallel Track M (Packaging Ecosystem
-and Distribution Boundary)**. **Parallel Track N
-(Observability and Diagnostics Boundary)** subsequently
+Version 0.5.2 closes three post-phase parallel tracks
+under the same release line. The `0.5.1 → 0.5.2` PATCH
+bump itself was made by **Parallel Track M (Packaging
+Ecosystem and Distribution Boundary)**. **Parallel Track
+N (Observability and Diagnostics Boundary)** subsequently
 closed under the same `0.5.2` without further bump
-(Q6 = NO-BUMP). The Track M narrative below is preserved
-byte-identical from the original `0.5.2` release; the
-Track N narrative appears as a new sub-section at the end
-of this `0.5.2` block.
+(Q6 = NO-BUMP). **Parallel Track O (Dev-Time Editable
+Install and Workspace Discovery)** subsequently closed
+under the same `0.5.2` without further bump (Q7 =
+NO-BUMP). The Track M narrative below is preserved byte-
+identical from the original `0.5.2` release; the Track N
+and Track O narratives appear as new sub-sections at the
+end of this `0.5.2` block.
 
 ### Parallel Track M — Packaging Ecosystem and Distribution Boundary (PATCH bump `0.5.1 → 0.5.2`)
 
@@ -614,6 +617,322 @@ web UI / dashboard frontend track; TLS-in-process /
 mTLS expansion; enterprise identity stack track (SSO /
 OIDC / RBAC / SAML / SCIM / multi-tenant); editable-
 install / workspace-discovery dev-time tooling track.
+
+### Parallel Track O — Dev-Time Editable Install and Workspace Discovery (docs-only closure under `0.5.2`, no further bump)
+
+**Q7 = NO-BUMP.** Track O closes under existing `0.5.2`
+without further `pyproject.toml` `version` change. The
+`pyproject.toml` `version` field is preserved byte-
+identical through all six Track O steps. Track J /
+Track K / Track L / Track N NO-BUMP precedents apply
+directly: Track J = PATH A docs-only deployment-boundary
+recipe → NO-BUMP; Track K = single new diagnostic file
+under `scripts/dev/` → NO-BUMP; Track L = docs + one
+declarative systemd unit template → NO-BUMP; Track N =
+PATH A docs-only observability recipe → NO-BUMP. Track
+O is the **purest-form Track N analogue**: pure docs-
+only contributor-facing recipe at
+`docs/dev/editable-install-and-workspace-discovery.md`,
+no template, no helper, no code, no test, no CI workflow
+change.
+
+#### What Track O closed
+
+A previously-honest gap: the platform shipped a deploy-
+time wheel distribution boundary (Track M's
+`pip install <WHEEL_PATH>` operator workflow) but had no
+formal dev-time boundary for contributors editing the
+repo in place — no documented `pip install -e .` flow,
+no supported workspace discovery story beyond the
+PowerShell-only `scripts/dev/bootstrap_paths.ps1`, no
+cross-OS bootstrap parity. The gap was explicitly
+acknowledged in two places in the repo:
+`scripts/dev/README.md:5-11` and `:192-198` both said
+"editable install и workspace discovery всё ещё out of
+scope" — committed during Track M / Step 4 as deliberate
+hand-off markers (replaced in Step 5 with a pointer to
+the new recipe). An older anchor at
+`docs/architecture/phase-1-entry.md:79-82` predated
+Track M and predicted "потребуется нормальный packaging
+/ workspace setup (editable install, entry points)".
+Track O is the dedicated narrow track that closes this
+long-standing gap as the dev-time axis orthogonal to
+Track M's operator/deploy-time wheel boundary.
+
+#### Step trajectory
+
+- **Step 1 (planning, commit `4122431`).** Two planning
+  documents — plan (14 sections; Q1–Q7 directional
+  defaults) and step-map (six-step boundary + 31 track
+  invariants + hard out-of-scope carry-through).
+- **Step 2 (descriptive baseline audit, commit
+  `c8941a4`).** One audit document with file:line
+  citations across 17 existing dev-time surfaces (full
+  `scripts/dev/*` inventory; `pyproject.toml` build
+  backend + project metadata + absent
+  `[project.dependencies]` + console scripts + tooling
+  configuration + 11-element packages array;
+  `.python-version` Python 3.11 pin; CI workflow;
+  `scripts/dev/README.md` hand-off marker at lines
+  5-11 + 192-198; `phase-1-entry.md:79-82` older
+  anchor; `scripts/release/README.md` dev-vs-deploy
+  delimiter; `distribution-boundary.md` zero dev-time
+  hits confirming Track M = operator-only); 8 reusable
+  surfaces; 7 adjacent-but-insufficient surfaces; 5
+  clearly-missing pieces; Q1–Q6 directional
+  resolutions; Step 3 handoff list (14+ items). Key
+  finding: gap is **integration-and-naming**, not
+  tooling generation; production code change very
+  likely **not** required.
+- **Step 3 (normative contract, commit `2a24fc4`).**
+  One normative contract document with RFC 2119 MUST /
+  MUST NOT / SHOULD / SHOULD NOT / MAY language.
+  **PATH A docs-only LOCKED** at §7.1 with grounded
+  defence at §7.4. PATH B (cross-OS shell sibling or
+  `pyproject.toml` editable-install comment block)
+  explicitly rejected at §7.2. PATH C (developer
+  bootstrap helper script) explicitly rejected at
+  §7.3. Canonical recipe path
+  `docs/dev/editable-install-and-workspace-discovery.md`
+  locked at §8.2. Six mandatory content elements C2–
+  C7 locked at §4.1. Six mandatory cross-references C8
+  locked. Cross-OS posture C9 locked at §5.3. Eight
+  mandatory denial phrases locked at §9.2. Exhaustive
+  forbidden-files surface locked at §8.5. V1–V12
+  pre-commit + P1–P4 post-commit verification protocol
+  locked at §11. **First-class install verb
+  `pip install -e .` LOCKED** at §5.1 (grounded in
+  hatchling's PEP 660 default behaviour against Track
+  M's populated `packages` array). **Recommended-only
+  Windows-only alternative `scripts/dev/bootstrap_paths.ps1`
+  dot-source LOCKED** at §5.2. Q7 framed as NO-BUMP
+  default under PATH A at §13.5.
+- **Step 4 (narrow PATH A implementation, commit
+  `24b2ee7`).** Exactly one new file:
+  `docs/dev/editable-install-and-workspace-discovery.md`
+  (586 lines, under soft cap ≤700 RECOMMENDED). 9
+  top-level sections delivering all contract-required
+  content: §1 Purpose / scope with 8 explicit denials
+  of forbidden maturity claims; §2 Supported install
+  verbs with first-class `pip install -e .` (Windows
+  PowerShell + POSIX bash/zsh venv-setup fenced
+  examples) and recommended-only `bootstrap_paths.ps1`
+  dot-source; §3 Supported tooling preconditions
+  (Python 3.11 + pip mandatory; venv tool recommended;
+  build/ruff/pytest/IDE not required by recipe); §4
+  Workspace-discovery answer enumerating the 11 src-
+  layout package roots verbatim from
+  `pyproject.toml:51-63` with dual-role explanation
+  (Track M wheel-build packages array + dev-time
+  PYTHONPATH); §5 Verification step pointing at
+  `python scripts/dev/selfcheck.py` →
+  `selfcheck_status = ok` inheriting Track N FC4;
+  §6 Relationship to Track M orthogonal-and-
+  complementary axes table with cross-references to
+  `docs/operators/packaging/distribution-boundary.md`;
+  §7 Authoritative non-goals aggregating Step 1 plan
+  §7 + Step 3 contract §1.4/§12 denials + 8 forbidden
+  maturity claims recap; §8 Cross-references — 6
+  mandatory anchors with file-path links and role
+  descriptions; §9 Honest summary. Step 4 touched
+  zero production code, zero `pyproject.toml`, zero
+  `scripts/*` logic, zero existing operator recipes.
+- **Step 5 (developer docs and dev-time workflow
+  alignment, commit `88121ad`).** Four CLASS-1/CLASS-2
+  modified files: `README.md` (Quickstart blockquote
+  + "Active parallel track" section + selfcheck note
+  + canonical next step); `PROJECT-STATUS.md` (header
+  rewrite + four new per-step sections for Steps
+  2/3/4/5); `scripts/dev/README.md` (Step 3 contract
+  §3.5 / §13.4 authorised narrow line-replacement of
+  hand-off-marker sentences at lines 5-11 and 192-198
+  with pointer at the new recipe; rest of file byte-
+  identical); `docs/release-handoff.md` (one new
+  bullet in "Where to read deeper" pointing at the
+  new recipe). CLASS 3 closure territory (CHANGELOG /
+  pyproject version / README "Closed parallel tracks"
+  list extension / README "Track O detail (закрыт)"
+  full section) explicitly deferred to Step 6.
+- **Step 6 (final integration pass and track closure,
+  this commit).** Three modified files: `README.md`
+  (Quickstart blockquote + "Closed parallel tracks"
+  list extended from 14 to 15 entries + "Active
+  parallel track" section compressed back to no-
+  active-track wording + new "Track O detail
+  (закрыт)" section above "Track N detail (закрыт)");
+  `PROJECT-STATUS.md` (header flipped to "Активного
+  шага нет" + new top-level "## Статус" block with
+  full Track O closure narrative + per-step Step 6
+  closure section appended); `CHANGELOG.md` (this
+  sub-section + 0.5.2 section title updated to
+  include Track O closure under same release line).
+  Zero production code change; zero `pyproject.toml`
+  change (Q7 = NO-BUMP); zero `scripts/*` change;
+  zero `docs/operators/*` change; zero
+  `docs/dev/editable-install-and-workspace-discovery.md`
+  change; zero `apps/platform/README.md` change; zero
+  `SECURITY.md` change.
+
+#### What Track O's recipe contains
+
+The Track O closure-gate document is
+`docs/dev/editable-install-and-workspace-discovery.md`.
+It positively classifies the dev-time install workflow
+in two categories:
+
+- **First-class supported install verb:**
+  `pip install -e .` run from the repo root in a
+  Python 3.11 environment. Mechanically supported by
+  hatchling's PEP 660 default behaviour against Track
+  M's populated `[tool.hatch.build.targets.wheel]
+  packages` 11-element array. Installs all 11 src-
+  layout packages as importable plus the three
+  `[project.scripts]` console entries
+  (`mcp-read-server` / `mcp-write-server` /
+  `mcp-intelligence-server`) as contributor-runnable
+  binaries. Introduces zero third-party runtime
+  dependencies (because `[project.dependencies]` is
+  empty by construction). In-place source edits are
+  reflected immediately; no rebuild step required for
+  code changes. Works on Windows / Linux / macOS.
+- **Recommended-only alternative (Windows-only):**
+  `. .\scripts\dev\bootstrap_paths.ps1` dot-source in
+  a Windows PowerShell session. Session-scoped (does
+  not survive shell restart); does not install
+  console scripts; available for contributors who
+  prefer to avoid touching `site-packages` or who
+  already have a preferred virtual-environment
+  workflow.
+
+The recipe additionally contains: supported tooling
+preconditions (Python 3.11 + pip mandatory; virtual-
+environment tool recommended;
+`build`/`ruff`/`pytest`/IDE not required by recipe;
+no `[project.optional-dependencies] dev = [...]`
+block ships); workspace-discovery answer enumerating
+the 11 src-layout package roots verbatim from
+`pyproject.toml:51-63` with dual-role explanation;
+verification step naming `python scripts/dev/
+selfcheck.py` (or `.\scripts\dev\launch.ps1 selfcheck`
+on Windows) as the canonical contributor-runnable
+gate inheriting Track N FC4 classification;
+relationship-to-Track-M statement framing dev-time
+editable install (Track O) and deploy-time wheel
+distribution (Track M) as orthogonal-and-
+complementary axes with different audiences,
+lifecycle moments, and install verbs; cross-OS
+posture pinning Windows primary (both first-class
+and recommended-only paths work) and POSIX
+(Linux/macOS) served by `pip install -e .` first-
+class only (the PowerShell bootstrap is **not**
+supported on POSIX even with `pwsh` installed) and
+non-3.11 Python / other shells / embedded
+interpreters out of scope; seven sub-sections of
+authoritative non-goals; eight forbidden maturity
+claim denials; and six mandatory cross-references
+to Track M `distribution-boundary.md`,
+`pyproject.toml` (single source of truth for the 11
+packages array), `scripts/dev/bootstrap_paths.ps1`,
+`scripts/dev/launch.ps1`, `scripts/dev/selfcheck.py`,
+and `scripts/dev/README.md` (historical hand-off
+marker pointer).
+
+#### What Track O does NOT mean
+
+Track O closure is **not** a claim of "developer
+workflow solved forever" / "all IDE integrations
+supported" / "all package managers supported for dev
+install" / "containerised dev environment shipped" /
+"remote-dev shipped" / "enterprise developer
+experience" / "production-ready DX" / "DX matrix
+complete". Each of these phrases appears in the
+Track O recipe **only as an explicit denial**, and
+remains forbidden as a closure language across
+README / PROJECT-STATUS / this CHANGELOG. Track O's
+closure-gate covers exactly one narrow integration-
+and-naming slice: a contributor-facing document
+that positively classifies which dev-time install
+workflows the platform supports, names supported
+tooling preconditions, documents workspace
+discovery, points at the verification gate, and
+draws the orthogonality line to Track M's deploy-
+time boundary. Broader DX matrices remain
+recommended-only.
+
+#### Carry-forward invariants
+
+Track O preserves byte-identical:
+
+- All `apps/*/src/` and `packages/*/src/` production
+  code at Track N closure state (`2737a52`).
+- `pyproject.toml` (`version="0.5.2"` preserved
+  byte-identical; `[tool.hatch.build.targets.wheel]
+  packages = [...]` 11-element src-layout array
+  preserved; `[project.scripts]` three console
+  entries preserved; `[project.dependencies]` empty
+  preserved; `[tool.ruff]` and
+  `[tool.pytest.ini_options]` preserved).
+- All `scripts/*.ps1` and `scripts/*.py` byte-
+  identical (`selfcheck.py`, `verify-release.ps1`,
+  `install.ps1`, `_install_runner.py`, `launch.ps1`,
+  `bootstrap_paths.ps1`, `run_dev_check.ps1`,
+  `mcp_client_smoke.py`). `scripts/dev/README.md`
+  modified in Step 5 ONLY for the contract-
+  authorised narrow line-replacement of the hand-off-
+  marker sentences at lines 5-11 and 192-198; rest
+  of file byte-identical. `scripts/release/README.md`
+  byte-identical.
+- All existing operator recipes
+  (`docs/operators/deployment-boundary.md`,
+  `docs/operators/service/service-supervision.md`,
+  `docs/operators/service/mcp-server.service`,
+  `docs/operators/packaging/distribution-boundary.md`,
+  `docs/operators/observability.md`).
+- All Tracks A–N architecture documents.
+- CI workflow `.github/workflows/dev-check.yml`.
+- `.python-version` Python 3.11 pin.
+- Registry invariant `read=15 / write=25 /
+  intelligence=16`.
+- `SECURITY.md`, `apps/platform/README.md`,
+  `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`.
+- No new MCP tools.
+- No new CLI flag.
+- No new `[project.scripts]` console entries.
+- No new dependencies.
+- No new entrypoint module.
+- No `1cv8.exe` runs.
+- No real credentials in any committed file.
+- No remote push.
+
+#### Active track after closure
+
+**None.** Fifteen post-phase parallel tracks (A, B,
+C, D, E, F, G, H, I, J, K, L, M, N, O) are now
+closed sequentially. Phase 7 is not planned as a
+linear phase. Opening the next parallel track is a
+separate operator decision. Recommended-next-track
+candidates (recommendation only, not auto-opened):
+structured-logging library adoption track; narrow
+`selfcheck --json` mode track; `/healthz` /
+`/readyz` HTTP endpoint track; Windows / macOS
+implementation-covered service-supervision-extension
+track (post-Track-L follow-up: pywin32 service
+wrapper + launchd `.plist` artefact); broader
+packaging ecosystem track (`.msi` / `.deb` / `.rpm`
+/ `.dmg` / signed distribution chain / PyPI
+publication); multi-version 1С matrix expansion;
+full rollback / AST work; web UI / dashboard
+frontend track; TLS-in-process / mTLS expansion;
+enterprise identity stack track (SSO / OIDC / RBAC
+/ SAML / SCIM / multi-tenant); test-suite shipping
+track (would close the empty `tests/` aspiration in
+`pyproject.toml`); cross-OS dev-bootstrap parity
+track (post-Track-O follow-up: PowerShell-only
+`bootstrap_paths.ps1` → POSIX-shell sibling —
+currently mitigated by `pip install -e .` covering
+POSIX).
 
 ## 0.5.1 — Parallel Track I (PATCH bump), Parallel Track J (docs-only closure under 0.5.1, no further bump), Parallel Track K (diagnostic-tooling-only closure under 0.5.1, no further bump), and Parallel Track L (docs + declarative-template closure under 0.5.1, no further bump)
 
