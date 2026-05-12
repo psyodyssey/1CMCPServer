@@ -654,6 +654,45 @@ For the security report flow, see `SECURITY.md`.
   on your local machine. Not a closure of "client
   integration solved" — exercises only the narrow
   minimum scenario.
+- **Operator-facing observability and diagnostics recipe**
+  (Track N / Step 4 deliverable, PATH A docs-only) at
+  [`docs/operators/observability.md`](operators/observability.md).
+  The single recipe naming which on-host diagnostic
+  signals the platform supports today, what each one
+  means, and how to use them when something is wrong.
+  Classifies seven first-class signals (stderr via
+  Python `logging` at `--log-level INFO`; process exit
+  codes 0/1/2; HTTP response envelope incl. auth-
+  failure 401 + `WWW-Authenticate: Bearer realm="mcp"`
+  + JSON-RPC `-32001` failure-equivalence;
+  `scripts/dev/selfcheck.py` pre-flight gate;
+  `scripts/release/verify-release.ps1` 8-check release
+  gate; install fast-path findings;
+  `journalctl -u <UNIT>.service` on Linux/systemd
+  hosts deployed via the service-supervision recipe),
+  four recommended-only signals, and ten explicitly
+  out-of-scope categories. Includes a log-level-to-
+  event mapping (inheriting service-supervision §9.3
+  verbatim), an exit-code-meaning table, an HTTP
+  response envelope summary, a `/healthz` non-shipping
+  carry-forward from deployment-boundary §6, a three-
+  canonical-failure-mode triage recipe
+  (T1 startup-code-2 / T2 universal-401 /
+  T3 selfcheck-FAIL), a cross-OS posture section
+  (Linux/systemd primary; Windows NSSM / macOS
+  launchd / non-supervised execution prose-only),
+  authoritative non-goals, and seven operator-side
+  verification steps. Read this recipe **when
+  something is wrong** with a running deployment
+  — and when classifying which diagnostic signals the
+  platform commits to. **Not** a closure of
+  "observability solved forever" / "production-ready
+  observability" / "full observability stack" /
+  "enterprise-ready observability" / "all signals
+  covered" — exercises only the narrow integration-
+  and-naming slice; no metrics platform, no tracing,
+  no alerting, no `/healthz`, no log-aggregation
+  forwarder, no structured-logging library ships.
 - **Administrator-facing reference** — `docs/administrator-manual.md`.
 - **Developer-facing reference** — `docs/developer-manual.md`.
 - **Reproducible scenarios** — `docs/runbooks/`, including the
