@@ -6,12 +6,22 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
-## 0.5.2 — Parallel Track M — Packaging Ecosystem and Distribution Boundary
+## 0.5.2 — Parallel Track M (PATCH bump) and Parallel Track N (docs-only closure under 0.5.2, no further bump)
 
-Version 0.5.2 closes a single post-phase parallel track —
-**Parallel Track M (Packaging Ecosystem and Distribution
-Boundary)** — and bumps `pyproject.toml` `version` from
-`0.5.1` to `0.5.2`. The bump is a **PATCH** under SemVer §6:
+Version 0.5.2 closes two post-phase parallel tracks under
+the same release line. The `0.5.1 → 0.5.2` PATCH bump
+itself was made by **Parallel Track M (Packaging Ecosystem
+and Distribution Boundary)**. **Parallel Track N
+(Observability and Diagnostics Boundary)** subsequently
+closed under the same `0.5.2` without further bump
+(Q6 = NO-BUMP). The Track M narrative below is preserved
+byte-identical from the original `0.5.2` release; the
+Track N narrative appears as a new sub-section at the end
+of this `0.5.2` block.
+
+### Parallel Track M — Packaging Ecosystem and Distribution Boundary (PATCH bump `0.5.1 → 0.5.2`)
+
+The bump is a **PATCH** under SemVer §6:
 Track M closes a defect-class declared-but-non-functional
 surface. Three `[project.scripts]` console entries
 (`mcp-read-server` / `mcp-write-server` /
@@ -315,6 +325,295 @@ closure:
   Step 4); the `apps/platform/src/onec_platform/runtime.py`
   in-process product-layer supervisor (**not** a service
   manager, and not extended in Track M).
+
+### Parallel Track N — Observability and Diagnostics Boundary (docs-only closure under `0.5.2`, no further bump)
+
+**Q6 = NO-BUMP.** Track N closes under existing `0.5.2`
+without further `pyproject.toml` `version` change. The
+`pyproject.toml` `version` field is preserved byte-
+identical through all six Track N steps. Track J / Track K
+/ Track L NO-BUMP precedents apply directly: Track J = PATH
+A docs-only deployment-boundary recipe → NO-BUMP; Track K =
+single new diagnostic file under `scripts/dev/` → NO-BUMP;
+Track L = docs + one declarative systemd unit template →
+NO-BUMP. Track N is the **purest-form Track J analogue**:
+pure docs-only operator-facing recipe at
+`docs/operators/observability.md`, no template, no helper,
+no code, no test, no CI workflow change.
+
+#### What Track N closed
+
+A previously-honest gap: the platform emitted a real
+diagnostic surface (Python `logging` to stderr; three-
+bucket process exit codes; HTTP response envelope with
+auth-failure failure-equivalence per Track H §8.4;
+`scripts/dev/selfcheck.py` 11-key=value pre-flight gate;
+`scripts/release/verify-release.ps1` 8-check release gate;
+`scripts/dev/mcp_client_smoke.py` transport-boundary smoke;
+`scripts/release/install.ps1` install-time findings;
+`packages/onec-health` + `packages/onec-troubleshooting`
+library exports; `journalctl -u <UNIT>.service` on Linux/
+systemd hosts deployed via Track L), and the service-
+supervision recipe at `docs/operators/service/service-
+supervision.md` §9 already pinned a level-to-event mapping
+for the systemd-supervised path. But Track J / Track L /
+Track M each only denied "full observability stack" in
+their own scope; none of them positively defined what the
+supported diagnostic surface IS. Track N is the dedicated
+narrow track that did exactly that.
+
+#### Step trajectory
+
+- **Step 1 (planning, commit `efb4e5c`).** Two planning
+  documents — plan (14 sections; Q1–Q7 directional
+  defaults) and step-map (six-step boundary + 25 track
+  invariants + hard out-of-scope carry-through).
+- **Step 2 (descriptive baseline audit, commit
+  `d4183ca`).** One audit document with file:line
+  citations across 17 existing diagnostic surfaces; 9
+  reusable surfaces; 8 adjacent-but-insufficient surfaces;
+  7 clearly-missing pieces; Q1–Q6 directional resolutions;
+  Step 3 handoff list (14+ items). Key finding: gap is
+  **integration-and-naming**, not signal-generation;
+  production code change likely **not** required.
+- **Step 3 (normative contract, commit `0ff3c2b`).** One
+  normative contract document with RFC 2119 MUST/MUST NOT/
+  SHOULD/MAY language. **PATH A docs-only LOCKED** at
+  §7.1 with grounded defence at §7.5. PATH B (selfcheck
+  `--json` slice) explicitly rejected at §7.2. PATH C
+  (log-shape contract slice) explicitly rejected at §7.3.
+  PATH D (diagnostic-bundle helper) considered and
+  rejected at §7.4. Canonical recipe path
+  `docs/operators/observability.md` locked at §8.2. Six
+  mandatory content elements C2–C7 locked at §4.1. Seven
+  mandatory cross-references C8 locked. Cross-OS posture
+  C9 locked at §5.3. Nine mandatory denial phrases locked
+  at §9.2. Exhaustive forbidden-files surface locked at
+  §8.5 (production code, project config, existing scripts,
+  existing operator recipes, status/handoff docs, tests/
+  data, Track N step docs, all Tracks A–M architecture
+  docs, CI workflow). V1–V12 pre-commit + P1–P4 post-
+  commit verification protocol locked at §11. Q6 framed
+  as NO-BUMP default under PATH A at §13.5.
+- **Step 4 (narrow PATH A implementation, commit
+  `76c47ba`).** Exactly one new file:
+  `docs/operators/observability.md` (1043 lines, under
+  hard cap ≤1200 / soft cap ≤1000 RECOMMENDED). 13 top-
+  level sections delivering all contract-required content:
+  §1 Purpose / scope with 9 explicit denials of forbidden
+  maturity claims; §2 Supported diagnostic surfaces with
+  7 first-class signals FC1–FC7 + 4 recommended-only
+  signals R1–R4 + 10-item out-of-scope list; §3 Log-
+  level-to-event mapping inheriting Track L §9.3 verbatim;
+  §4 Exit-code-meaning table (0 clean / 1 unhandled
+  exception / 2 startup-time operator-readable failure)
+  with file:line citations; §5 HTTP response envelope
+  summary (Track H §8.4 failure-equivalence); §6
+  `/healthz` non-shipping carry-forward quoting Track J
+  §6 verbatim; §7 Triage recipe with three mandatory
+  canonical failure modes (T1 startup-code-2 / T2
+  universal-401 / T3 selfcheck-FAIL) plus two optional
+  follow-ups (T4 smoke-FAIL / T5 systemd-restart-loop);
+  §8 Relationship to existing recipes (Track J / L / M
+  positioned as orthogonal-and-complementary); §9
+  Authoritative non-goals aggregating Track J §10 + Track
+  L §9.5/§13 + Track M §13 plus 9 forbidden maturity
+  claims recap; §10 Cross-OS posture (Linux/systemd/
+  journald primary implementation-covered; Windows NSSM
+  + macOS launchd + non-supervised execution prose-only;
+  no fake parity); §11 Operator-side verification (7
+  copy-pasteable steps); §12 Honest summary; §13 Cross-
+  reference index. Step 4 touched zero production code,
+  zero `pyproject.toml`, zero `scripts/*`, zero existing
+  operator recipes.
+- **Step 5 (operator docs and observability alignment,
+  commit `0d3627c`).** Three CLASS-1/CLASS-2 modified
+  files: `README.md` (Quickstart blockquote + "Active
+  parallel track" section + selfcheck note + canonical
+  next step); `PROJECT-STATUS.md` (header rewrite + four
+  new per-step sections for Steps 2/3/4/5);
+  `docs/release-handoff.md` (one new bullet in "Where to
+  read deeper" pointing at the new recipe). CLASS 3
+  closure territory (CHANGELOG / pyproject version /
+  README "Closed parallel tracks" list extension /
+  README "Track N detail (закрыт)" full section)
+  explicitly deferred to Step 6.
+- **Step 6 (final integration pass and track closure,
+  this commit).** Three modified files: `README.md`
+  (Quickstart blockquote + "Closed parallel tracks" list
+  extended from 13 to 14 entries + "Active parallel
+  track" section compressed back to no-active-track
+  wording + new "Track N detail (закрыт)" section above
+  "Track M detail"); `PROJECT-STATUS.md` (header flipped
+  to "Активного шага нет" + new top-level "## Статус"
+  block with full Track N closure narrative + per-step
+  Step 6 closure section appended); `CHANGELOG.md` (this
+  sub-section + 0.5.2 section title updated to reflect
+  Track M + Track N closure under same release line).
+  Zero production code change; zero `pyproject.toml`
+  change (Q6 = NO-BUMP); zero `scripts/*` change; zero
+  `docs/operators/*` change; zero
+  `apps/platform/README.md` change; zero `SECURITY.md`
+  change.
+
+#### What Track N's observability recipe contains
+
+The Track N closure-gate document is
+`docs/operators/observability.md`. It positively
+classifies each existing on-host diagnostic signal into
+one of three categories:
+
+- **First-class supported** (7 signals FC1–FC7): stderr
+  via Python `logging` at `--log-level INFO` (default);
+  process exit codes 0 / 1 / 2; HTTP response envelope
+  on `/mcp` (including the auth-failure 401 +
+  `WWW-Authenticate: Bearer realm="mcp"` + JSON-RPC
+  `-32001` failure-equivalence response per Track H
+  §8.4); `scripts/dev/selfcheck.py` 11-key=value output;
+  `scripts/release/verify-release.ps1` 8-check release-
+  side summary; `scripts/release/install.ps1` /
+  `scripts/release/_install_runner.py` install-time
+  structured findings; `journalctl -u <UNIT>.service` on
+  Linux hosts deployed via Track L's service-supervision
+  recipe.
+- **Recommended-only** (4 signals R1–R4):
+  `scripts/dev/mcp_client_smoke.py` transport-boundary
+  smoke (developer/operator diagnostic file under
+  `scripts/dev/`, per Track K classification);
+  `--log-level DEBUG` transport-detail traces
+  (operationally noisy; not for steady-state operation);
+  the `health_summary` MCP tool on `mcp-read-server`
+  (callable via any MCP client; not an HTTP endpoint);
+  per-request HTTP access lines at `INFO` (useful for
+  traffic awareness but not a triage primitive).
+- **Out-of-scope** (10-item list, carry-forward denials):
+  no OpenTelemetry program; no Prometheus / OpenMetrics /
+  `/metrics` endpoint; no Grafana / Tempo / Loki / Jaeger
+  / Mimir / Cortex / VictoriaMetrics platform; no
+  SIEM / SOC integration; no distributed tracing; no
+  alerting / paging / on-call workflow;
+  no `/healthz` / `/readyz` / `/livez` endpoint (Track J
+  §6 defer preserved); no log-aggregation forwarder
+  bundled (no `vector` / `fluentd` / `fluent-bit` /
+  `rsyslog` / `journal-remote` config); no structured-
+  logging library dependency (no `structlog` / `loguru` /
+  `python-json-logger`); no web UI / dashboard frontend.
+
+The recipe additionally contains: a log-level-to-event
+mapping inheriting Track L `service-supervision.md` §9.3
+verbatim (`WARNING`/`ERROR` for credential/auth/config;
+`INFO` for startup/shutdown plus per-request HTTP access;
+`DEBUG` for transport-level detail); a three-row exit-
+code-meaning table (0 clean exit; 1 unhandled exception
+with full Python traceback via `logger.exception`; 2
+startup-time operator-readable failure as a single
+stderr line) with file:line citations into
+`_stdio_transport.py` and `_network_transport.py`; a
+five-row HTTP response envelope table covering both
+auth-failure (failure-equivalence per Track H §8.4) and
+non-auth failure shapes (400 / 413 / 415 / 400 / 400
+with JSON-RPC `-32600` / `-32700`); a `/healthz` non-
+shipping carry-forward quoting Track J
+`deployment-boundary.md` §6 verbatim plus its two
+workable probe patterns; a triage recipe with three
+mandatory canonical failure modes (T1 startup-code-2,
+T2 universal-401, T3 selfcheck-FAIL) and two optional
+follow-ups (T4 mcp_client_smoke transport failure, T5
+systemd unit restart-loop), each structured as "what
+you see first / where to look next / authoritative
+helper / what this does NOT prove"; a cross-OS posture
+section pinning Linux/systemd/journald as the
+implementation-covered primary OS-family with Windows
+NSSM + macOS launchd + non-supervised execution
+explicitly prose-only; nine forbidden maturity claim
+denials reiterated; and seven copy-pasteable verification
+steps so operators can prove each first-class signal is
+readable on their host.
+
+#### What Track N does NOT mean
+
+Track N closure is **not** a claim of "observability
+solved forever" / "production-ready observability" /
+"full OpenTelemetry instrumentation" / "Prometheus
+platform shipped" / "distributed tracing ready" /
+"SIEM-ready" / "enterprise-ready observability" /
+"alerting solved" / "all signals covered". Each of these
+phrases appears in the Track N recipe **only as an
+explicit denial**, and remains forbidden as a closure
+language across README / PROJECT-STATUS / this
+CHANGELOG. Track N's closure-gate covers exactly one
+narrow integration-and-naming slice: an operator-facing
+document that classifies which existing diagnostic
+signals are first-class, names what each one means, and
+provides a three-mode triage recipe. Broader observability
+matrices remain recommended-only.
+
+#### Carry-forward invariants
+
+Track N preserves byte-identical:
+
+- All `apps/*/src/` and `packages/*/src/` production
+  code at Track M closure state (`a3bdc48`).
+- `pyproject.toml` (`version="0.5.2"` preserved
+  byte-identical; `[tool.hatch.build.targets.wheel]
+  packages = [...]` 11-element src-layout array
+  preserved).
+- All `scripts/*` files (`selfcheck.py`, `verify-
+  release.ps1`, `install.ps1`, `_install_runner.py`,
+  `launch.ps1`, `bootstrap_paths.ps1`,
+  `run_dev_check.ps1`, `mcp_client_smoke.py`).
+- All existing operator recipes
+  (`docs/operators/deployment-boundary.md`,
+  `docs/operators/service/service-supervision.md`,
+  `docs/operators/service/mcp-server.service`,
+  `docs/operators/packaging/distribution-boundary.md`).
+- All Tracks A–M architecture documents.
+- CI workflow `.github/workflows/dev-check.yml`.
+- Registry invariant `read=15 / write=25 /
+  intelligence=16`.
+- `SECURITY.md`, `apps/platform/README.md`,
+  `docs/operator-manual.md`,
+  `docs/administrator-manual.md`,
+  `docs/developer-manual.md`,
+  `scripts/dev/README.md`,
+  `scripts/release/README.md`.
+- Stdio transport runtime (Track G / Step 4); HTTP
+  transport runtime (Track H / Step 4 with Track I
+  defect-fix); installer round-trip integrity
+  (Track I / Step 4); deployment-boundary recipe
+  (Track J / Step 4); real MCP client smoke harness
+  (Track K / Step 4); service-supervision recipe +
+  systemd template (Track L / Step 4); packaging
+  distribution-boundary recipe + wheel-build flip
+  (Track M / Step 4).
+- No new MCP tools.
+- No new CLI flag.
+- No new `[project.scripts]` console entries.
+- No new dependencies.
+- No new entrypoint module.
+- No `1cv8.exe` runs.
+- No real credentials in any committed file.
+- No remote push.
+
+#### Active track after closure
+
+**None.** Fourteen post-phase parallel tracks (A, B, C,
+D, E, F, G, H, I, J, K, L, M, N) are now closed
+sequentially. Phase 7 is not planned as a linear phase.
+Opening the next parallel track is a separate operator
+decision. Recommended-next-track candidates
+(recommendation only, not auto-opened): structured-
+logging library adoption track; narrow `selfcheck
+--json` mode track; `/healthz` / `/readyz` HTTP
+endpoint track; Windows / macOS implementation-covered
+service-supervision-extension track; broader packaging
+ecosystem track (`.msi` / `.deb` / `.rpm` / `.dmg` /
+signed distribution chain / PyPI publication); multi-
+version 1С matrix expansion; full rollback / AST work;
+web UI / dashboard frontend track; TLS-in-process /
+mTLS expansion; enterprise identity stack track (SSO /
+OIDC / RBAC / SAML / SCIM / multi-tenant); editable-
+install / workspace-discovery dev-time tooling track.
 
 ## 0.5.1 — Parallel Track I (PATCH bump), Parallel Track J (docs-only closure under 0.5.1, no further bump), Parallel Track K (diagnostic-tooling-only closure under 0.5.1, no further bump), and Parallel Track L (docs + declarative-template closure under 0.5.1, no further bump)
 
