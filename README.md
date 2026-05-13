@@ -1285,26 +1285,31 @@ version-matrix smoke, etc.). Phase 7 как отдельная
   Microsoft Store / macOS / Linux / ARM64 / x86 /
   Windows 7 / Windows Server claim.).
 
-## Active parallel tracks
+## Frozen parallel tracks
 
-На текущий момент **один** post-phase parallel
-track активен — Track P, **frozen at Step 1
-(planning only)**, без code changes. Track Q
-закрыт на Step 6 этим commit'ом (см. список
-Closed parallel tracks выше и "Track Q detail
-(закрыт)" section ниже).
+**Активного implementation track'а после закрытия
+Track Q нет.** Один post-phase parallel track
+остался open, но **frozen / deferred**: Track P.
+Никакой работы по Track P в этом состоянии не
+ведётся; новый track автоматически не открывается;
+Track Q (см. список Closed parallel tracks выше и
+"Track Q detail (закрыт)" section ниже) закрыт на
+Step 6 commit'ом `df3aa63`.
 
 1. **Parallel Track P — Test Suite Shipping and
-   Verification Boundary** (шестнадцатый post-
-   phase parallel track; открыт commit'ом
-   `d6f1936`; frozen at Step 1; следующие шаги
-   не открыты).
+   Verification Boundary** — **frozen / deferred
+   at Step 1 (planning only)**, без code changes
+   (шестнадцатый post-phase parallel track; Step 1
+   закрыт commit'ом `d6f1936` как planning-only
+   documentation step; следующие шаги не открыты;
+   active implementation НЕ ведётся).
 
 Track P frozen — открытие Step 2 (baseline audit
 of current verification state) и далее остаётся
-independent operator decision.
+independent operator decision; никакой
+автоматизации, никакого implicit reopening.
 
-### Active parallel track — Track P (Step 1 planning only)
+### Frozen parallel track — Track P (Step 1 planning only, deferred)
 
 **Parallel Track P — Test Suite Shipping and
 Verification Boundary** — открыт на Step 1 (planning

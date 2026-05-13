@@ -175,11 +175,13 @@ itself is unchanged: same Python sources, same
 registries, same console-script entries, same
 dependencies, same transport surfaces. Track Q is the
 seventeenth post-phase parallel track and the
-sixteenth to close. After Track Q closes, the only
-remaining active parallel track is **Parallel Track P
-— Test Suite Shipping and Verification Boundary**,
-which remains frozen at Step 1; opening Step 2 of
-Track P is an independent operator decision.
+sixteenth to close. After Track Q closes, there is **no
+active implementation track**. One post-phase parallel
+track remains open but **frozen / deferred**: **Parallel
+Track P — Test Suite Shipping and Verification
+Boundary** at Step 1. Track P is not being worked on in
+this frozen state; opening Step 2 of Track P is an
+independent operator decision.
 
 After Track Q closes, the registry invariant remains
 `read = 15 / write = 25 / intelligence = 16`, the
@@ -203,8 +205,9 @@ observability recipe remains byte-identical to its
 Track N / Step 4 shape, the dev-time editable-install
 recipe remains byte-identical to its Track O / Step
 4 shape, and `pyproject.toml` `version` is now
-`0.5.3`. Active parallel tracks = one (Track P,
-frozen at Step 1).
+`0.5.3`. Active implementation tracks = none.
+Track P remains open at Step 1, frozen / deferred
+(no active work).
 
 ## 0.5.2 — Parallel Track M (PATCH bump), Parallel Track N (docs-only closure under 0.5.2, no further bump), and Parallel Track O (docs-only closure under 0.5.2, no further bump)
 

@@ -2,20 +2,23 @@
 
 ## Текущий шаг
 
-**Track Q закрыт на Step 6 (этот commit, Q7 =
-PATCH, `pyproject.toml` `version` bumped
-`0.5.2 → 0.5.3`).** На текущий момент **один**
-post-phase parallel track остался open — Track P,
-**frozen at Step 1 (planning only)**, без code
-changes; следующие шаги Track P не открыты и
-остаются independent operator decision.
+**Track Q закрыт на Step 6 (commit `df3aa63`,
+Q7 = PATCH, `pyproject.toml` `version` bumped
+`0.5.2 → 0.5.3`).** **Активного implementation
+track'а после закрытия Track Q нет.** Один post-
+phase parallel track остался open, но **frozen /
+deferred**: Track P. Никакой работы по Track P
+в этом состоянии не ведётся; следующие шаги
+Track P не открыты и остаются independent
+operator decision.
 
 1. **Parallel Track P / Step 1 — planning test
    suite shipping and verification boundary**
-   (frozen; Step 1 закрыт в commit'е `d6f1936`
-   как planning-only documentation step;
-   открытие Step 2 — independent operator
-   decision).
+   (**frozen / deferred**; Step 1 закрыт в
+   commit'е `d6f1936` как planning-only
+   documentation step; active implementation НЕ
+   ведётся; открытие Step 2 — independent
+   operator decision, никакой автоматизации).
 
 Треки независимы; Track Q не trogeт Track P
 deliverables, Track P не trogeт Track Q
