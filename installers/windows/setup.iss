@@ -34,7 +34,7 @@
 ; ============================================================================
 
 #define MyAppName "1C Agent Platform"
-#define MyAppVersion "0.5.2"
+#define MyAppVersion "0.5.3"
 #define MyAppPublisher "1C Agent Platform Team"
 #define MyAppDirName "1C Agent Platform"
 #define BuildRoot ".\..\..\build"
