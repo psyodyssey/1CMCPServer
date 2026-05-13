@@ -78,6 +78,14 @@ WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 
+; -- Application icon. Single source of truth: installers\windows\app.ico
+;    (committed). Used as the icon of setup.exe itself in Explorer, as the
+;    icon shown by Windows in Settings -> Apps for the installed product,
+;    and as the icon of the installed Start menu shortcut (see [Files] and
+;    [Icons] below).
+SetupIconFile=app.ico
+UninstallDisplayIcon={app}\app.ico
+
 ; Logging is informational and operator-side only; it does NOT write to any
 ; tracked path.
 SetupLogging=yes
@@ -121,6 +129,12 @@ Source: "{#BuildRoot}\packages\onec_config\*"; DestDir: "{app}\onec_config"; \
 ; -- First-run configurator (per contract sec.8 / sec.9.2)
 Source: "{#BuildRoot}\first_run.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
+; -- Application icon (single source of truth: installers\windows\app.ico).
+;    Path is relative to setup.iss; iscc.exe resolves it at compile time.
+;    Installed copy is referenced by UninstallDisplayIcon (Settings -> Apps)
+;    and by the Start menu shortcut IconFilename below.
+Source: "app.ico"; DestDir: "{app}"; Flags: ignoreversion
+
 [Icons]
 ; -- One Start menu shortcut pointing at first_run.ps1 (per sec.6.4 / sec.9.1
 ;    / sec.9.2). The shortcut target is powershell.exe with the exact argv
@@ -130,6 +144,7 @@ Name: "{group}\{#MyAppName}"; \
     Filename: "powershell.exe"; \
     Parameters: "-ExecutionPolicy Bypass -NoProfile -WindowStyle Normal -File ""{app}\first_run.ps1"""; \
     WorkingDir: "{app}"; \
+    IconFilename: "{app}\app.ico"; \
     Comment: "Настройка и подключение Claude к файловой базе 1С"
 
 ; -- Standard Inno Setup uninstaller shortcut (per sec.6.4).
