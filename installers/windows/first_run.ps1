@@ -1,4 +1,4 @@
-# ============================================================================
+﻿# ============================================================================
 # first_run.ps1 - 1C Agent Platform first-run configurator
 # Track Q / Step 4. Single user-facing surface after install per contract
 # sec.8 / sec.9. Runs in Windows PowerShell 5.1+ (no PowerShell 7 required).
@@ -44,7 +44,7 @@ function Show-Info {
 function Show-Error {
     param([string]$Text)
     [System.Windows.Forms.MessageBox]::Show(
-        $Text, "$ProductName - Error",
+        $Text, "$ProductName — Ошибка",
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Error
     ) | Out-Null
@@ -70,20 +70,20 @@ function Show-McpSnippet {
     $clipboardOk = $true
     try { Set-Clipboard -Value $snippet -ErrorAction Stop } catch { $clipboardOk = $false }
     $clipNote = if ($clipboardOk) {
-        'The snippet above has been copied to your clipboard.'
+        'Этот фрагмент уже скопирован в буфер обмена.'
     } else {
-        'Clipboard copy failed - copy the snippet above manually.'
+        'Скопировать в буфер обмена не удалось — скопируйте фрагмент вручную.'
     }
     Show-Info -Text @"
 $Preamble
 
-Paste this Claude MCP configuration snippet into your Claude client's MCP config:
+Вставьте этот фрагмент в настройку MCP-серверов вашего Claude-клиента:
 
 $snippet
 
 $clipNote
 
-Claude will spawn the bundled python.exe as a stdio subprocess and route MCP read tools to your configured 1C infobase. The MCP server is not running right now - Claude starts it on its next session.
+Claude сам запустит встроенный python.exe как stdio-подпроцесс и направит MCP read-инструменты к настроенной файловой базе 1С. Сейчас MCP-сервер не запущен — Claude поднимет его в следующей сессии.
 "@
 }
 
@@ -92,8 +92,8 @@ Claude will spawn the bundled python.exe as a stdio subprocess and route MCP rea
 function Pick-1CV8Executable {
     param([string]$Default = '')
     $dlg = New-Object System.Windows.Forms.OpenFileDialog
-    $dlg.Title = 'Select 1cv8 executable'
-    $dlg.Filter = '1cv8 binaries (1cv8.exe;1cestart.exe)|1cv8.exe;1cestart.exe|All files (*.*)|*.*'
+    $dlg.Title = 'Выберите исполняемый файл 1cv8'
+    $dlg.Filter = 'Исполняемые файлы 1С (1cv8.exe; 1cestart.exe)|1cv8.exe;1cestart.exe|Все файлы (*.*)|*.*'
     $dlg.CheckFileExists = $true
     $dlg.Multiselect = $false
     if ($Default -and (Test-Path -LiteralPath $Default)) {
@@ -107,7 +107,7 @@ function Pick-1CV8Executable {
 function Pick-FileBasedInfobase {
     param([string]$Default = '')
     $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
-    $dlg.Description = 'Select file-based 1C infobase folder (must contain a .1cd file at top level). Server-based bases are not supported in this version.'
+    $dlg.Description = 'Выберите папку файловой базы 1С (на верхнем уровне должен лежать файл .1cd). Клиент-серверные базы в этой версии не поддерживаются.'
     $dlg.ShowNewFolderButton = $false
     if ($Default -and (Test-Path -LiteralPath $Default -PathType Container)) {
         $dlg.SelectedPath = $Default
@@ -156,7 +156,7 @@ function Build-InputConfig {
 function Invoke-FastPath {
     param([System.Collections.IDictionary]$InputObj)
     if (-not (Test-Path -LiteralPath $PythonExe -PathType Leaf)) {
-        Show-Error "Bundled python.exe not found at:`n$PythonExe`n`nReinstall $ProductName."
+        Show-Error "Встроенный python.exe не найден по пути:`n$PythonExe`n`nПереустановите $ProductName."
         return $false
     }
     $tempDir = Join-Path $env:TEMP "$ProductName first run"
@@ -188,11 +188,11 @@ sys.exit(0 if r.ok else 3)
         $code = $LASTEXITCODE
         if ($code -ne 0) {
             $detail = ($output -join "`n")
-            Show-Error "Fast-path helper returned non-zero (exit=$code).`n`n$detail"
+            Show-Error "Помощник установки завершился с ошибкой (код $code).`n`n$detail"
             return $false
         }
         if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
-            Show-Error "Fast-path returned ok but $ConfigPath was not created."
+            Show-Error "Помощник установки сообщил об успехе, но файл $ConfigPath не создан."
             return $false
         }
         return $true
@@ -208,28 +208,28 @@ function Invoke-Configure {
     param([string]$DefaultOnec = '', [string]$DefaultBase = '')
 
     $onec = Pick-1CV8Executable -Default $DefaultOnec
-    if (-not $onec) { Show-Error '1cv8 executable selection cancelled. No changes made.'; return $false }
+    if (-not $onec) { Show-Error 'Выбор исполняемого файла 1cv8 отменён. Изменения не сохранены.'; return $false }
     if (-not (Test-Path -LiteralPath $onec -PathType Leaf)) {
-        Show-Error "Selected 1cv8 path does not exist:`n$onec"
+        Show-Error "Указанный путь к 1cv8 не существует:`n$onec"
         return $false
     }
 
     $base = Pick-FileBasedInfobase -Default $DefaultBase
-    if (-not $base) { Show-Error 'Infobase folder selection cancelled. No changes made.'; return $false }
+    if (-not $base) { Show-Error 'Выбор папки информационной базы отменён. Изменения не сохранены.'; return $false }
     if (-not (Test-Path -LiteralPath $base -PathType Container)) {
-        Show-Error "Selected infobase folder does not exist:`n$base"
+        Show-Error "Указанная папка информационной базы не существует:`n$base"
         return $false
     }
 
     if (-not (Test-IsFileBasedInfobase $base)) {
         Show-Error @"
-The selected folder is not a file-based 1C infobase (no .1cd file found at its top level).
+Выбранная папка не является файловой базой 1С (на верхнем уровне не найден файл .1cd).
 
-Server-based / client-server 1C infobases are not supported in this version of $ProductName.
+Клиент-серверные информационные базы 1С в этой версии $ProductName не поддерживаются.
 
-See the operator recipe at docs/operators/installer/windows-setup-exe.md for the existing engineering path (scripts/release/install.ps1 + hand-authored input JSON) for server-based bases.
+Инструкция по существующему инженерному пути для клиент-серверных баз (через scripts/release/install.ps1 + написанный вручную input JSON) находится в файле docs/operators/installer/windows-setup-exe.md.
 
-Selected folder:
+Выбранная папка:
 $base
 "@
         return $false
@@ -238,7 +238,7 @@ $base
     $inputObj = Build-InputConfig -OnecBinary $onec -BasePath $base
     if (-not (Invoke-FastPath -InputObj $inputObj)) { return $false }
 
-    Show-McpSnippet -Preamble "Configuration saved to:`n$ConfigPath`n`n  1cv8 executable: $onec`n  Infobase folder: $base"
+    Show-McpSnippet -Preamble "Конфигурация сохранена в файл:`n$ConfigPath`n`n  Исполняемый файл 1cv8 : $onec`n  Папка информационной базы : $base"
     return $true
 }
 
@@ -249,20 +249,20 @@ function Invoke-SubsequentLaunch {
         $existingOnec = $envMain.onec_binary_path
         $existingBase = $envMain.base_path
     } catch {
-        Show-Error "Failed to read existing config at:`n$ConfigPath`n`n$($_.Exception.Message)`n`nDelete the file manually to start over."
+        Show-Error "Не удалось прочитать существующий файл конфигурации:`n$ConfigPath`n`n$($_.Exception.Message)`n`nЧтобы начать заново, удалите этот файл вручную."
         return
     }
 
     $summary = @"
-Existing $ProductName configuration:
-  1cv8 executable : $existingOnec
-  Infobase folder : $existingBase
-  Config file     : $ConfigPath
+Текущая конфигурация ${ProductName}:
+  Исполняемый файл 1cv8     : $existingOnec
+  Папка информационной базы : $existingBase
+  Файл конфигурации         : $ConfigPath
 "@
 
     $choice = [System.Windows.Forms.MessageBox]::Show(
-        "$summary`n`nClick OK to view the Claude MCP snippet (also copied to clipboard).`nClick Cancel to reconfigure with new paths.",
-        "$ProductName - Existing configuration",
+        "$summary`n`nНажмите ОК — чтобы увидеть фрагмент настройки Claude MCP (и одновременно скопировать его в буфер обмена).`nНажмите Отмена — чтобы перенастроить с новыми путями.",
+        "$ProductName — Текущая конфигурация",
         [System.Windows.Forms.MessageBoxButtons]::OKCancel,
         [System.Windows.Forms.MessageBoxIcon]::Information
     )
@@ -280,13 +280,13 @@ if (Test-Path -LiteralPath $ConfigPath -PathType Leaf) {
     Invoke-SubsequentLaunch
 } else {
     Show-Info -Text @"
-Welcome to $ProductName.
+Добро пожаловать в $ProductName.
 
-This is a one-time setup. You will be asked to:
-  1. Select your 1cv8 executable (1cv8.exe or 1cestart.exe).
-  2. Select your file-based 1C infobase folder (must contain a .1cd file).
+Это разовая настройка. Сейчас потребуется указать:
+  1. Исполняемый файл 1cv8 (1cv8.exe или 1cestart.exe).
+  2. Папку файловой базы 1С (на верхнем уровне должен лежать файл .1cd).
 
-Server-based / client-server 1C bases are not supported in this version - see the operator recipe for the existing engineering path.
-"@ -Title "$ProductName - First-run configuration"
+Клиент-серверные информационные базы 1С в этой версии не поддерживаются — для них есть отдельный инженерный путь через scripts/release/install.ps1 (см. инструкцию оператора).
+"@ -Title "$ProductName — Первый запуск"
     Invoke-Configure | Out-Null
 }

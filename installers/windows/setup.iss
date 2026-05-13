@@ -76,7 +76,9 @@ SetupLogging=yes
 
 [Languages]
 ; Single language per contract sec.7.2 (no language-selection page).
-Name: "en"; MessagesFile: "compiler:Default.isl"
+; Russian: Inno Setup ships compiler:Languages\Russian.isl as a standard
+; localized strings file (Welcome / Next / Install / Finish / etc.).
+Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Files]
 ; -- Bundled embeddable CPython 3.11 (per contract sec.4.4 / sec.6.1 / sec.6.3)
@@ -120,11 +122,11 @@ Name: "{group}\{#MyAppName}"; \
     Filename: "powershell.exe"; \
     Parameters: "-ExecutionPolicy Bypass -NoProfile -WindowStyle Normal -File ""{app}\first_run.ps1"""; \
     WorkingDir: "{app}"; \
-    Comment: "Configure and connect Claude to one file-based 1C infobase"
+    Comment: "Настройка и подключение Claude к файловой базе 1С"
 
 ; -- Standard Inno Setup uninstaller shortcut (per sec.6.4).
-Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; \
-    Comment: "Uninstall {#MyAppName}"
+Name: "{group}\Удалить {#MyAppName}"; Filename: "{uninstallexe}"; \
+    Comment: "Удалить {#MyAppName}"
 
 ; -- No desktop shortcut by default per sec.6.4.
 ; -- No Quick Launch / taskbar pin / context menu extension (all forbidden by
@@ -135,7 +137,7 @@ Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; \
 ;    untick this; either way the Start menu shortcut is the canonical surface.
 Filename: "powershell.exe"; \
     Parameters: "-ExecutionPolicy Bypass -NoProfile -WindowStyle Normal -File ""{app}\first_run.ps1"""; \
-    Description: "Launch {#MyAppName}"; \
+    Description: "Запустить {#MyAppName}"; \
     WorkingDir: "{app}"; \
     Flags: postinstall nowait skipifsilent unchecked
 
