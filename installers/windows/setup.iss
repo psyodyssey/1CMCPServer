@@ -56,6 +56,14 @@ DefaultGroupName={#MyAppDirName}
 DisableProgramGroupPage=yes
 DisableWelcomePage=no
 DisableReadyPage=no
+; -- Explicit: the user CAN change the install directory in the wizard.
+;    The standard Inno Setup "Select Destination Location" page is shown
+;    interactively; the chosen path binds to the {app} placeholder used by
+;    every [Files] / [Icons] / [Run] / [UninstallDelete] entry below, and
+;    the /DIR=<path> command-line flag honours the same binding for silent
+;    installs. The default ({userpf}\1C Agent Platform) is a suggestion,
+;    not a fixed path.
+DisableDirPage=no
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=
 
