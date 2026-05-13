@@ -470,26 +470,44 @@
 > intelligence=16` invariant carried through.
 >
 > **Parallel Track Q — Windows Installer Path and
-> setup.exe Delivery** открыт как семнадцатый
-> post-phase parallel track, тоже на Step 1
-> (planning only). Track Q закрывает **другой**
-> честный gap: у проекта есть wheel/pip
-> distribution boundary (Track M:
+> setup.exe Delivery** — семнадцатый post-phase
+> parallel track. **Шаги 1–4 закрыты последовательно**
+> (`9b03edf` Step 1 planning → `ae701b3` Step 2
+> baseline audit → `0ccc933` Step 3 normative
+> contract → `1504e01` Step 3 correction pass
+> (axis-B file-based-only lock) → `5e18f74` Step 4
+> minimal implementation → `8cd6eba` Step 4
+> correction pass (три точечных defect-fix'а после
+> live acceptance)). **Live installer acceptance
+> после Step 4 correction pass прошёл с verdict
+> PASS**: build helper честно собирает setup.exe без
+> operator workaround; setup.exe реально ставится в
+> `%LOCALAPPDATA%\Programs\1C Agent Platform\`;
+> bundled embeddable CPython 3.11 разворачивается;
+> Start menu shortcut вызывает `first_run.ps1`;
+> первый запуск собирает `config.json` под
+> `%LOCALAPPDATA%\1C Agent Platform\` через existing
+> fast-path helper без BOM; Claude MCP snippet
+> отображается и копируется в clipboard; uninstall
+> через `Settings → Apps` полностью удаляет install
+> directory и сохраняет user state. **MVP scope
+> остаётся узким per contract §4.7: exactly one base,
+> only file-based 1C infobase** (server-based /
+> client-server бази вне scope Track Q at every
+> step). **Track Q всё ещё active**: Step 5 — docs /
+> release / status alignment (этот commit); Step 6
+> closure (final integration pass + Q7 SemVer lock)
+> не выполнен и остаётся отдельным operator
+> decision. Track Q закрывает gap, который не закрыли
+> Tracks A–P: wheel/pip path (Track M:
 > `1c_agent_platform-0.5.2-py3-none-any.whl`,
-> `pip install <WHEEL_PATH>`) и install fast-path
-> PowerShell wrapper (Track B / Track I:
-> `scripts/release/install.ps1`) — но оба
-> presuppose, что на машине **уже стоит** Python
-> 3.11 + pip (+ для git-based flow — Git).
-> **Обычный Windows-пользователь** этого не имеет.
-> Сегодня нет ни одного surface, который позволяет
-> такому пользователю: скачать `setup.exe` →
-> двойной клик → **Next** / **Install** / **Finish**
-> → программа установлена. Никакого `setup.exe`,
-> никакого installer-technology definition file
-> (`.iss` / `.wxs` / `.nsi`), никакого bundled
-> Python runtime artefact в репо нет. Anchors,
-> которые этот gap прямо acknowledge:
+> `pip install <WHEEL_PATH>`), install fast-path
+> PowerShell wrapper (Tracks B/I:
+> `scripts/release/install.ps1`), editable install
+> (Track O: `pip install -e .`) — все три presuppose
+> Python 3.11 + pip на машине; обычный Windows-
+> пользователь этого не имеет. Anchors, которые этот
+> gap прямо acknowledge:
 > `scripts/release/install.ps1:1-11` ("No `.msi`,
 > no `.deb`, no GUI wizard, no signed
 > distribution"),
@@ -502,11 +520,7 @@
 > боль: один Windows `setup.exe`, ordinary-user
 > install experience без preinstalled Python /
 > pip / Git, uninstall через стандартный Windows
-> Add/Remove Programs surface. Step 1 — planning-
-> only: ship'нул две новых architecture doc'и
-> ([`plan`](docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-plan.md),
-> [`step-map`](docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-step-map.md))
-> с Q1–Q7 directional defaults. **Центральная
+> Add/Remove Programs surface. **Центральная
 > честная константа Track Q** (плана §4): платформа
 > — pure-Python codebase; "install без preinstalled
 > Python" структурно требует **bundled Python
@@ -1225,7 +1239,10 @@ changes:
    `d6f1936`).
 2. **Parallel Track Q — Windows Installer Path
    and setup.exe Delivery** (семнадцатый post-
-   phase parallel track; открыт сейчас).
+   phase parallel track; Steps 1–4 closed +
+   correction passes; live installer acceptance
+   PASS; Step 5 docs alignment активен; Step 6
+   closure not yet open).
 
 Треки независимы: Track P закрывает gap в
 behavioural-unit / integration testing surface;
@@ -1233,8 +1250,9 @@ Track Q закрывает gap в Windows installer
 experience для ordinary user без preinstalled
 Python / pip / Git. Track Q **не** touch'ает
 Track P deliverables; Track P **не** touch'ает
-Track Q deliverables. Открытие следующих шагов
-обоих треков — independent operator decisions.
+Track Q deliverables. Track P frozen at Step 1;
+открытие следующих шагов обоих треков —
+independent operator decisions.
 
 ### Active parallel track — Track P (Step 1 planning only)
 
@@ -1409,7 +1427,7 @@ Step 2 — descriptive baseline audit of current
 verification state. Открытие Step 2 — отдельное
 operator decision; никакой автоматизации.
 
-### Active parallel track — Track Q (Step 1 planning only)
+### Active parallel track — Track Q (Steps 1–4 closed + correction passes + live PASS; Step 5 alignment active)
 
 **Parallel Track Q — Windows Installer Path and
 setup.exe Delivery** — открыт на Step 1 (planning
@@ -1472,8 +1490,62 @@ behaviour, регистрация под
 `HKCU\Software\Microsoft\Windows\CurrentVersion\
 Uninstall\<GUID>`).
 
-**Step 1 — planning only (этот commit).**
-Ship'нуты ровно два новых architecture doc'а:
+**Steps 1–4 closure narrative.** Track Q прошёл
+шесть commit'ов sequentially: `9b03edf` Step 1
+(planning, two new architecture docs + Q1–Q7
+directional defaults) → `ae701b3` Step 2 (baseline
+audit, single descriptive 1482-line document, 12
+sections) → `0ccc933` Step 3 (normative contract,
+14-section RFC 2119 document) → `1504e01` Step 3
+correction pass (axis-B lock: MVP **только** file-
+based 1C infobase per contract §4.7; server-based /
+client-server bases explicitly denied) → `5e18f74`
+Step 4 (minimal implementation, exactly 4 new files
+under locked LOC caps: recipe 666/1200, setup.iss
+164/250, first_run.ps1 292/300, build-setup-exe.ps1
+199/200; total 1321/1950) → `8cd6eba` Step 4
+correction pass (три точечных defect-fix'а после
+live acceptance: build helper `Get-ChildItem
+-LiteralPath -Include` defect → `Where-Object`
+extension filter; first_run.ps1 PowerShell 5.1
+UTF-8-BOM defect → `[System.IO.File]::WriteAllText`
++ BOM-less `UTF8Encoding`; setup.iss uninstall-
+tracking defect → explicit `[UninstallDelete]
+Type: filesandordirs; Name: "{app}"`). **Live
+installer acceptance after Step 4 correction pass
+завершился с verdict PASS** end-to-end: build
+helper честно собирает `setup.exe` без operator
+workaround; `setup.exe /VERYSILENT` устанавливает
+продукт в `%LOCALAPPDATA%\Programs\1C Agent
+Platform\` (per-user, no UAC, no PATH modification);
+bundled embeddable CPython 3.11 присутствует с
+правильно переписанным `python311._pth`; Start menu
+shortcut вызывает `first_run.ps1` через
+`powershell.exe -ExecutionPolicy Bypass -NoProfile
+-WindowStyle Normal -File ...` ровно как locked
+contract §9.2; первый запуск `first_run.ps1`
+прогоняет валидацию файловой 1C инфобазы (folder
+содержит `.1cd` at top level), синтезирует input-
+config JSON с locked MVP shape (single environment
+`main`, `allow_write=false`, `publication_name=""`,
+`http_base_url=""`, `servers.read=true; write=false;
+intelligence=false`), вызывает existing
+`onec_platform.installer.run_install_fast_path_from_json_file`
+через bundled `python.exe -c "..."` (ноль
+production-code изменений), пишет `config.json` под
+`%LOCALAPPDATA%\1C Agent Platform\` **без BOM** и
+без operator workaround; Claude MCP snippet
+отображается с computed absolute python.exe path и
+копируется в clipboard; `unins000.exe /VERYSILENT`
+полностью удаляет install directory (включая 184
+файла) и сохраняет user state directory (config /
+runtime / dumps) per contract §10.3. **Track Q
+всё ещё ACTIVE** — Step 5 docs alignment (этот
+commit) выполнен; Step 6 closure (final integration
+pass + Q7 SemVer lock + Closed parallel tracks list
+extension + "Track Q detail (закрыт)" section +
+CHANGELOG entry) **не выполнен** и остаётся
+отдельным operator decision. Архитектурные anchor'ы:
 
 - [`docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-plan.md`](docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-plan.md)
   — 14-section planning document (purpose / current
@@ -1682,15 +1754,18 @@ preserved. `scripts/release/verify-release.ps1
 -AllowDirtyTree` GREEN на 8 checks.
 
 **Канонический next step:** Parallel Track Q /
-Step 2 — descriptive baseline audit of current
-Windows install reality (inventory persona,
-existing install-adjacent surfaces и их Python
-prerequisite, three anchor citations, option-
-space audit shape α vs β из §4, technology-
-choice audit Inno Setup vs WiX vs NSIS, Q1–Q6
-directional resolutions, ≥10-item Step 3 handoff
-list). Открытие Step 2 — отдельное operator
-decision; никакой автоматизации.
+Step 6 — final integration pass and track closure
+(Q7 SemVer lock per contract §14: NO-BUMP / PATCH /
+MINOR all live; PATCH — audit-leaning default под
+PATH B; MAJOR forbidden by track scope). Step 6
+**не** часть Step 5 alignment; открытие Step 6 —
+отдельное operator decision; никакой
+автоматизации. Closure language (`CHANGELOG.md`
+entry; README "Closed parallel tracks" list
+extension; README "Track Q detail (закрыт)"
+section; PROJECT-STATUS Step 6 entry; `pyproject.
+toml` `version` lock per Q7 outcome) reserved для
+Step 6.
 
 ## Track O detail (закрыт)
 

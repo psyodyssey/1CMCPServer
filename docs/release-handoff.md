@@ -654,6 +654,19 @@ For the security report flow, see `SECURITY.md`.
   on your local machine. Not a closure of "client
   integration solved" — exercises only the narrow
   minimum scenario.
+- **Operator-facing Windows installer recipe (setup.exe path)**
+  — [`docs/operators/installer/windows-setup-exe.md`](operators/installer/windows-setup-exe.md).
+  Track Q operator recipe for producing a Windows
+  `setup.exe`, installing it on Windows 10/11 amd64,
+  running the first-run configurator against one
+  file-based 1C infobase, and uninstalling cleanly.
+  Bundled embeddable CPython 3.11 fetched at build
+  time; ordinary-Windows-user persona without
+  preinstalled Python/pip/Git. Server-based /
+  client-server 1C infobases are out of MVP scope —
+  see recipe §10 for the existing engineering path.
+  Not a closure of "Windows installation solved
+  forever" — narrow setup.exe deliverable only.
 - **Operator-facing observability and diagnostics recipe**
   (Track N / Step 4 deliverable, PATH A docs-only) at
   [`docs/operators/observability.md`](operators/observability.md).

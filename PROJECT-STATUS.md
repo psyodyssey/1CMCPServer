@@ -2,21 +2,24 @@
 
 ## Текущий шаг
 
-**Два активных параллельных трека одновременно**,
-оба на Step 1 (planning only):
+**Два активных параллельных трека одновременно**;
+Track P frozen at Step 1; Track Q на Step 5 docs
+alignment после Step 4 live acceptance PASS:
 
 1. **Parallel Track P / Step 1 — planning test
    suite shipping and verification boundary**
    (`in progress` на уровне Track P в целом;
    Step 1 сам по себе **завершён** в commit'е
    `d6f1936` как planning-only documentation
-   step).
-2. **Parallel Track Q / Step 1 — planning Windows
-   installer path and setup.exe delivery**
+   step; frozen — следующие шаги Track P не
+   открыты).
+2. **Parallel Track Q / Step 5 — docs / release /
+   status alignment (этот commit)**
    (`in progress` на уровне Track Q в целом;
-   Step 1 сам по себе **завершён** в этом
-   коммите как planning-only documentation
-   step).
+   Steps 1–4 закрыты sequentially + correction
+   passes; live installer acceptance прошёл с
+   verdict PASS; Step 5 — alignment-only; Step 6
+   closure не выполнен).
 
 Треки независимы; Track Q не trogeт Track P
 deliverables, Track P не trogeт Track Q
@@ -85,18 +88,36 @@ parallel track. **Track P деталь — см. секцию
 shipping and verification boundary (завершён)»
 ниже.**
 
-**Track Q (этот commit) — закрывает другой
+**Track Q — закрывает другой
 честный gap, чем Track P.** Конкретно: setup.exe
-UX для обычного Windows-пользователя. Tracks
-A–P **не** закрыли этот gap — wheel/pip path
-(Track M) presupposes Python на машине,
-`scripts/release/install.ps1` (Tracks B/I)
-presupposes Python + PowerShell + git clone,
-`pip install -e .` (Track O) — developer-only.
-Ни один из существующих surface'ов не позволяет
-ordinary Windows-пользователю скачать `setup.exe`
-→ двойной клик → Next/Install/Finish →
-программа установлена. Anchor citations
+UX для обычного Windows-пользователя. **На HEAD
+после Step 4 correction pass (`8cd6eba`) gap
+реально закрыт для contracted MVP persona: live
+installer acceptance прошёл end-to-end с verdict
+PASS** — build helper честно собирает setup.exe
+без operator workaround, setup.exe устанавливает
+платформу в `%LOCALAPPDATA%\Programs\1C Agent
+Platform\`, Start menu shortcut вызывает
+`first_run.ps1`, первый запуск синтезирует
+`config.json` под `%LOCALAPPDATA%\1C Agent
+Platform\` через existing fast-path helper без
+BOM, Claude MCP snippet отображается и
+копируется в clipboard, uninstall полностью
+удаляет install directory сохраняя user state.
+**MVP scope: exactly one base, only file-based
+1C infobase** per contract §4.7 (server-based
+out of scope). **Track Q всё ещё ACTIVE** —
+Step 5 alignment (этот commit) выполнен; Step 6
+closure не выполнен. Tracks A–P **не** закрыли
+этот gap — wheel/pip path (Track M) presupposes
+Python на машине, `scripts/release/install.ps1`
+(Tracks B/I) presupposes Python + PowerShell +
+git clone, `pip install -e .` (Track O) —
+developer-only. Ни один из существующих
+surface'ов не позволял ordinary Windows-
+пользователю скачать `setup.exe` → двойной клик
+→ Next/Install/Finish → программа установлена —
+Track Q это решил. Anchor citations
 deferral'а: `scripts/release/install.ps1:1-11`
 ("No `.msi`, no `.deb`, no GUI wizard, no signed
 distribution"); `docs/operators/packaging/
@@ -126,13 +147,20 @@ technology — Inno Setup (directional baseline,
 PATH B (operator recipe + один Inno Setup `.iss`
 script + опционально один build helper).
 **Каноничный next step Track Q — Parallel
-Track Q / Step 2 — descriptive baseline audit of
-current Windows install reality** (открытие —
-отдельное operator decision; не автоматизируется).
+Track Q / Step 6 — final integration pass and
+track closure** (Q7 SemVer lock per contract §14:
+NO-BUMP / PATCH / MINOR all live; PATCH — audit-
+leaning default под PATH B; MAJOR forbidden;
+открытие — отдельное operator decision; не
+автоматизируется). Closure language (`CHANGELOG.md`
+entry; README closed-tracks list extension;
+"Track Q detail (закрыт)" section; `pyproject.toml`
+`version` lock per Q7 outcome) reserved для Step 6.
 **Каноничный next step Track P — Parallel
 Track P / Step 2 — descriptive baseline audit of
-current verification state** (открытие —
-отдельное operator decision; не автоматизируется).
+current verification state** (Track P frozen на
+Step 1; открытие — отдельное operator decision;
+не автоматизируется).
 
 ## Статус
 
@@ -17730,6 +17758,475 @@ read/write/intelligence-серверов, с честно
   Step 2 не правит. Никаких real credentials.
   **GitHub remote push — operator action, не
   часть трека.**
+
+### Parallel Track Q / Step 2 — baseline audit of current Windows install reality (завершён)
+
+- **Цель.** Произвести single descriptive (non-
+  prescriptive) audit-document, фиксирующий
+  реальность Windows-install surface'а на HEAD
+  перед Step 3 contract'ом. Closure commit
+  `ae701b3`. Ровно один новый файл:
+  `docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-baseline-audit.md`
+  (1482 lines, 12 sections, well within step-map
+  caps 8–12 sections / ≤ 1500 lines).
+- **Что shipped.** Inventory ordinary-Windows-
+  user persona reality; inventory of three
+  existing install-adjacent paths
+  (`scripts/release/install.ps1`,
+  `pip install <WHEEL_PATH>`, `pip install -e .`)
+  с Python prerequisite explicit per path;
+  verbatim citation три anchor'а
+  (`scripts/release/install.ps1:9-11` "No `.msi`,
+  no `.deb`, no GUI wizard, no signed
+  distribution"; `docs/operators/packaging/
+  distribution-boundary.md:838-841` "GUI
+  installer denied"; `pyproject.toml:44-50`
+  Track M comment); verification что нет
+  installer-technology definition file в репо
+  (no `.iss` / `.wxs` / `.nsi`); verification
+  что нет bundled-runtime binary в репо; option-
+  space audit shape α (bundled embeddable) vs
+  shape β (frozen exe via PyInstaller/Nuitka/
+  Briefcase/py2exe) с recommendation на α по
+  evidence; technology-choice audit Inno Setup
+  vs WiX vs NSIS vs others с per-option
+  pro/con; expected installed footprint
+  10–15 MB; Q1–Q6 directional resolutions;
+  Step 3 handoff list (16 items).
+- **Что Step 2 НЕ делал.** Никакого production
+  code change; никакого `pyproject.toml`,
+  `scripts/*`, registry, SECURITY.md, CHANGELOG,
+  manuals change. Никакой prescriptive RFC 2119
+  lock — Step 2 descriptive only. Никакого
+  installer-definition file commit'а. Никакого
+  bundled-runtime binary commit'а. Никаких real
+  credentials. **GitHub remote push — operator
+  action, не часть трека.**
+
+### Parallel Track Q / Step 3 — Windows installer path and setup.exe delivery contract (завершён)
+
+- **Цель.** Произвести single normative
+  contract document используя RFC 2119
+  (MUST / MUST NOT / SHOULD / SHOULD NOT /
+  MAY) language. Closure commit `0ccc933`.
+  Ровно один новый файл:
+  `docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-contract.md`
+  (на момент initial closure — 1614 lines,
+  14 sections; Step 3 correction pass добавил
+  axis-B нормативный lock и денйал — итого
+  1700 lines, по-прежнему 14 sections, ровно
+  на step-map cap'е ≤ 1700 / 10–14 sections).
+- **Что зафиксировано normatively.** Q1
+  closure-gate scope включая base-selection
+  через first-run configurator (не через
+  installer wizard, не через engineering JSON
+  как primary UX); Q2 install built on top of
+  Track M wheel (wheel byte-identical); Q3
+  Inno Setup (WiX/NSIS rejected); Q4 shape α
+  bundled embeddable CPython 3.11 (β rejected;
+  embeddable fetched at build time, never
+  committed to git); Q5 install at
+  `%LOCALAPPDATA%\Programs\1C Agent Platform\`
+  (per-user, no UAC, no PATH modification),
+  HKCU Uninstall registration; Q6 zero
+  production code change (first-run
+  configurator reuses existing
+  `run_install_fast_path_from_json_file` через
+  bundled `python.exe -c "..."`); Q7 framed
+  для Step 6 (NO-BUMP / PATCH / MINOR all
+  live; PATCH audit-leaning default под
+  PATH B; MAJOR forbidden). Step 4 PATH B
+  locked; Step 4 file surface locked (ровно 4
+  файла: recipe ≤1200 LOC, setup.iss ≤250
+  LOC, first_run.ps1 ≤300 LOC, build-setup-
+  exe.ps1 ≤200 LOC; total ≤1950); Step 4
+  forbidden-files list exhaustive; Step 5
+  forbidden-files list locked; closure-gate
+  scenario §5 locked.
+- **Что Step 3 НЕ делал.** Никакого
+  production code change; `pyproject.toml`,
+  `scripts/*`, registries, manuals, existing
+  operator recipes — byte-identical. Никакого
+  installer-definition file commit'а. Никакого
+  setup.exe artefact commit'а. Никакого
+  bundled-runtime binary commit'а. Никаких
+  real credentials. **GitHub remote push —
+  operator action, не часть трека.**
+
+### Parallel Track Q / Step 3 correction pass — lock MVP base type to file-based only (завершён)
+
+- **Цель.** Узкий correction pass на Step 3
+  contract document для устранения axis-B gap'а
+  (тип одной base — file-based vs server-based).
+  Closure commit `1504e01`. Один modified file
+  (contract document); zero new files; zero
+  touches outside contract document.
+- **Что зафиксировано.** Новый normative §4.7
+  (Q-extra: MVP base type) с RFC 2119 MUST:
+  Track Q MVP поддерживает **только file-based
+  1C infobases** (файловая база 1С). MUST NOT
+  поддерживать на any step: TCP-cluster server
+  bases (`Srvr="…";Ref="…"` connection strings);
+  HTTP-published bases (`publication_name` +
+  `http_base_url`); web-server-published bases
+  через Apache/IIS/nginx; любые bases
+  требующие username + password credentials;
+  любые bases требующие 1C cluster manager
+  (`rmngr.exe`) или agent (`ragent.exe`). Новый
+  §11 denial bullet "Server-based / client-
+  server 1C infobase". Tightened §8.4 dialog
+  labels на "file-based 1C infobase folder
+  (must contain a .1cd file)". Новый §8.9 error
+  case (folder без `.1cd` на top-level →
+  honest error message pointing at recipe's
+  engineering path для server-based bases).
+- **Grounding.** Production code data model
+  `EnvironmentConfig`
+  (`packages/onec-config/src/onec_config/models.py:93-105`)
+  не содержит `username` / `password` /
+  `server_name` / `cluster_name` fields.
+  Adding them — production code change
+  forbidden by §3.1. Engineering JSON UX для
+  credentials через argv-templates — exactly
+  что Track Q's tiny configurator заменяет.
+  Server-based операторы retain existing
+  `scripts/release/install.ps1` engineering
+  path (orthogonal).
+- **Что correction pass НЕ делал.** Production
+  code byte-identical; `pyproject.toml` byte-
+  identical; `scripts/*` byte-identical; всё
+  остальное вне contract документа byte-
+  identical. Никаких real credentials.
+  **GitHub remote push — operator action, не
+  часть correction pass'а.**
+
+### Parallel Track Q / Step 4 — minimal Windows installer path implementation (завершён)
+
+- **Цель.** PATH B implementation per contract
+  §12. Closure commit `5e18f74`. Ровно 4 новых
+  файла, zero modified files. Working setup.exe
+  path from build → install → first launch →
+  configure one file-based 1C base → config.json
+  written → Claude MCP snippet shown/copied →
+  uninstall.
+- **Что shipped (4 новых файла под locked LOC
+  caps).**
+  - `docs/operators/installer/windows-setup-
+    exe.md` — operator-facing recipe, 666 LOC
+    of cap 1200; 12 sections of cap 8–12;
+    sections cover audience/purpose, prereqs,
+    build verb, distribute verb, install verb,
+    verify verb, uninstall verb, upgrade verb,
+    server-based engineering path, cross-refs,
+    honest non-goals (mirror contract §11
+    denial list).
+  - `installers/windows/setup.iss` — Inno
+    Setup definition, 159 LOC (initial) /
+    164 LOC after Step 4 correction pass of
+    cap 250. Per-user install at
+    `{userpf}\1C Agent Platform`, no UAC,
+    no PATH modification. `[Files]` shipping
+    bundled embeddable Python + 11 src-layout
+    packages + first_run.ps1. `[Icons]` —
+    одна Start menu shortcut на
+    `powershell.exe -ExecutionPolicy Bypass
+    -NoProfile -WindowStyle Normal -File
+    {app}\first_run.ps1` ровно как contract
+    §9.2 + Uninstall shortcut. HKCU Uninstall
+    registration via Inno Setup defaults.
+  - `installers/windows/first_run.ps1` — first-
+    run configurator, 290 LOC (initial) /
+    292 LOC after Step 4 correction pass of
+    cap 300. PowerShell 5.1+ compatible. Two
+    GUI pickers via `System.Windows.Forms`:
+    OpenFileDialog для 1cv8.exe; FolderBrowserDialog
+    для file-based 1C infobase folder с
+    validation что `.1cd` присутствует at top
+    level. Synthesises input-config JSON c
+    locked MVP shape (single environment
+    `main`, `allow_write=false`,
+    `publication_name=""`, `http_base_url=""`,
+    `servers.read=true; write=false;
+    intelligence=false`), вызывает existing
+    `onec_platform.installer.run_install_fast_path_from_json_file`
+    через bundled `python.exe -c "..."` (ноль
+    production-code changes). Subsequent-run
+    mode: existing-configuration summary +
+    snippet redisplay + Reconfigure option с
+    pre-filled defaults.
+  - `installers/windows/build-setup-exe.ps1`
+    — build helper, 200 LOC (initial) /
+    199 LOC after Step 4 correction pass at
+    cap 200. Fetches python.org embeddable
+    CPython 3.11 zip at build time (NOT
+    committed to git; build/ and dist/
+    already gitignored). Rewrites
+    `python311._pth` per contract §6.3 с
+    eleven `..\<module>` entries. Copies
+    eleven src-layout packages from
+    `apps/*/src/*` и `packages/*/src/*` в
+    `build/packages/`. Copies first_run.ps1
+    в `build/`. Resolves `iscc.exe` через
+    standard Inno Setup install paths или
+    via `-IsccPath` parameter. Invokes
+    `iscc.exe /O<OutputDir>` against
+    setup.iss. Default output:
+    `dist/installer/1c-agent-platform-setup.exe`.
+- **Что Step 4 НЕ делал.** Никакого production
+  code change (apps/*/src/, packages/*/src/
+  byte-identical); никакого `pyproject.toml`
+  change (`version=0.5.2` preserved, packages
+  array preserved); никаких `scripts/*` logic
+  changes (`scripts/dev/*.ps1`, `scripts/dev/
+  *.py`, `scripts/release/*` byte-identical);
+  никаких `.python-version` или CI workflow
+  changes; никаких registry changes (`read=15
+  / write=25 / intelligence=16` invariant
+  carried through); никаких новых MCP tools;
+  никаких новых `[project.scripts]` entries;
+  никаких новых dependencies; никаких real
+  credentials; никаких 1cv8.exe runs; никакого
+  remote push; никакого binary-artefact
+  commit'а.
+
+### Parallel Track Q / Step 4 correction pass — three real defects from live acceptance (завершён)
+
+- **Цель.** Узкий three-defect correction pass
+  по результатам live installer acceptance
+  после Step 4 closure (verdict PASS WITH GAPS).
+  Closure commit `8cd6eba`. Три modified files,
+  zero new files, zero touches outside the three
+  installer files.
+- **Defect #1: build helper.** `installers/
+  windows/build-setup-exe.ps1:149-150` —
+  `Get-ChildItem -LiteralPath ... -Recurse -File
+  -Include '*.pyc','*.pyo'` silently ignored
+  `-Include` under `-LiteralPath` (documented
+  PowerShell quirk; `-Include` only works when
+  path contains wildcards), returned ALL files
+  (verified live: 32 items including
+  `bootstrap.py`, `dashboard.py`, `installer.py`
+  after a clean copy), `Remove-Item -Force`
+  wiped freshly copied package contents. Fix:
+  replace `-Include` filter with inline
+  `Where-Object { $_.Extension -in
+  '.pyc','.pyo' }` pipeline. 200 → 199 LOC.
+- **Defect #2: PowerShell 5.1 BOM.**
+  `installers/windows/first_run.ps1`
+  `Invoke-FastPath` — `Set-Content -Encoding
+  UTF8` writes UTF-8 **with BOM** under Windows
+  PowerShell 5.1 (known 5.1-vs-6+ divergence;
+  `-Encoding UTF8NoBOM` not available in 5.1
+  which contract §8.3 pins). Python's
+  `json.load` rejected temp input JSON with
+  "Unexpected UTF-8 BOM (decode using utf-8-
+  sig)", fast-path returned `mode=rejected`,
+  `config.json` was never written. Fix: write
+  via `[System.IO.File]::WriteAllText` с
+  `[System.Text.UTF8Encoding]::new($false)` —
+  .NET API available on PS 5.1, produces BOM-
+  less UTF-8. 290 → 292 LOC.
+- **Defect #3: uninstall tracking.**
+  `installers/windows/setup.iss` — Inno Setup
+  `[Files]` entries использовали `Source: ...
+  \*; Flags: recursesubdirs createallsubdirs`
+  для каждого из 11 src-layout packages; live
+  acceptance показал что default uninstall
+  tracking для этой combination не reliably
+  removes every file под `{app}\<module>\` —
+  98 .py files в 11 directories survived
+  `unins000.exe /VERYSILENT`, нарушая contract
+  §10.2 ("the entire install directory ...
+  MUST be removed"). Fix: добавить explicit
+  `[UninstallDelete]` directive `Type:
+  filesandordirs; Name: "{app}"` который Inno
+  Setup processes during uninstall с full
+  awareness of `unins000.exe` self-deletion
+  mechanism. `{app}` resolves to
+  `%LOCALAPPDATA%\Programs\1C Agent Platform\`;
+  user state at separate path
+  `%LOCALAPPDATA%\1C Agent Platform\` remains
+  preserved per contract §10.3. 159 → 164 LOC.
+- **Live re-acceptance after correction pass.**
+  Verdict: **PASS**. Build helper produces
+  working setup.exe без operator workaround
+  (11 packages populated, 76 .py files total,
+  setup.exe 11,446,661 bytes). Install
+  `setup.exe /VERYSILENT` создаёт correct
+  layout (bundled Python, 11 src-layout
+  packages, python311._pth с 11 `..\<module>`
+  entries verbatim contract §6.3, first_run.ps1,
+  HKCU Uninstall key, Start menu shortcut
+  verbatim contract §9.2). first_run.ps1
+  `Invoke-FastPath` returns `True` без BOM
+  workaround; `config.json` written (922
+  bytes) с locked MVP shape; Claude MCP snippet
+  отображается verbatim contract §8.6.
+  `unins000.exe /VERYSILENT` полностью удаляет
+  install directory (184 → 0 files) и
+  сохраняет user state directory + config.json
+  per contract §10.3.
+- **Что correction pass НЕ делал.** Production
+  code byte-identical; `pyproject.toml` byte-
+  identical; `scripts/*` byte-identical; всё
+  остальное вне трёх installer файлов byte-
+  identical. Никаких real credentials. Никакого
+  1cv8.exe run'а. Recipe file `docs/operators/
+  installer/windows-setup-exe.md` byte-
+  identical (no changes needed). **GitHub
+  remote push — operator action, не часть
+  correction pass'а.**
+
+### Parallel Track Q / Step 5 — docs / release / status alignment (завершён)
+
+- **Цель.** Narrow CLASS-1 / CLASS-2 docs-
+  alignment under post-Step-4 + post-correction
+  + post-live-PASS reality. После live
+  installer acceptance прошёл с verdict PASS,
+  status docs всё ещё описывают Track Q как
+  "Step 1 planning-only / (этот commit)";
+  `docs/release-handoff.md` "Where to read
+  deeper" section не указывает на новый
+  Windows installer recipe. Step 5 узко
+  выравнивает только эти direct-drift
+  surfaces, не трогая Step 6 territory.
+- **Drift classification (CLASS 1 / 2 / 3).**
+  - **CLASS 1 (direct factual drift, updated
+    в Step 5):** `README.md` (Quickstart
+    blockquote описывал Track Q как Step 1
+    planning-only — теперь reflects Steps 1–4
+    closed + correction passes + live PASS;
+    "active parallel tracks" framing описывал
+    оба трека как Step 1 — теперь Track P
+    frozen at Step 1, Track Q at Step 5
+    active; "Active parallel track — Track Q"
+    section title и "Step 1 — planning only
+    (этот commit)" subsection переписаны c
+    enumeration шести closure commits
+    (9b03edf → ae701b3 → 0ccc933 → 1504e01 →
+    5e18f74 → 8cd6eba) и явным acknowledgment
+    live PASS; "Канонический next step:
+    Parallel Track Q / Step 2" → "Step 6
+    closure" (closure language deferred к
+    Step 6)); `PROJECT-STATUS.md` (header
+    "Текущий шаг" описывал оба трека как
+    Step 1 active — теперь reflects Track Q
+    at Step 5 alignment; "Track Q (этот commit)"
+    paragraph переписан; "Каноничный next
+    step Track Q" → Step 6; per-step
+    subsections для Step 2 / Step 3 / Step 3
+    correction / Step 4 / Step 4 correction /
+    Step 5 added below).
+  - **CLASS 2 (narrow useful cross-link,
+    updated в Step 5):** `docs/release-
+    handoff.md` "Where to read deeper"
+    section — one new bullet pointing at
+    `docs/operators/installer/windows-setup-
+    exe.md`, mirroring Track J/L/M/N/O
+    precedent. Step 3 contract §13 explicitly
+    authorises this slot.
+  - **CLASS 3 (closure territory, deferred к
+    Step 6):** `CHANGELOG.md`; `pyproject.toml`
+    (`version` lock at Step 6 per Q7
+    outcome — NO-BUMP / PATCH / MINOR all
+    live; PATCH audit-leaning default под
+    PATH B); README "Closed parallel tracks"
+    list extension (15 → 16); README "Track Q
+    detail (закрыт)" full section.
+  - **No drift (no touch):** `apps/platform/
+    README.md`; `SECURITY.md`; все
+    `scripts/*.ps1` / `scripts/*.py`
+    (`scripts/dev/README.md` тоже не упоминает
+    Track Q или setup.exe — no contradictions);
+    `docs/operator-manual.md`,
+    `docs/administrator-manual.md`,
+    `docs/developer-manual.md` (no Track Q
+    mentions); existing operator recipes
+    (Track J/L/M/N byte-identical); Track O
+    dev recipe; Track Q Step 1/2/3/4 docs
+    (frozen anchors); все Tracks A–P
+    architecture docs; CI workflow;
+    `.python-version`; registries; installer
+    files (recipe + setup.iss + first_run.ps1
+    + build-setup-exe.ps1 all byte-identical
+    при Step 5).
+- **Что shipped в Step 5.**
+  - `README.md` Quickstart Track Q blockquote
+    rewritten от "Step 1 planning only" к
+    "Steps 1–4 closed + correction passes +
+    live PASS" описанию; enumerated six closure
+    commits; explicit statement что closure /
+    Closed-tracks list extension / Track Q
+    detail / Q7 lock остаются Step 6 territory.
+  - `README.md` "Active parallel track — Track
+    Q" section title updated; "Step 1 — planning
+    only (этот commit)" subsection заменён на
+    "Steps 1–4 closure narrative" с per-commit
+    enumeration и live acceptance summary;
+    "Канонический next step" обновлён с Step 6
+    description (Q7 SemVer lock per contract
+    §14 framing).
+  - `PROJECT-STATUS.md` header "Текущий шаг"
+    rewritten для отражения Track Q at Step 5
+    active (после Steps 1–4 + correction
+    passes + live PASS); Track Q paragraph и
+    canonical next step paragraph rewritten.
+  - Эта секция и предыдущие пять (Step 2 /
+    Step 3 / Step 3 correction / Step 4 /
+    Step 4 correction) inserted after
+    existing Step 1 section в PROJECT-STATUS.md.
+  - `docs/release-handoff.md` "Where to read
+    deeper" section получил one new bullet
+    pointing на `docs/operators/installer/
+    windows-setup-exe.md` (one-line summary
+    of what recipe covers + что не покрывает).
+- **Что Step 5 НЕ делал.** Production code
+  byte-identical (apps/*/src/, packages/*/src/);
+  `pyproject.toml` byte-identical (`version=
+  0.5.2` preserved); все `scripts/*` byte-
+  identical (никаких .ps1/.py logic edits;
+  `scripts/dev/README.md` не trogged потому
+  что не содержит Track Q / setup.exe
+  mentions / contradictions); `installers/
+  windows/*` byte-identical (recipe + iss +
+  first_run + build-helper все frozen);
+  `CHANGELOG.md` byte-identical (closure
+  territory); README "Closed parallel tracks"
+  list byte-identical (Track Q still active);
+  README "Track Q detail (закрыт)" — отсутствует
+  (closure territory); manuals byte-identical;
+  all Tracks A–P architecture docs byte-
+  identical; Track Q Step 1/2/3/4 architecture
+  docs byte-identical; CI workflow byte-
+  identical; `.python-version` byte-identical;
+  `.gitignore` byte-identical; SECURITY.md
+  byte-identical; registries unchanged. Никаких
+  real credentials. Никаких 1cv8.exe runs.
+  **GitHub remote push — выполняется как
+  operator-authorized действие в этом
+  commit'е (Step 3 contract §13 разрешает push
+  на Step 5 как narrow operator-side
+  action).**
+- **Selfcheck после Step 5.** Зелёный:
+  registries `read=15 / write=25 /
+  intelligence=16` без drift'а;
+  `selfcheck_status=ok`.
+  `scripts/release/verify-release.ps1`: GREEN
+  (8/8 PASS).
+- **Следующий шаг.** **Parallel Track Q /
+  Step 6 — final integration pass and track
+  closure**. Q7 SemVer lock per contract §14:
+  NO-BUMP / PATCH / MINOR all live; PATCH —
+  audit-leaning default под PATH B; MAJOR
+  forbidden by track scope. Step 6 ship'нёт:
+  README "Closed parallel tracks" list
+  extension (15 → 16); README "Track Q
+  detail (закрыт)" section; `CHANGELOG.md`
+  closure entry; PROJECT-STATUS Step 6 entry
+  + closure narrative; optionally
+  `pyproject.toml` `version` bump per Q7
+  outcome. Открытие Step 6 — отдельное
+  operator decision; не автоматизируется.
 
 ## Phase 6 закрыта
 
