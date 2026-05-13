@@ -422,6 +422,59 @@ entry exposing this helper. Step 4 **MUST NOT**
 introduce a new module or entrypoint to
 `onec_platform`.
 
+### §4.7 — Q-extra: MVP base type (LOCKED)
+
+The Track Q MVP scope **MUST** support **only
+file-based 1C infobases** (Russian: *файловая
+база 1С*). The first-run configurator (§8), the
+Inno Setup wizard (§7), and the closure-gate
+scenario (§5) all **MUST** be locked to this
+single base type.
+
+Track Q **MUST NOT** support, at any step: TCP-
+cluster server bases (Russian: *клиент-
+серверная база 1С*; `Srvr="<host>";Ref="<ib>";`
+connection strings); HTTP-published bases
+(`publication_name` + `http_base_url` fields);
+web-server-published bases via Apache / IIS /
+nginx; any base type that requires presenting
+a username + password at connect time; any
+base type that requires a 1C cluster manager
+(`rmngr.exe`) or agent (`ragent.exe`) on a
+separate host. The full denial list with sub-
+categories is enumerated in §11.
+
+This denial is grounded in repo facts:
+
+- `EnvironmentConfig`
+  (`packages/onec-config/src/onec_config/models.py:93-105`)
+  has **no** `username` / `password` /
+  `server_name` / `cluster_name` fields.
+  Adding them is a production code change
+  forbidden by §3.1.
+- Pushing credentials into the existing
+  argv-template fields
+  (`onec_dumpcfg_command_template` etc.) is the
+  engineering JSON UX that Step 1 plan §1 and
+  Step 2 audit §10.4 named as the path Track Q's
+  tiny configurator is replacing; engineering
+  JSON UX **MUST NOT** be the primary user-
+  facing path.
+- A two-mode configurator (file + server) is
+  the first step toward a rich GUI config
+  editor — §11 denies that shape.
+
+Operators with server-based 1C infobases
+retain the existing orthogonal engineering
+path: `scripts/release/install.ps1` invoked
+with operator-authored input-config JSON.
+This path remains byte-identical through
+Track Q per §3.3; Track Q does **not**
+deprecate, modify, or shadow it. A future
+track **MAY** extend the data model;
+Track Q **MUST NOT** open scope onto server-
+based bases at any of its six steps.
+
 ---
 
 ## §5. Closure-gate scenario (normative)
@@ -485,8 +538,10 @@ machine that has **no** preinstalled Python,
    - User picks a `1cv8.exe` or `1cestart.exe`.
    - Configurator opens
      `System.Windows.Forms.FolderBrowserDialog`
-     prompting "Select 1C infobase folder".
-   - User picks an infobase folder.
+     prompting "Select file-based 1C infobase
+     folder (must contain a `.1cd` file)". Per
+     §4.7, server-based bases are not accepted.
+   - User picks a folder containing a `.1cd`.
    - Configurator synthesises an input-config
      JSON with the locked MVP defaults (§8.4).
    - Configurator invokes bundled `python.exe -c
@@ -858,9 +913,15 @@ user-visible inputs:
 1. **1cv8 executable path.** Either a `1cv8.exe`
    or a `1cestart.exe`; the file dialog filter
    **MUST** allow both.
-2. **Infobase folder path.** A directory path;
-   the folder picker **MUST** validate that the
-   path exists and is a directory.
+2. **File-based 1C infobase folder path.** A
+   directory containing a `.1cd` file (the 1C
+   file-mode infobase artefact). The folder
+   picker **MUST** validate that the path
+   exists, is a directory, and contains at
+   least one `.1cd` file at its top level.
+   Per §4.7, a folder with no `.1cd` **MUST**
+   be rejected (§8.9), not silently accepted
+   with a synthesised connection string.
 
 The configurator **MUST** synthesise an
 input-config JSON (the operator-declared JSON
@@ -907,9 +968,17 @@ Field rationale:
   environment named "main" is the MVP
   expectation; multi-base is out-of-scope.
 - `publication_name = ""` and
-  `http_base_url = ""` — file-mode infobase is
-  the MVP expectation; HTTP-base infobase is
-  multi-base territory and out-of-scope.
+  `http_base_url = ""` — MVP scope is file-
+  based 1C infobase only per §4.7. HTTP
+  publication bases, web-server-published
+  bases, and TCP-cluster server bases are
+  out of scope of Track Q and **MUST NOT**
+  be supported by the Step 4 configurator.
+  Operators with server-based bases retain
+  the existing engineering path through
+  `scripts/release/install.ps1` plus a
+  hand-authored input JSON (orthogonal to
+  Track Q; see §4.7).
 - `dump_path = "%LOCALAPPDATA%\1C Agent Platform\dumps"`
   — under the user's writable state directory,
   not the install directory.
@@ -1052,6 +1121,15 @@ and exit non-zero:
   picker returns (race condition);
 - selected infobase folder does not exist when
   the picker returns;
+- selected infobase folder exists but contains
+  no `.1cd` file at its top level (the folder
+  is not a valid file-based 1C infobase per
+  §4.7); the message box **MUST** say in spirit
+  that no `.1cd` was found, that server-based
+  bases are not supported in this version, and
+  **MUST** point at the operator recipe for the
+  existing engineering path for server-based
+  bases;
 - fast-path helper returns `ok=False` (the
   message box **MUST** include the helper's
   error finding verbatim);
@@ -1268,6 +1346,14 @@ claim".
   who need multi-base **MUST** edit
   `config.json` manually with awareness of the
   product-config shape.
+- "Server-based / client-server 1C infobase
+  (клиент-серверная база)" — denied per §4.7.
+  TCP-cluster bases (`Srvr="…";Ref="…"`),
+  HTTP-published bases, web-server-published
+  bases, and any base requiring username/
+  password credentials at connect time are
+  out of scope at every step. Grounding and
+  alternative engineering path are in §4.7.
 - "Write-server enabled by default" — denied.
   `allow_write = false`; the closure-gate
   scenario ends at one successful read-tool
