@@ -96,6 +96,16 @@ SetupLogging=yes
 ; localized strings file (Welcome / Next / Install / Finish / etc.).
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 
+[Tasks]
+; -- Optional desktop shortcut. {cm:CreateDesktopIcon} and
+;    {cm:AdditionalIcons} are standard Inno Setup CommonMessages that
+;    Russian.isl already translates ("Создать значок на Рабочем столе"
+;    under the "Дополнительные значки:" group on the Select Tasks
+;    wizard page). Default is `unchecked` so an ordinary user explicitly
+;    opts in if they want desktop clutter; the same conservative default
+;    used by professional/dev tooling.
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
 [Files]
 ; -- Bundled embeddable CPython 3.11 (per contract sec.4.4 / sec.6.1 / sec.6.3)
 Source: "{#BuildRoot}\python\*"; DestDir: "{app}\python"; \
@@ -150,6 +160,29 @@ Name: "{group}\{#MyAppName}"; \
 ; -- Standard Inno Setup uninstaller shortcut (per sec.6.4).
 Name: "{group}\Удалить {#MyAppName}"; Filename: "{uninstallexe}"; \
     Comment: "Удалить {#MyAppName}"
+
+; -- Optional desktop shortcut. Created only if the user ticks the
+;    `desktopicon` task in the wizard (see [Tasks] above). {userdesktop}
+;    is the current-user desktop, consistent with per-user install at
+;    {userpf}\... (no admin elevation needed).
+Name: "{userdesktop}\{#MyAppName}"; \
+    Filename: "powershell.exe"; \
+    Parameters: "-ExecutionPolicy Bypass -NoProfile -WindowStyle Normal -File ""{app}\first_run.ps1"""; \
+    WorkingDir: "{app}"; \
+    IconFilename: "{app}\app.ico"; \
+    Comment: "Настройка и подключение Claude к файловой базе 1С"; \
+    Tasks: desktopicon
+
+; -- User-facing launch shortcut INSIDE the install root. When the user
+;    opens the install directory, they immediately see a clickable
+;    "Запустить 1C Agent Platform.lnk" — same launch path as the Start
+;    menu shortcut, so they never need to know which .ps1 to run.
+Name: "{app}\Запустить {#MyAppName}"; \
+    Filename: "powershell.exe"; \
+    Parameters: "-ExecutionPolicy Bypass -NoProfile -WindowStyle Normal -File ""{app}\first_run.ps1"""; \
+    WorkingDir: "{app}"; \
+    IconFilename: "{app}\app.ico"; \
+    Comment: "Настройка и подключение Claude к файловой базе 1С"
 
 ; -- No desktop shortcut by default per sec.6.4.
 ; -- No Quick Launch / taskbar pin / context menu extension (all forbidden by
