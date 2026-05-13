@@ -2,24 +2,20 @@
 
 ## Текущий шаг
 
-**Два активных параллельных трека одновременно**;
-Track P frozen at Step 1; Track Q на Step 5 docs
-alignment после Step 4 live acceptance PASS:
+**Track Q закрыт на Step 6 (этот commit, Q7 =
+PATCH, `pyproject.toml` `version` bumped
+`0.5.2 → 0.5.3`).** На текущий момент **один**
+post-phase parallel track остался open — Track P,
+**frozen at Step 1 (planning only)**, без code
+changes; следующие шаги Track P не открыты и
+остаются independent operator decision.
 
 1. **Parallel Track P / Step 1 — planning test
    suite shipping and verification boundary**
-   (`in progress` на уровне Track P в целом;
-   Step 1 сам по себе **завершён** в commit'е
-   `d6f1936` как planning-only documentation
-   step; frozen — следующие шаги Track P не
-   открыты).
-2. **Parallel Track Q / Step 5 — docs / release /
-   status alignment (этот commit)**
-   (`in progress` на уровне Track Q в целом;
-   Steps 1–4 закрыты sequentially + correction
-   passes; live installer acceptance прошёл с
-   verdict PASS; Step 5 — alignment-only; Step 6
-   closure не выполнен).
+   (frozen; Step 1 закрыт в commit'е `d6f1936`
+   как planning-only documentation step;
+   открытие Step 2 — independent operator
+   decision).
 
 Треки независимы; Track Q не trogeт Track P
 deliverables, Track P не trogeт Track Q
@@ -88,36 +84,31 @@ parallel track. **Track P деталь — см. секцию
 shipping and verification boundary (завершён)»
 ниже.**
 
-**Track Q — закрывает другой
-честный gap, чем Track P.** Конкретно: setup.exe
-UX для обычного Windows-пользователя. **На HEAD
-после Step 4 correction pass (`8cd6eba`) gap
-реально закрыт для contracted MVP persona: live
-installer acceptance прошёл end-to-end с verdict
-PASS** — build helper честно собирает setup.exe
-без operator workaround, setup.exe устанавливает
+**Track Q закрыт на Step 6 этим commit'ом.** Track
+Q закрыл honest gap, который не закрыли Tracks A–P:
+setup.exe UX для обычного Windows-пользователя без
+preinstalled Python / pip / Git. **MVP scope узкий
+per contract §4 / §4.7 / §11:** Windows 10/11
+amd64 only; exactly one base; only file-based 1C
+infobase (server-based / client-server bases out
+of scope at every step); bundled embeddable
+CPython 3.11; no Windows Service; no tray; no
+rich GUI; no multi-base; no enterprise installer
+ecosystem; no code signing; no auto-update; no
+PyPI / Chocolatey / winget / Scoop / NuGet /
+Microsoft Store; no macOS / Linux installer. Live
+installer acceptance после Step 4 correction pass
+(`8cd6eba`) прошёл end-to-end с verdict **PASS**:
+build helper честно собирает setup.exe без
+operator workaround; setup.exe устанавливает
 платформу в `%LOCALAPPDATA%\Programs\1C Agent
-Platform\`, Start menu shortcut вызывает
-`first_run.ps1`, первый запуск синтезирует
+Platform\`; Start menu shortcut вызывает
+`first_run.ps1`; первый запуск синтезирует
 `config.json` под `%LOCALAPPDATA%\1C Agent
-Platform\` через existing fast-path helper без
-BOM, Claude MCP snippet отображается и
-копируется в clipboard, uninstall полностью
-удаляет install directory сохраняя user state.
-**MVP scope: exactly one base, only file-based
-1C infobase** per contract §4.7 (server-based
-out of scope). **Track Q всё ещё ACTIVE** —
-Step 5 alignment (этот commit) выполнен; Step 6
-closure не выполнен. Tracks A–P **не** закрыли
-этот gap — wheel/pip path (Track M) presupposes
-Python на машине, `scripts/release/install.ps1`
-(Tracks B/I) presupposes Python + PowerShell +
-git clone, `pip install -e .` (Track O) —
-developer-only. Ни один из существующих
-surface'ов не позволял ordinary Windows-
-пользователю скачать `setup.exe` → двойной клик
-→ Next/Install/Finish → программа установлена —
-Track Q это решил. Anchor citations
+Platform\` через existing fast-path helper без BOM;
+Claude MCP snippet отображается и копируется в
+clipboard; uninstall полностью удаляет install
+directory сохраняя user state per contract §10.3. Anchor citations
 deferral'а: `scripts/release/install.ps1:1-11`
 ("No `.msi`, no `.deb`, no GUI wizard, no signed
 distribution"); `docs/operators/packaging/
@@ -146,21 +137,235 @@ technology — Inno Setup (directional baseline,
 не contract-binding); default Step 4 PATH —
 PATH B (operator recipe + один Inno Setup `.iss`
 script + опционально один build helper).
-**Каноничный next step Track Q — Parallel
-Track Q / Step 6 — final integration pass and
-track closure** (Q7 SemVer lock per contract §14:
-NO-BUMP / PATCH / MINOR all live; PATCH — audit-
-leaning default под PATH B; MAJOR forbidden;
-открытие — отдельное operator decision; не
-автоматизируется). Closure language (`CHANGELOG.md`
-entry; README closed-tracks list extension;
-"Track Q detail (закрыт)" section; `pyproject.toml`
-`version` lock per Q7 outcome) reserved для Step 6.
-**Каноничный next step Track P — Parallel
-Track P / Step 2 — descriptive baseline audit of
-current verification state** (Track P frozen на
-Step 1; открытие — отдельное operator decision;
-не автоматизируется).
+**Track Q closure complete этим commit'ом.** Q7
+SemVer lock per contract §14: **Q7 = PATCH**
+(`pyproject.toml` `version` bumped `0.5.2 → 0.5.3`,
+mirroring Track M PATCH precedent — closes
+previously-declared "no GUI installer" non-goal
+through narrow new operator surface without
+modifying public Python API). NO-BUMP rejected
+(PATH B ships buildable artefacts); MINOR rejected
+(no new public Python API / CLI flag / new
+`[project.scripts]`); MAJOR forbidden by track
+scope. CHANGELOG `0.5.3` entry, README closed-
+tracks list extension (15 → 16), and "Track Q
+detail (закрыт)" section all shipped этим
+commit'ом. **Каноничный next step Track P —
+Parallel Track P / Step 2 — descriptive baseline
+audit of current verification state** (Track P
+frozen на Step 1; открытие — отдельное operator
+decision; не автоматизируется).
+
+## Статус
+
+`closed` (для всего Parallel Track Q — Windows
+Installer Path and setup.exe Delivery — Steps 1–6
+закрыты последовательно; **Q7 = PATCH** (Track Q
+закрыт под `0.5.3`; `pyproject.toml` `version`
+bumped `0.5.2 → 0.5.3` ровно одним строковым
+изменением в Step 6 commit'е, mirroring Track M
+PATCH precedent); `apps/*/src/`, `packages/*/src/`
+byte-identical через все шесть Track Q шагов;
+`scripts/*` byte-identical; `[project.scripts]`
+byte-identical (три existing console-script entries
+preserved); registries `read=15 / write=25 /
+intelligence=16` invariant preserved; никаких
+1cv8.exe runs; никаких реальных credentials в
+repo / docs / commit messages; remote push
+выполняется как operator-authorized действие в
+этом commit'е). Восемь meaningful commit'ов в
+`main`: `9b03edf` Step 1 (planning, два planning
+doc'а — plan + step-map — с Q1–Q7 directional
+defaults; 35 invariants; central honest constraint
+§4 — bundled Python runtime структурно требуется)
+/ `ae701b3` Step 2 (single descriptive baseline
+audit 1482-line document; 12 sections; inventory
+three install-adjacent paths + three anchor
+citations; option-space audit shape α vs β;
+technology-choice audit Inno Setup vs WiX vs NSIS;
+Q1–Q6 directional resolutions; 16-item Step 3
+handoff list) / `0ccc933` Step 3 (single normative
+contract document; 14 sections; RFC 2119 MUST /
+MUST NOT / SHOULD / SHOULD NOT / MAY; Q1–Q6
+locked; Q7 framed; PATH B locked; Step 4 file
+surface + LOC caps locked; Step 4 / Step 5
+forbidden-files lists locked; closure-gate
+scenario §5 locked) / `1504e01` Step 3 correction
+pass (axis-B file-based-only lock: new §4.7
+normative MUST; new §11 denial bullet; tightened
+§5.1 / §8.4 dialog labels; new §8.9 error case;
+six narrow surgical edits to contract document)
+/ `5e18f74` Step 4 (PATH B implementation: ровно
+4 new files под locked LOC caps:
+`docs/operators/installer/windows-setup-exe.md`
+666/1200 LOC operator recipe; `installers/windows/
+setup.iss` 159/250 LOC Inno Setup definition;
+`installers/windows/first_run.ps1` 290/300 LOC
+first-run configurator; `installers/windows/
+build-setup-exe.ps1` 200/200 LOC build helper;
+total 1315/1950 LOC) / `8cd6eba` Step 4 correction
+pass (three real defects from live acceptance:
+build helper `Get-ChildItem -LiteralPath -Include`
+defect → `Where-Object` extension filter; first_
+run.ps1 PowerShell 5.1 UTF-8-BOM defect →
+`[System.IO.File]::WriteAllText` +
+`UTF8Encoding::new($false)`; setup.iss uninstall-
+tracking defect → explicit `[UninstallDelete]
+Type: filesandordirs; Name: "{app}"`; live re-
+acceptance returned verdict PASS) / `2ec57f4`
+Step 5 (docs / release / status alignment: README
+Quickstart Track Q blockquote rewritten; "Active
+parallel track — Track Q" section title updated;
+"Канонический next step" updated; PROJECT-STATUS
+header rewritten; per-step subsections для Step
+2 / Step 3 / Step 3 correction / Step 4 / Step 4
+correction / Step 5 added; one new bullet in
+docs/release-handoff.md "Where to read deeper"
+section) + closure commit Step 6 (final integration
+pass and track closure; этот commit). Track Q
+закрыл honest gap — ordinary Windows user без
+preinstalled Python / pip / Git теперь может
+скачать `setup.exe` → двойной клик →
+Next/Install/Finish → Start menu → first_run.ps1
+→ pick file-based 1C infobase folder → config.json
+written → Claude MCP snippet displayed and
+clipboarded → paste into Claude → Claude spawns
+`mcp_read_server` as stdio subprocess → reads
+metadata from the configured 1C base. Uninstall
+через `Settings → Apps` полностью удаляет install
+directory с preservation of user state per
+contract §10.3. **MVP scope узкий per contract
+§4 / §4.7 / §11**: Windows 10/11 amd64 only;
+exactly one base; only file-based 1C infobase
+(server-based / client-server bases out of scope
+at every step); bundled Python required;
+production code byte-identical; no Windows
+Service; no tray; no rich GUI; no multi-base;
+no enterprise installer ecosystem; no code
+signing; no auto-update; no PyPI / Chocolatey /
+winget / Scoop / NuGet / Microsoft Store
+publication; no macOS / Linux installer; no
+ARM64 / x86 / Windows 7 / Windows Server claim.
+
+**Q7 = PATCH** (`0.5.2 → 0.5.3`). Защита решения
+(grounded в repo facts):
+
+- **PATH B ships buildable artefacts.** Track Q
+  Step 4 shipped `installers/windows/setup.iss`
+  (compiled by `iscc.exe` into `setup.exe`) +
+  `installers/windows/build-setup-exe.ps1`
+  (operator-side build script that fetches
+  python.org embeddable CPython 3.11 at build
+  time, prepares build directory, invokes
+  `iscc.exe`). These are buildable artefacts —
+  not pure docs. NO-BUMP precedents в этом repo
+  (Tracks J / K / L / N / O) каждый закрылся
+  либо pure docs (Tracks J / N / O) либо single
+  declarative template (Track L systemd unit) /
+  single diagnostic file (Track K) без buildable
+  artefact producer. Track Q ship'ит buildable-
+  artefact producer (build helper + .iss), что
+  qualitatively different от NO-BUMP precedents.
+  Contract §14.2.1 explicitly: NO-BUMP
+  inconsistent с PATH B.
+- **Track M PATCH precedent applies directly.**
+  Track M `0.5.1 → 0.5.2` PATCH was defended as
+  "narrow new operator surface that closes
+  declared-but-non-functional declaration without
+  modifying public Python API" — Track M flipped
+  `[tool.hatch.build.targets.wheel] packages = []`
+  to populated 11-element array, making
+  previously-declared wheel build functional.
+  Track Q closes previously-declared "no GUI
+  installer" non-goal anchor in three places
+  (`scripts/release/install.ps1:9-11`; `docs/
+  operators/packaging/distribution-boundary.md:
+  838-841`; `pyproject.toml:44-50` Track M
+  comment block) — closes declared non-goal
+  through narrow new operator surface (recipe +
+  .iss + configurator + build helper) without
+  modifying public Python API. Mirror Track M's
+  pattern: declared non-functional → declared
+  functional through narrow new operator surface
+  → PATCH bump.
+- **Zero changes to public Python API surface.**
+  `apps/*/src/` byte-identical через все шесть
+  Track Q шагов; `packages/*/src/` byte-identical;
+  `[project.scripts]` byte-identical (три console-
+  script entries preserved verbatim); `[project.
+  dependencies]` byte-identical (empty);
+  `[project.optional-dependencies]` byte-
+  identical (absent); `[tool.hatch.build.targets.
+  wheel] packages` array byte-identical (Track M
+  11-element array preserved); no new CLI flags
+  on existing servers; no new MCP tools; no new
+  registry entries (`read=15 / write=25 /
+  intelligence=16` preserved); no new entrypoint
+  modules; no new transports. Track Q
+  qualitatively different от MINOR precedent
+  Track H (which added new HTTP transport family
+  + new CLI flags + new auth surface — clear new
+  public Python API).
+- **SemVer §6 framing.** PATCH = "backward-
+  compatible bug fixes". Track Q closes declared
+  non-functional surface ("no GUI installer"
+  non-goal) by making it functional through
+  narrow new operator surface — same shape as
+  Track M (declared non-functional wheel build →
+  functional through narrow flip). MINOR would
+  require new functionality в public API; Track
+  Q не added new public functionality; ordinary
+  user gets the same platform delivered through
+  a new packaging shape (setup.exe instead of
+  pip wheel или engineering install.ps1).
+  Therefore PATCH is the only honest outcome.
+- **MAJOR forbidden by track scope.** Track Q
+  не breaks backward compatibility ни в одной
+  declared surface; existing install paths
+  (Tracks B/I `install.ps1`, Track M wheel,
+  Track O `pip install -e .`) byte-identical и
+  continue to serve their personas after Track Q
+  closure. setup.exe — четвёртая orthogonal
+  axis, не replacement.
+
+Никакого containerised dev environment; никакого
+IDE-specific integration; никакого remote-dev
+workflow; никакого multi-Python-version matrix
+(`.python-version` Python 3.11 pin preserved
+verbatim — bundled embeddable runtime version
+matches);  никакого formatter / linter / test-
+runner policy redesign; никакого alternative
+build-backend evaluation; никакого test-suite
+shipping (Track P frozen at Step 1; empty
+`tests/` directory остаётся out of scope of
+Track Q); никаких new MCP tools; никакого
+registry change; никаких transport / auth /
+deployment-boundary / service-supervision /
+packaging / observability / dev-time-recipe
+redesigns; никакого 1cv8.exe run в Step 6
+commit'е; никаких real credentials. Stdio
+transport runtime byte-identical к Track G /
+Step 4; HTTP transport runtime byte-identical к
+Track H / Step 4 (с Track I defect-fix layered
+on top); installer round-trip integrity byte-
+identical к Track I / Step 4; deployment-
+boundary recipe byte-identical к Track J / Step
+4; real MCP client smoke harness byte-identical
+к Track K / Step 4; service-supervision recipe
++ systemd template byte-identical к Track L /
+Step 4; packaging distribution-boundary recipe
++ wheel-build packages array byte-identical к
+Track M / Step 4 (только `version` field
+modified этим commit'ом); observability recipe
+byte-identical к Track N / Step 4; dev-time
+editable-install recipe byte-identical к Track
+O / Step 4.
+
+**Selfcheck note.** `scripts/dev/selfcheck.py`
+`status=ok` на post-Step-6 commit; registries
+`read=15 / write=25 / intelligence=16` invariant
+preserved. `scripts/release/verify-release.ps1`:
+GREEN на 8 checks (clean post-commit tree).
 
 ## Статус
 
@@ -18227,6 +18432,163 @@ read/write/intelligence-серверов, с честно
   `pyproject.toml` `version` bump per Q7
   outcome. Открытие Step 6 — отдельное
   operator decision; не автоматизируется.
+
+### Parallel Track Q / Step 6 — final integration pass and track closure (завершён)
+
+- **Цель.** Final integration pass + Q7 SemVer
+  lock + track closure. Closure commit (этот
+  commit). Closure-scope surfaces only:
+  `README.md` (Quickstart Track Q blockquote →
+  closure narrative; "Closed parallel tracks"
+  list 15 → 16 entries; "Active parallel tracks"
+  section collapsed to single Track P frozen
+  entry; "Active parallel track — Track Q"
+  subsection (340 LOC) removed; new "## Track
+  Q detail (закрыт)" section inserted before
+  "## Track O detail (закрыт)"); `PROJECT-
+  STATUS.md` (header "Текущий шаг" flipped from
+  "two active tracks" to "Track Q closed, Track
+  P frozen"; new "## Статус" block с Track Q
+  closure narrative inserted above existing
+  Track O closure narrative; этот Step 6
+  subsection inserted after Step 5 subsection);
+  `CHANGELOG.md` (new `## 0.5.3` section с
+  Track Q closure narrative inserted above
+  existing `## 0.5.2` section); `pyproject.toml`
+  (single line `version = "0.5.2"` →
+  `version = "0.5.3"` per Q7 = PATCH outcome).
+- **Q7 = PATCH decision grounded в repo facts.**
+  Track Q closes previously-declared "no GUI
+  installer" non-goal anchor in three places
+  (`scripts/release/install.ps1:9-11`;
+  `docs/operators/packaging/distribution-
+  boundary.md:838-841`; `pyproject.toml:44-50`
+  Track M comment block) through narrow new
+  operator surface (recipe + .iss + first_run.
+  ps1 + build helper) without modifying public
+  Python API. Mirrors Track M PATCH precedent
+  (`0.5.1 → 0.5.2`, closed declared-but-non-
+  functional wheel build). NO-BUMP rejected per
+  contract §14.2.1 (PATH B ships buildable
+  artefacts: setup.iss → setup.exe; build helper
+  invokes iscc.exe). MINOR rejected — Track Q
+  added zero new public Python API / CLI flags /
+  new `[project.scripts]` entries / new MCP
+  tools / new dependencies / new entrypoint
+  modules. MAJOR forbidden by track scope (zero
+  breaking changes to declared surfaces; all
+  Tracks A-P production code byte-identical).
+- **Что shipped в Step 6.**
+  - `pyproject.toml` `version` line: `0.5.2 →
+    0.5.3` (ровно одно строковое изменение; все
+    остальные `pyproject.toml` блоки byte-
+    identical: `[project]` metadata, `[project.
+    scripts]` три console-script entries,
+    `[project.dependencies]` empty, `[build-
+    system]` hatchling, `[tool.ruff]`, `[tool.
+    pytest.ini_options]`, `[tool.hatch.build.
+    targets.wheel] packages` 11-element array,
+    Track M comment block lines 44–50, Track G
+    comment block lines 15-21 — все verbatim).
+  - `README.md` Quickstart Track Q blockquote
+    rewritten from "Step 5 alignment active" к
+    "Track Q closed (Step 6, Q7 = PATCH, 0.5.2
+    → 0.5.3)" narrative с enumeration eight
+    meaningful commits + closure scope discipline
+    + Q7 grounded reasoning.
+  - `README.md` "Closed parallel tracks" list
+    extended from 15 entries (A–O) до 16 entries
+    (A–O + Q); list intro "пятнадцать post-phase
+    completion track'ов" → "шестнадцать"; new
+    Track Q entry mirrors Track M PATCH precedent
+    format with closure scope discipline.
+  - `README.md` "Active parallel tracks" section
+    collapsed from "два активных" к "один post-
+    phase parallel track активен — Track P,
+    frozen at Step 1". Track P subsection
+    preserved byte-identical.
+  - `README.md` "Active parallel track — Track Q
+    (Steps 1–4 closed + correction passes + live
+    PASS; Step 5 alignment active)" subsection
+    (340 LOC of in-place narrative) removed
+    entirely; replaced by single closure pointer
+    to "## Track Q detail (закрыт)" section
+    inserted right before "## Track O detail
+    (закрыт)" anchor.
+  - `README.md` new "## Track Q detail (закрыт)"
+    section inserted между "Track P canonical
+    next step" и "## Track O detail (закрыт)";
+    содержит full Track Q closure narrative:
+    цель / что НЕ решает / Step 3 PATH B lock /
+    central honest constraint §4 / three Step 4
+    correction defects + fixes / live re-
+    acceptance PASS / eight meaningful commits /
+    Step 4 deliverable surface (4 files frozen
+    at closure) / Q7 = PATCH defended grounded
+    в repo precedent / recommended-next-track
+    candidates.
+  - `PROJECT-STATUS.md` header "Текущий шаг"
+    rewritten from "two active tracks" к "Track
+    Q closed, Track P frozen". Step 5 subsection
+    preserved byte-identical.
+  - `PROJECT-STATUS.md` new "## Статус" block с
+    full Track Q closure narrative inserted
+    above existing Track O closure "## Статус"
+    block (older Status blocks preserved byte-
+    identically — historical чейн closure
+    narratives мирно coexists).
+  - Эта Step 6 subsection inserted after Step 5
+    subsection в PROJECT-STATUS.md.
+  - `CHANGELOG.md` new `## 0.5.3` section с
+    Track Q closure narrative inserted above
+    existing `## 0.5.2` section. Honest wording:
+    one base, file-based-only, Windows-only,
+    bundled Python, Start menu → first_run.ps1,
+    config.json written, Claude MCP snippet
+    produced, uninstall works. No false maturity
+    claims.
+- **Что Step 6 НЕ делал.** Никакого production
+  code change (`apps/*/src/`, `packages/*/src/`
+  byte-identical через все шесть Track Q шагов);
+  никакого `scripts/*` logic change (`scripts/
+  dev/*.ps1`, `scripts/dev/*.py`, `scripts/
+  release/*` byte-identical); никакого
+  `installer/windows/*` change (recipe + .iss
+  + first_run.ps1 + build-setup-exe.ps1 all
+  frozen at Step 4 / Step 4 correction closure);
+  никакого `docs/operators/installer/windows-
+  setup-exe.md` change (frozen at Step 4 closure);
+  никакого Track Q architecture document change
+  (plan / step-map / baseline-audit / contract
+  все byte-identical); никакого Track P document
+  change (Track P frozen); никакого Tracks A-O
+  architecture document change; никакого
+  `SECURITY.md` change; никакого manuals change;
+  никакого `.python-version` change (Python
+  3.11 pin preserved); никакого `.gitignore`
+  change; никакого `.github/` change; никакого
+  registry change (`read=15 / write=25 /
+  intelligence=16` preserved); никакого new MCP
+  tool / new CLI flag / new `[project.scripts]`
+  / new dependency / new entrypoint module
+  addition. Никакого 1cv8.exe run в Step 6
+  commit'е. Никаких real credentials. Никакого
+  force-push / rebase / reset / history rewrite.
+- **Selfcheck после Step 6.** Зелёный: registries
+  `read=15 / write=25 / intelligence=16` без
+  drift'а; `selfcheck_status=ok`;
+  `scripts/release/verify-release.ps1`: GREEN
+  на 8 checks (clean post-commit tree).
+- **Следующий шаг.** Track Q закрыт; новый
+  product track не открыт автоматически. **Один
+  active parallel track остаётся — Parallel
+  Track P (frozen at Step 1)**; открытие Step 2
+  Track P (baseline audit of current
+  verification state) — independent operator
+  decision. Recommended-next-track candidates
+  see "## Track Q detail (закрыт)" section в
+  README — recommendation only, без auto-
+  opening.
 
 ## Phase 6 закрыта
 

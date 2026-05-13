@@ -6,6 +6,206 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/),
 and the project adheres to [Semantic Versioning](https://semver.org/) starting
 from `0.1.0`.
 
+## 0.5.3 — Parallel Track Q (PATCH bump)
+
+Version 0.5.3 closes **Parallel Track Q — Windows Installer
+Path and setup.exe Delivery** as the sixteenth post-phase
+parallel track. The `0.5.2 → 0.5.3` PATCH bump is made by
+Track Q.
+
+The bump is a **PATCH** under SemVer §6: Track Q closes a
+previously-declared "no GUI installer" non-goal anchor in
+three independently-verifiable places — `scripts/release/
+install.ps1:9-11` ("No `.msi`, no `.deb`, no GUI wizard,
+no signed distribution"), `docs/operators/packaging/
+distribution-boundary.md:838-841` ("GUI installer denied"),
+and `pyproject.toml:44-50` Track M comment block ("no GUI
+installer", "no Chocolatey / Homebrew / apt / conda-forge
+/ NuGet") — through a narrow new operator surface (four
+files: one operator-facing recipe, one Inno Setup `.iss`
+script, one first-run PowerShell configurator, one build
+helper) without modifying public Python API. The Track Q
+Step 4 (`5e18f74`) + correction pass (`8cd6eba`) shipped
+the four files; the live installer acceptance after
+correction returned verdict **PASS** end-to-end.
+
+The PATCH framing mirrors the **Parallel Track M**
+precedent (`0.5.1 → 0.5.2`): both tracks closed a
+previously-declared non-functional / deferred surface
+through narrow new operator surface without modifying
+public Python API. Track M flipped
+`[tool.hatch.build.targets.wheel] packages = []` to
+populated to make a previously-declared wheel build
+functional. Track Q ships a setup.exe path that closes the
+"no GUI installer" non-goal that prior tracks
+acknowledged but did not implement. Neither track added a
+new declared API, a new CLI flag, a new MCP tool, a new
+`[project.scripts]` entry, a new dependency, or new
+public Python API surface. MINOR is rejected because
+Track Q did not add new functionality in public Python
+API surface (no new CLI flag, no new `[project.scripts]`,
+no new entrypoint module) — `apps/*/src/`,
+`packages/*/src/`, the three console-script entries, and
+the eleven src-layout packages array are all byte-
+identical through every Track Q step. NO-BUMP is rejected
+because Track Q ships buildable artefacts (Inno Setup
+`.iss` script compiled by `iscc.exe` into `setup.exe`;
+PowerShell build helper that fetches files and invokes
+the compiler) — qualitatively different from NO-BUMP
+precedents Tracks J / K / L / N / O each of which shipped
+pure docs or single declarative templates. MAJOR is
+forbidden by track scope (no breaking changes to any
+declared surface).
+
+### What Track Q shipped
+
+Four new files under `installers/windows/` and
+`docs/operators/installer/`, plus a `version` line bump
+in `pyproject.toml`. Production code (`apps/*/src/`,
+`packages/*/src/`), `[project.scripts]`, `[project.
+dependencies]`, `[build-system]`, `[tool.ruff]`,
+`[tool.pytest.ini_options]`, `[tool.hatch.build.
+targets.wheel] packages` array, `scripts/*`, MCP
+registries (`read = 15 / write = 25 / intelligence =
+16`), `.python-version`, manuals, all existing
+operator recipes (Tracks J / L / M / N), Track O dev
+recipe, all Tracks A-P architecture docs, Track P
+planning surface — all byte-identical through every
+Track Q step.
+
+The four Track Q files:
+
+- **`docs/operators/installer/windows-setup-exe.md`** —
+  operator-facing recipe (666 LOC, 12 sections). Build,
+  distribute, install, verify, uninstall, upgrade verbs;
+  prerequisites; server-based 1C infobase engineering
+  path (§10 — denial + pointer to existing
+  `scripts/release/install.ps1` flow); cross-references
+  to Tracks B / I / J / L / M / N / O recipes; honest
+  non-goals (§12 mirrors contract §11 denial list).
+
+- **`installers/windows/setup.iss`** — Inno Setup
+  definition (164 LOC after correction pass). Per-user
+  install at `{userpf}\1C Agent Platform`
+  (`PrivilegesRequired=lowest`, no UAC, no PATH
+  modification). HKCU Uninstall registration via Inno
+  Setup defaults. Single Start menu shortcut
+  `powershell.exe -ExecutionPolicy Bypass -NoProfile
+  -WindowStyle Normal -File {app}\first_run.ps1`.
+  `[UninstallDelete] Type: filesandordirs; Name: "{app}"`
+  ensures full install directory removal on uninstall
+  while preserving user state at the separate path
+  `%LOCALAPPDATA%\1C Agent Platform\`.
+
+- **`installers/windows/first_run.ps1`** — first-run
+  configurator (292 LOC after correction pass).
+  PowerShell 5.1+ compatible. Two GUI pickers via
+  `System.Windows.Forms`: `OpenFileDialog` for the 1cv8
+  executable; `FolderBrowserDialog` for the file-based
+  1C infobase folder with `.1cd` validation at top
+  level. Synthesises input-config JSON with locked MVP
+  shape (single environment `main`, `allow_write=
+  false`, `publication_name=""`, `http_base_url=""`,
+  `servers.read=true; write=false; intelligence=
+  false`) and invokes the existing
+  `onec_platform.installer.run_install_fast_path_from_json_file`
+  helper through the bundled `python.exe -c "..."`
+  (BOM-less via `[System.IO.File]::WriteAllText` +
+  `UTF8Encoding::new($false)` per the Step 4 correction
+  pass). Displays the Claude MCP snippet with computed
+  absolute python.exe path and copies it to clipboard
+  via `Set-Clipboard`.
+
+- **`installers/windows/build-setup-exe.ps1`** — build
+  helper (199 LOC after correction pass). Fetches
+  python.org embeddable CPython 3.11 distribution at
+  build time (NOT committed to git — `build/` and
+  `dist/` already in `.gitignore`). Rewrites
+  `python311._pth` per contract §6.3 with eleven
+  `..\<module>` entries so the bundled interpreter
+  imports the eleven src-layout packages from one level
+  up. Copies the eleven src-layout packages from
+  `apps/*/src/<module>` and `packages/*/src/<module>`
+  into `build/packages/`, stripping `__pycache__` and
+  `*.pyc` / `*.pyo` files via inline `Where-Object`
+  extension filter (per Step 4 correction pass).
+  Invokes `iscc.exe /O<OutputDir>` against `setup.iss`.
+  Default output: `dist/installer/1c-agent-platform-
+  setup.exe`.
+
+### Closure scope and honest non-goals
+
+Track Q does **not** ship any of: support for server-
+based / client-server 1C infobases (клиент-серверная
+база; out of scope at every step per contract §4.7;
+`EnvironmentConfig` has no `username` / `password` /
+`server_name` / `cluster_name` fields — adding them is
+a production code change forbidden by §3.1; operators
+with server-based bases retain the existing engineering
+path through `scripts/release/install.ps1` plus hand-
+authored input-config JSON); support for more than
+one base configured simultaneously; Windows Service or
+autostart registration (the installer does not register
+a service; Claude spawns the MCP server as a stdio
+subprocess on demand); tray icon or background daemon;
+rich GUI dashboard or configuration editor; auto-update
+or OTA mechanism; code signing (`setup.exe` is
+unsigned; Windows Defender SmartScreen may display a
+warning on first run on a fresh machine; operators
+distributing in adversarial environments establish
+their own signing chain out of band); PyPI publication;
+Chocolatey / winget / Scoop / NuGet / Microsoft Store
+publication; broader `.msi` ecosystem (WiX);
+enterprise installer platform (Group Policy templates,
+SCCM packaging, Intune publishing); macOS or Linux
+installer; ARM64 / x86 / Windows 7 / Windows Server
+support; "all Windows distributions supported" claim;
+"one-click everything solved forever" claim;
+"enterprise-grade installer" claim; "production-ready
+desktop app" claim; "Windows install solved forever"
+claim.
+
+Track Q closure-gate covers **only** one narrow
+integration-and-naming slice: a single Inno Setup
+`setup.exe` for the ordinary Windows user on Windows
+10 + 11 amd64, configuring exactly one file-based 1C
+infobase, connecting Claude to the platform's read-
+server as a local stdio MCP server. The platform
+itself is unchanged: same Python sources, same
+registries, same console-script entries, same
+dependencies, same transport surfaces. Track Q is the
+seventeenth post-phase parallel track and the
+sixteenth to close. After Track Q closes, the only
+remaining active parallel track is **Parallel Track P
+— Test Suite Shipping and Verification Boundary**,
+which remains frozen at Step 1; opening Step 2 of
+Track P is an independent operator decision.
+
+After Track Q closes, the registry invariant remains
+`read = 15 / write = 25 / intelligence = 16`, the
+HTTP transport runtime is byte-identical to its Track
+H / Step 4 shape (with the Track I defect fix layered
+on top), the stdio transport runtime is byte-identical
+to its Track G / Step 4 shape, the installer-side
+`auth.tokens` round-trip remains byte-identical to
+its Track I / Step 4 shape, the deployment-boundary
+recipe remains byte-identical to its Track J / Step 4
+shape, the real MCP client smoke harness remains byte-
+identical to its Track K / Step 4 shape, the service-
+supervision recipe and the systemd unit template
+remain byte-identical to their Track L / Step 4
+shapes, the packaging distribution-boundary recipe
+and the wheel-build packages array remain byte-
+identical to their Track M / Step 4 shapes (only the
+`pyproject.toml` `version` field is modified by this
+Step 6 commit per Q7 = PATCH outcome), the
+observability recipe remains byte-identical to its
+Track N / Step 4 shape, the dev-time editable-install
+recipe remains byte-identical to its Track O / Step
+4 shape, and `pyproject.toml` `version` is now
+`0.5.3`. Active parallel tracks = one (Track P,
+frozen at Step 1).
+
 ## 0.5.2 — Parallel Track M (PATCH bump), Parallel Track N (docs-only closure under 0.5.2, no further bump), and Parallel Track O (docs-only closure under 0.5.2, no further bump)
 
 Version 0.5.2 closes three post-phase parallel tracks
