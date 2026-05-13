@@ -171,7 +171,9 @@ function Invoke-FastPath {
         if (Test-Path -LiteralPath $ConfigPath) {
             Remove-Item -LiteralPath $ConfigPath -Force
         }
-        ($InputObj | ConvertTo-Json -Depth 8) | Set-Content -LiteralPath $tempInput -Encoding UTF8
+        # PowerShell 5.1 Set-Content -Encoding UTF8 emits a BOM, which Python
+        # json.load rejects. Use .NET WriteAllText with explicit BOM-less UTF-8.
+        [System.IO.File]::WriteAllText($tempInput, ($InputObj | ConvertTo-Json -Depth 8), [System.Text.UTF8Encoding]::new($false))
         $py = @"
 from onec_platform.installer import run_install_fast_path_from_json_file
 r = run_install_fast_path_from_json_file(r'''$tempInput''', output_config_path=r'''$ConfigPath''', confirm_write=True)

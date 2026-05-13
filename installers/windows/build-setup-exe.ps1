@@ -141,8 +141,7 @@ function Copy-Packages {
         # (matches the no-binary spirit of contract sec.3.9).
         Get-ChildItem -LiteralPath $dst -Recurse -Directory -Filter '__pycache__' -ErrorAction SilentlyContinue |
             Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-        Get-ChildItem -LiteralPath $dst -Recurse -File -Include '*.pyc', '*.pyo' -ErrorAction SilentlyContinue |
-            Remove-Item -Force -ErrorAction SilentlyContinue
+        Get-ChildItem -LiteralPath $dst -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in '.pyc','.pyo' } | Remove-Item -Force -ErrorAction SilentlyContinue
     }
     Write-Host "Copied $($Packages.Count) src-layout packages into: $BuildPkgs"
 }

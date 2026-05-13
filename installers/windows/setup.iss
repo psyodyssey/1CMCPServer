@@ -144,9 +144,14 @@ Filename: "powershell.exe"; \
 ;    deliberately empty.
 
 [UninstallDelete]
-; -- Deliberately empty. The Inno Setup uninstaller removes {app}\ on its own.
-;    %LOCALAPPDATA%\1C Agent Platform\ (config.json, .runtime\, dumps\) is
-;    operator-side state and MUST survive uninstall per contract sec.10.3.
+; -- Explicit removal of {app}\ on uninstall. The default Inno Setup tracking
+;    of `Source: dir\*` + `recursesubdirs` does not reliably remove every file
+;    under {app}\<module>\ — see Step 4 acceptance / Step 4 correction pass.
+;    The Inno Setup self-delete mechanism handles unins000.exe correctly.
+;    %LOCALAPPDATA%\1C Agent Platform\ (config.json, .runtime\, dumps\) is on
+;    a separate path; this directive does not touch it. User state survives
+;    uninstall per contract sec.10.3.
+Type: filesandordirs; Name: "{app}"
 
 [UninstallRun]
 ; -- Deliberately empty. No external uninstall hooks; Inno Setup uses the
