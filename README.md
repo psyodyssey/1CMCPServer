@@ -416,11 +416,15 @@
 > post-phase parallel track'ов (A, B, C, D, E, F, G,
 > H, I, J, K, L, M, N, O) полностью закрыты
 > последовательно; Phase 7 как линейная фаза не
-> запланирована. **Активный параллельный трек —
+> запланирована. **Активные параллельные треки —
 > Parallel Track P — Test Suite Shipping and
-> Verification Boundary**, открытый на Step 1
-> (planning only) после Track O closure (commit
-> `720ac54`, `0.5.2`). Step 1 — planning-only:
+> Verification Boundary** (открыт первым, commit
+> `d6f1936`) **и Parallel Track Q — Windows
+> Installer Path and setup.exe Delivery** (открыт
+> сейчас как семнадцатый post-phase parallel track),
+> оба на Step 1 (planning only). Track P открыт
+> после Track O closure (commit `720ac54`,
+> `0.5.2`). Step 1 Track P — planning-only:
 > ship'нул две новых architecture doc'и
 > ([`plan`](docs/architecture/track-p-test-suite-shipping-and-verification-boundary-plan.md)
 > +
@@ -464,6 +468,90 @@
 > alignment / Step 6 closure) — отдельное operator
 > decision. Registries `read=15 / write=25 /
 > intelligence=16` invariant carried through.
+>
+> **Parallel Track Q — Windows Installer Path and
+> setup.exe Delivery** открыт как семнадцатый
+> post-phase parallel track, тоже на Step 1
+> (planning only). Track Q закрывает **другой**
+> честный gap: у проекта есть wheel/pip
+> distribution boundary (Track M:
+> `1c_agent_platform-0.5.2-py3-none-any.whl`,
+> `pip install <WHEEL_PATH>`) и install fast-path
+> PowerShell wrapper (Track B / Track I:
+> `scripts/release/install.ps1`) — но оба
+> presuppose, что на машине **уже стоит** Python
+> 3.11 + pip (+ для git-based flow — Git).
+> **Обычный Windows-пользователь** этого не имеет.
+> Сегодня нет ни одного surface, который позволяет
+> такому пользователю: скачать `setup.exe` →
+> двойной клик → **Next** / **Install** / **Finish**
+> → программа установлена. Никакого `setup.exe`,
+> никакого installer-technology definition file
+> (`.iss` / `.wxs` / `.nsi`), никакого bundled
+> Python runtime artefact в репо нет. Anchors,
+> которые этот gap прямо acknowledge:
+> `scripts/release/install.ps1:1-11` ("No `.msi`,
+> no `.deb`, no GUI wizard, no signed
+> distribution"),
+> `docs/operators/packaging/distribution-boundary.md`
+> §7 non-goals ("no GUI installer"),
+> `pyproject.toml` Track M comment block ("no GUI
+> installer", "no Chocolatey / Homebrew / apt /
+> conda-forge / NuGet"). Track Q — dedicated
+> **narrow** track, который закрывает именно эту
+> боль: один Windows `setup.exe`, ordinary-user
+> install experience без preinstalled Python /
+> pip / Git, uninstall через стандартный Windows
+> Add/Remove Programs surface. Step 1 — planning-
+> only: ship'нул две новых architecture doc'и
+> ([`plan`](docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-plan.md),
+> [`step-map`](docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-step-map.md))
+> с Q1–Q7 directional defaults. **Центральная
+> честная константа Track Q** (плана §4): платформа
+> — pure-Python codebase; "install без preinstalled
+> Python" структурно требует **bundled Python
+> runtime** внутри installer'а (default
+> expectation — python.org embeddable CPython 3.11
+> distribution, ~10 MB, pulled at build time, **не
+> committed as binary в git**). Без bundled runtime
+> честного setup.exe path не существует — это
+> называется прямо, не в сноске. Expected
+> installed footprint — около 10–15 MB. Это **не**
+> Linux installer / macOS installer / широкая
+> `.msi`/`.deb`/`.rpm`/`.dmg`/`.pkg`/`.snap`/`.flatpak`
+> ecosystem / PyPI publication / package-manager
+> matrix (Chocolatey / winget / Scoop / NuGet) /
+> code signing / Authenticode / EV cert /
+> notarization / SBOM / SLSA / auto-update / OTA /
+> GUI dashboard / browser UI / service supervision
+> redesign / auth redesign / transport redesign /
+> new MCP tools / new CLI flags / new
+> `[project.scripts]` entries / new runtime
+> dependencies / remote-dev / IDE integration /
+> enterprise installer platform / MDM /
+> containerisation / cluster-HA / "all Windows
+> distributions supported" / "one-click everything
+> solved forever" / "enterprise-grade installer" /
+> "production-ready desktop app" / "GUI config
+> wizard" / "Windows service auto-magic by default"
+> claim. Default installer technology — Inno Setup
+> (baseline; Step 3 contract — lock point;
+> directional, не finalised). Default Step 4 PATH
+> — PATH B (operator recipe + один `.iss` Inno
+> Setup script + опционально один PowerShell build-
+> helper), PATH A docs-only в резерве; PATH
+> explicitly **не locked** на Step 1. Q7 SemVer —
+> directional framing only: NO-BUMP под PATH A,
+> PATCH defensible под PATH B как defect-class
+> delivery-channel repair (mirror Track I / Track M
+> precedent), MINOR defensible под PATH B как new
+> operator-visible delivery channel (mirror Track H
+> precedent); lock на Step 6. Tracks A–O closed
+> state и Track P / Step 1 planning surface
+> сохраняются byte-identical. Открытие следующих
+> Track Q шагов — отдельное operator decision.
+> Registries `read=15 / write=25 / intelligence=16`
+> invariant carried through.
 
 ### Системные требования
 
@@ -1124,7 +1212,31 @@ version-matrix smoke, etc.). Phase 7 как отдельная
   применяются напрямую — Track O — purest-form
   Track N analogue).
 
-## Active parallel track
+## Active parallel tracks
+
+На текущий момент **два** post-phase parallel
+track'а активны одновременно — оба находятся на
+Step 1 (planning only), оба добавлены без code
+changes:
+
+1. **Parallel Track P — Test Suite Shipping and
+   Verification Boundary** (шестнадцатый post-
+   phase parallel track; открыт первым, commit
+   `d6f1936`).
+2. **Parallel Track Q — Windows Installer Path
+   and setup.exe Delivery** (семнадцатый post-
+   phase parallel track; открыт сейчас).
+
+Треки независимы: Track P закрывает gap в
+behavioural-unit / integration testing surface;
+Track Q закрывает gap в Windows installer
+experience для ordinary user без preinstalled
+Python / pip / Git. Track Q **не** touch'ает
+Track P deliverables; Track P **не** touch'ает
+Track Q deliverables. Открытие следующих шагов
+обоих треков — independent operator decisions.
+
+### Active parallel track — Track P (Step 1 planning only)
 
 **Parallel Track P — Test Suite Shipping and
 Verification Boundary** — открыт на Step 1 (planning
@@ -1296,6 +1408,289 @@ preserved. `scripts/release/verify-release.ps1
 Step 2 — descriptive baseline audit of current
 verification state. Открытие Step 2 — отдельное
 operator decision; никакой автоматизации.
+
+### Active parallel track — Track Q (Step 1 planning only)
+
+**Parallel Track Q — Windows Installer Path and
+setup.exe Delivery** — открыт на Step 1 (planning
+only) как **семнадцатый** post-phase parallel
+track. Track Q адресует другой честный gap, чем
+Tracks A–P: ни один из предыдущих треков **не**
+закрыл setup.exe UX для обычного Windows-
+пользователя.
+
+**Честкий gap-statement Track Q.** У проекта есть:
+
+- **wheel/pip path** (Track M:
+  `1c_agent_platform-0.5.2-py3-none-any.whl`,
+  `pip install <WHEEL_PATH>`),
+- **install fast-path PowerShell wrapper**
+  (Track B / Track I: `scripts/release/install.ps1`,
+  "thin scripts-only wrapper"),
+- **editable install** (Track O:
+  `pip install -e .`).
+
+Все три presuppose, что на машине **уже стоит**
+Python 3.11 + pip (+ для git-based flow — Git).
+**Обычный Windows-пользователь** этого не имеет.
+**Setup.exe path отсутствует.** Конечный
+пользовательский install experience —
+"скачал → двойной клик → Next/Install/Finish →
+установлено" — **не закрыт**. Никакого
+`setup.exe`, никакого installer-technology
+definition file (`.iss` / `.wxs` / `.nsi`),
+никакого bundled Python runtime artefact в репо
+нет на HEAD `d6f1936`. Anchors прямо acknowledge
+deferral:
+
+- `scripts/release/install.ps1:1-11` — "It does
+  NOT introduce a new install ecosystem. No
+  `.msi`, no `.deb`, no GUI wizard, no signed
+  distribution."
+- `docs/operators/packaging/distribution-boundary.md`
+  §7 — verbatim "no GUI installer" среди explicit
+  non-goals Track M recipe.
+- `pyproject.toml` Track M comment block (lines
+  44–50) — "no GUI installer", "no Chocolatey /
+  Homebrew / apt / conda-forge / NuGet", "no
+  enterprise-ready packaging".
+
+Эти anchor'ы — honest deferrals, не permanent
+closures. Track Q — dedicated narrow track, что
+эту deferral закрывает.
+
+**Цель Track Q.** Конвертировать gap выше в
+disciplined six-step closure track формы Tracks
+A–P (planning → audit → contract → narrow
+implementation → docs alignment → final
+integration pass). Single supported install
+experience: download `setup.exe` → double-click
+→ Next/Install/Finish → installed; uninstall
+через стандартный Windows "Settings → Apps →
+Installed apps" surface (Inno Setup native
+behaviour, регистрация под
+`HKCU\Software\Microsoft\Windows\CurrentVersion\
+Uninstall\<GUID>`).
+
+**Step 1 — planning only (этот commit).**
+Ship'нуты ровно два новых architecture doc'а:
+
+- [`docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-plan.md`](docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-plan.md)
+  — 14-section planning document (purpose / current
+  post-Tracks-A–O baseline relevant to Track Q
+  including inventory existing install-adjacent
+  surfaces and their Python prerequisite / honest
+  gap statement в шести независимо проверяемых
+  observations / **central honest constraint
+  § 4 — bundled Python runtime структурно
+  требуется**, прямо названо как §4, не как
+  footnote / goal of the track / in-scope / out-
+  of-scope с 30+ explicit denials (no Linux/macOS
+  installer / no broad `.msi`/`.deb`/`.rpm`/`.dmg`
+  ecosystem / no PyPI / no package-manager matrix /
+  no code signing / no auto-update / no GUI
+  dashboard / no service supervision redesign /
+  no auth redesign / no transport redesign / no
+  new MCP tools / no new CLI flags / no new
+  `[project.scripts]` / no new dependencies / no
+  remote-dev / no enterprise installer platform /
+  no containerisation / no cluster-HA / "all
+  Windows distributions supported" / "one-click
+  everything solved forever" / "enterprise-grade
+  installer" / "production-ready desktop app" /
+  "GUI config wizard" / "Windows service auto-
+  magic by default" claims) / guardrails 30 hard
+  invariants / acceptance criteria 12 items /
+  honest constraints after closure / relationship-
+  to-Tracks-M/L/O/P table / Q1–Q7 directional
+  defaults / step trajectory / honest summary).
+- [`docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-step-map.md`](docs/architecture/track-q-windows-installer-path-and-setup-exe-delivery-step-map.md)
+  — six-step boundary (Goal / What changes / What
+  does NOT change / Result) + 35 track invariants
+  block (включая Track P / Step 1 planning surface
+  byte-identical invariant) + hard out-of-scope
+  carry-through + Step 6 Q7 framing.
+
+**Central honest constraint (план §4).** Платформа
+— pure-Python codebase (Track M `py3-none-any`
+wheel содержит eleven src-layout packages). При
+runtime требуется CPython 3.11 interpreter.
+**Acceptance criterion "no preinstalled Python /
+pip / Git" структурно требует bundled Python
+runtime** внутри installer'а. Структурно
+существуют ровно две честные опции:
+
+- **(α) Bundled embeddable distribution** —
+  `python-3.11.<x>-embed-amd64.zip` от python.org
+  (~10 MB: `python.exe`, stdlib `.zip`,
+  `pythonXY.dll`, minimal `.pyd` modules); installer
+  extracts его в install directory.
+- **(β) Frozen executable distribution** —
+  PyInstaller / Nuitka / Briefcase / py2exe
+  produces standalone `.exe` files; installer
+  ships frozen exes.
+
+Нет честной третьей опции. **(α)** — default
+expectation (поскольку **(β)** добавляет
+PyInstaller/Nuitka toolchain'ы, которых сегодня в
+репо нет). Expected installed footprint — около
+**10–15 MB** (~10 MB embeddable CPython + ~1 MB
+платформа + small installer overhead). Это
+**структурная стоимость** закрытия gap'а;
+никакого reduction не promised. Никакого bundled-
+runtime бинаря в git commit'ах быть **не должно**
+— python.org embeddable acquires the build helper
+**at build time**, не at clone time.
+
+**Q1–Q7 directional defaults (план §12).**
+
+- Q1 (closure target) → **один real `setup.exe`
+  installer path** для обычного Windows
+  пользователя; **(B) recipe + narrow `.iss`
+  installer-definition slice** как most likely
+  outcome; **(A) recipe-only** acceptable
+  fallback; **(C) standalone build helper без
+  `.iss`** rejected by default.
+- Q2 (installer technology default) → **(A) Inno
+  Setup** baseline (простейшая честная Windows
+  installer technology с native uninstall
+  registry support; declarative `.iss`; free
+  tooling; long reliability track record); **(B)
+  WiX / `.msi`** considered только если Step 2
+  surfaces grounded MDM / SCCM / Intune operator
+  need; **(C) NSIS** considered только если Step 2
+  surfaces specific need; **(D) Advanced
+  Installer / (E) InstallShield / (F) MSIX**
+  rejected by default. **Step 1 explicitly does
+  NOT lock** technology choice; Step 3 contract —
+  lock point.
+- Q3 (Step 4 PATH openness) → **PATH B** (recipe
+  + один `.iss` + optionally build helper)
+  primary; **PATH A** docs-only в резерве; **PATH
+  C** standalone helper rejected. **Step 4 PATH
+  not locked at Step 1**; Step 3 contract — lock
+  point.
+- Q4 (install experience prerequisite stance) →
+  install experience **MUST NOT** require
+  preinstalled Python / pip / Git / Visual Studio
+  Build Tools / MSVC / Windows SDK / C/C++ runtime
+  / Chocolatey / winget / Scoop / NuGet. **Direct
+  implication**: installer **MUST** bundle (или
+  pull at install time) Python runtime; default
+  expectation — python.org embeddable CPython 3.11
+  pulled at build time.
+- Q5 (uninstall path stance) → uninstall — **first-
+  class part of supported boundary**; installer
+  **MUST** register uninstall entry под
+  `HKCU\Software\Microsoft\Windows\CurrentVersion\
+  Uninstall\<GUID>` (или per-machine `HKLM`
+  equivalent); ordinary Windows "Settings → Apps
+  → Installed apps" surface — supported entry
+  point uninstall'а; Inno Setup handles это
+  natively.
+- Q6 (production code change) → **likely NOT
+  required**; installer packages existing wheel
+  contents + bundled runtime; behaviour
+  идентичный независимо от того, через какой
+  Python platform запущена; Step 2 audit должен
+  verify honestly; default expectation — Step 3
+  contract explicitly forbids production code
+  changes at Step 4.
+- Q7 (SemVer expectation) — **directional
+  framing only**, lock на Step 6: **(A) NO-BUMP**
+  под PATH A docs-only (mirror Track J/K/L/N/O
+  precedent); **(B) PATCH** defensible под PATH B
+  framed as defect-class delivery-channel repair
+  (mirror Track I / Track M precedents); **(C)
+  MINOR** defensible под PATH B framed as new
+  operator-visible delivery channel (mirror
+  Track H precedent — HTTP transport как новая
+  delivery capability); **(D) MAJOR** forbidden
+  by track scope. Step 1 захватывает все три
+  (NO-BUMP / PATCH / MINOR) как live possibilities
+  и lock'ает **ни одну**.
+
+**Step 1 явно НЕ делает:** не открывает Step 2;
+не пишет audit doc; не выбирает installer
+technology (Inno Setup — directional default, не
+contract-binding); не commit'ит installer-
+definition file; не commit'ит bundled-runtime
+binary; не меняет production code; не меняет
+`pyproject.toml`; не меняет `scripts/*` (включая
+`scripts/release/install.ps1`, чей umbrella
+comment мы цитируем как anchor — он сам
+byte-identical); не troget'ит Track P / Step 1
+planning surface; не troget'ит existing operator
+recipes (Track J/L/M/N byte-identical) и Track O
+dev recipe; не trogeт `SECURITY.md` /
+`docs/release-handoff.md` / `CHANGELOG.md` /
+`apps/platform/README.md` / manuals; не меняет
+registries (`read=15 / write=25 / intelligence=16`
+invariant carried through); не запускает
+`1cv8.exe`; не делает remote push; не фиксирует
+Q1–Q7 как decided answers (только defaults /
+directional recommendations); не добавляет Track Q
+в Closed parallel tracks list (still 15 entries
+A–O); не открывает параллельно ещё один трек.
+
+**Что Track Q явно НЕ решает (carry-through через
+все шесть шагов).** No Linux installer (`.deb` /
+`.rpm` / `.apk` / `.AppImage` / `.snap` /
+`.flatpak`); no macOS installer (`.dmg` / `.pkg` /
+`.app` / Homebrew cask / MacPorts / notarization);
+no broad `.msi` ecosystem (WiX considered только
+по grounded reason); no Chocolatey / winget /
+Scoop / NuGet / Microsoft Store publication; no
+PyPI publication; no code signing / Authenticode /
+EV cert / notarization / SBOM / SLSA / supply-
+chain attestation; no auto-update / OTA / delta-
+update; no GUI dashboard / browser UI / web admin
+panel; no service supervision redesign (Track L
+preserved; installer **не** registers Windows
+Service by default); no auth redesign (Tracks D /
+H preserved); no transport redesign (Tracks G / H
+preserved); no new MCP tools; no registry changes
+(MCP registry, not Windows registry — last in
+scope только для uninstall entry); no new CLI flag
+on existing servers; no new `[project.scripts]`
+console entries; no new entrypoint module; no new
+project dependencies (ни runtime, ни optional);
+no new transports; no remote-dev / IDE
+integration (Track O preserved); no enterprise
+installer platform / MDM / Group Policy / SCCM /
+Intune; no containerisation (Dockerfile / OCI /
+Podman); no cluster / HA; no "all Windows
+distributions supported" claim (default support
+matrix — Windows 10 + 11 amd64; Windows 7 /
+Server / ARM64 / x86 — out of default); no
+"one-click everything solved forever" claim; no
+"enterprise-grade installer" claim; no
+"production-ready desktop app" claim; no "GUI
+config wizard" claim (installer drops platform
+на диск; product configuration — отдельный
+operator step через existing surfaces); no
+"Windows service auto-magic by default" claim; no
+test-suite program (Track P territory); no
+observability redesign (Track N preserved); no
+remote push; no новый parallel track opened
+within Step 1.
+
+**Selfcheck note.** `scripts/dev/selfcheck.py`
+`status=ok` на post-Step-1 commit; registries
+`read=15 / write=25 / intelligence=16` invariant
+preserved. `scripts/release/verify-release.ps1
+-AllowDirtyTree` GREEN на 8 checks.
+
+**Канонический next step:** Parallel Track Q /
+Step 2 — descriptive baseline audit of current
+Windows install reality (inventory persona,
+existing install-adjacent surfaces и их Python
+prerequisite, three anchor citations, option-
+space audit shape α vs β из §4, technology-
+choice audit Inno Setup vs WiX vs NSIS, Q1–Q6
+directional resolutions, ≥10-item Step 3 handoff
+list). Открытие Step 2 — отдельное operator
+decision; никакой автоматизации.
 
 ## Track O detail (закрыт)
 
