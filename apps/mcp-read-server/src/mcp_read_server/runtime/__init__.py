@@ -12,6 +12,12 @@ from .dump_adapter import (
     read_text_file,
     resolve_dump_path,
 )
+from .file_based import (
+    ensure_dump_populated,
+    read_configuration_info_from_dump,
+    read_metadata_object_from_dump,
+    read_metadata_tree_from_dump,
+)
 from .live_adapter import fetch_json, fetch_json_from_environment
 from .models import RuntimeContext
 
@@ -24,4 +30,8 @@ __all__ = [
     "read_text_file",
     "find_files_by_pattern",
     "read_dump_file",
+    "ensure_dump_populated",
+    "read_configuration_info_from_dump",
+    "read_metadata_object_from_dump",
+    "read_metadata_tree_from_dump",
 ]

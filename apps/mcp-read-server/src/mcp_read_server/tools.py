@@ -15,12 +15,21 @@ from onec_troubleshooting import diagnose_from_health
 from .models import ToolResult
 from .runtime import (
     build_runtime_context,
+    ensure_dump_populated,
     fetch_json_from_environment,
     find_files_by_pattern,
+    read_configuration_info_from_dump,
     read_dump_file,
+    read_metadata_object_from_dump,
+    read_metadata_tree_from_dump,
     read_text_file,
     resolve_dump_path,
 )
+
+
+def _is_file_based(environment: EnvironmentConfig) -> bool:
+    """Return True when the environment has no HTTP gateway configured."""
+    return not (environment.http_base_url or "").strip()
 
 _PREVIEW_RADIUS = 80
 
@@ -81,11 +90,14 @@ def health_summary(
 
 
 def get_configuration_info(environment: EnvironmentConfig) -> ToolResult:
-    """Read high-level configuration info from the live HTTP endpoint."""
+    """Read high-level configuration info, file-based or HTTP."""
     context = build_runtime_context(environment)
     runtime_payload = {"health_codes": list(context.health_codes)}
     try:
-        data = fetch_json_from_environment(environment, "configuration")
+        if _is_file_based(environment):
+            data = read_configuration_info_from_dump(environment)
+        else:
+            data = fetch_json_from_environment(environment, "configuration")
     except PlatformError as exc:
         return ToolResult(
             ok=False,
@@ -105,15 +117,20 @@ def get_metadata_tree(
     environment: EnvironmentConfig,
     filter_value: str | None = None,
 ) -> ToolResult:
-    """Read metadata tree from the live HTTP endpoint, optionally filtered."""
+    """Read metadata tree from the dump (file-based) or HTTP gateway."""
     context = build_runtime_context(environment)
     runtime_payload = {"health_codes": list(context.health_codes)}
-    if filter_value is None:
-        relative_path = "metadata"
-    else:
-        relative_path = f"metadata?filter={urllib.parse.quote(filter_value)}"
     try:
-        data = fetch_json_from_environment(environment, relative_path)
+        if _is_file_based(environment):
+            data = read_metadata_tree_from_dump(environment, filter_value)
+        else:
+            if filter_value is None:
+                relative_path = "metadata"
+            else:
+                relative_path = (
+                    f"metadata?filter={urllib.parse.quote(filter_value)}"
+                )
+            data = fetch_json_from_environment(environment, relative_path)
     except PlatformError as exc:
         return ToolResult(
             ok=False,
@@ -136,9 +153,14 @@ def get_metadata_object(
     """Read a single metadata object card by full name (e.g. ``Catalog.Items``)."""
     context = build_runtime_context(environment)
     runtime_payload = {"health_codes": list(context.health_codes)}
-    relative_path = f"metadata/object?name={urllib.parse.quote(object_name)}"
     try:
-        data = fetch_json_from_environment(environment, relative_path)
+        if _is_file_based(environment):
+            data = read_metadata_object_from_dump(environment, object_name)
+        else:
+            relative_path = (
+                f"metadata/object?name={urllib.parse.quote(object_name)}"
+            )
+            data = fetch_json_from_environment(environment, relative_path)
     except PlatformError as exc:
         return ToolResult(
             ok=False,
@@ -169,6 +191,8 @@ def read_module_code_from_dump(
     context = build_runtime_context(environment)
     runtime_payload = {"health_codes": list(context.health_codes)}
     try:
+        if _is_file_based(environment):
+            ensure_dump_populated(environment)
         text = read_dump_file(environment, relative_path)
     except PlatformError as exc:
         return ToolResult(
@@ -193,6 +217,8 @@ def search_code(environment: EnvironmentConfig, query: str) -> ToolResult:
     context = build_runtime_context(environment)
     runtime_payload = {"health_codes": list(context.health_codes)}
     try:
+        if _is_file_based(environment):
+            ensure_dump_populated(environment)
         dump_root = resolve_dump_path(environment)
         bsl_files = find_files_by_pattern(dump_root, "*.bsl")
         matches: list[dict] = []
@@ -473,6 +499,8 @@ def search_metadata(environment: EnvironmentConfig, query: str) -> ToolResult:
     context = build_runtime_context(environment)
     runtime_payload = {"health_codes": list(context.health_codes)}
     try:
+        if _is_file_based(environment):
+            ensure_dump_populated(environment)
         dump_root = resolve_dump_path(environment)
         xml_files = find_files_by_pattern(dump_root, "*.xml")
         matches: list[dict] = []

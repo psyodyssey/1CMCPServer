@@ -15,13 +15,22 @@ Track G / Step 4 contract anchors honoured here:
   - tool registry consumed only through ``list_tools()`` /
     ``get_tool(name)`` injected callables;
   - no auth, no supervision, no daemon loop.
+
+File-based MVP bug-fix pass:
+  - ``tools/call`` resolves a string ``environment`` argument against
+    the product config (auto-discovered from ``$ONEC_PLATFORM_CONFIG_PATH``
+    or ``%LOCALAPPDATA%\\1C Agent Platform\\config.json``). Previously
+    the string name leaked into the tool layer and crashed with
+    ``'str' object has no attribute 'http_base_url'``.
 """
 
 import argparse
 import inspect
 import json
 import logging
+import os
 import sys
+from pathlib import Path
 from typing import Callable
 
 from .result import ToolResult
@@ -32,6 +41,14 @@ GetToolFn = Callable[[str], object]
 PROTOCOL_VERSION = "2024-11-05"
 ALLOWED_TRANSPORTS = ("stdio",)
 ALLOWED_LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
+
+# Cache populated lazily on the first tools/call that names an
+# environment. Keyed by environment name; values are EnvironmentConfig
+# objects loaded from the product config file. A sentinel value of
+# ``False`` means "discovery already attempted and failed" so we don't
+# re-stat the filesystem on every call.
+_ENVIRONMENT_REGISTRY: dict[str, object] | bool = False
+_DEFAULT_ENVIRONMENT_NAME: str | None = None
 
 
 def _build_arg_parser(prog: str, description: str) -> argparse.ArgumentParser:
@@ -75,7 +92,121 @@ def _maybe_load_product_config(path: str | None, logger: logging.Logger) -> int:
 
     bootstrap_product_from_json_file(path)
     logger.info("Loaded product config from %s", path)
+    _populate_environment_registry(path, logger)
     return 0
+
+
+def _discover_product_config_path() -> str | None:
+    """Best-effort discovery of the installed product config file.
+
+    Honours ``$ONEC_PLATFORM_CONFIG_PATH`` first, then falls back to the
+    well-known per-user location written by ``first_run.ps1``
+    (``%LOCALAPPDATA%\\1C Agent Platform\\config.json``). Returns
+    ``None`` if neither candidate exists; resolution then fails with a
+    clear error rather than reading a foreign file.
+    """
+    explicit = os.environ.get("ONEC_PLATFORM_CONFIG_PATH")
+    if explicit:
+        if Path(explicit).is_file():
+            return explicit
+        return None
+    local_app = os.environ.get("LOCALAPPDATA")
+    if local_app:
+        candidate = Path(local_app) / "1C Agent Platform" / "config.json"
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
+def _populate_environment_registry(
+    path: str, logger: logging.Logger
+) -> None:
+    """Load environments from ``path`` into the module-level registry.
+
+    Failure is non-fatal — the registry stays empty and the next
+    resolution attempt returns a structured error. We never crash the
+    transport on a malformed product config, because operators
+    sometimes hand-edit ``config.json`` mid-session.
+    """
+    global _ENVIRONMENT_REGISTRY, _DEFAULT_ENVIRONMENT_NAME
+    try:
+        from onec_platform import load_product_config_from_json_file
+
+        product = load_product_config_from_json_file(path)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Could not load environments from %s: %s", path, exc
+        )
+        _ENVIRONMENT_REGISTRY = {}
+        _DEFAULT_ENVIRONMENT_NAME = None
+        return
+    _ENVIRONMENT_REGISTRY = dict(product.project.environments)
+    _DEFAULT_ENVIRONMENT_NAME = product.default_environment
+    logger.info(
+        "Resolved %d environment(s) from %s: %s",
+        len(_ENVIRONMENT_REGISTRY),
+        path,
+        sorted(_ENVIRONMENT_REGISTRY),
+    )
+
+
+def _ensure_environment_registry(logger: logging.Logger) -> dict[str, object]:
+    """Return the environment registry, populating it lazily on first use.
+
+    Triggered from the ``tools/call`` boundary when a tool argument
+    named ``environment`` arrives as a string. If ``--config-path`` was
+    passed at startup the registry is already populated and this is a
+    no-op; otherwise we auto-discover the installed config file.
+    """
+    global _ENVIRONMENT_REGISTRY
+    if isinstance(_ENVIRONMENT_REGISTRY, dict):
+        return _ENVIRONMENT_REGISTRY
+    discovered = _discover_product_config_path()
+    if discovered is None:
+        logger.warning(
+            "No product config found via $ONEC_PLATFORM_CONFIG_PATH "
+            "or %%LOCALAPPDATA%%\\1C Agent Platform\\config.json; "
+            "string environment names cannot be resolved."
+        )
+        _ENVIRONMENT_REGISTRY = {}
+        return _ENVIRONMENT_REGISTRY
+    _populate_environment_registry(discovered, logger)
+    if not isinstance(_ENVIRONMENT_REGISTRY, dict):
+        _ENVIRONMENT_REGISTRY = {}
+    return _ENVIRONMENT_REGISTRY
+
+
+def _resolve_environment_argument(
+    arguments: dict, logger: logging.Logger
+) -> tuple[dict, str | None]:
+    """Resolve a string ``environment`` argument to an ``EnvironmentConfig``.
+
+    Returns ``(new_arguments, error_message)``. When the argument is
+    not a string we return the arguments unchanged so callers that
+    already pass a fully-shaped object keep working. When the name
+    cannot be resolved we return a non-``None`` error message that the
+    caller forwards as a JSON-RPC ``-32602`` (invalid params).
+    """
+    value = arguments.get("environment")
+    if not isinstance(value, str):
+        return arguments, None
+    registry = _ensure_environment_registry(logger)
+    if not registry:
+        return arguments, (
+            "Cannot resolve environment "
+            f"{value!r}: no product config loaded. Set "
+            "ONEC_PLATFORM_CONFIG_PATH or run the platform's "
+            "first_run.ps1 to create "
+            "%LOCALAPPDATA%\\1C Agent Platform\\config.json."
+        )
+    if value not in registry:
+        return arguments, (
+            f"Unknown environment {value!r}. Known environments: "
+            f"{sorted(registry)}."
+        )
+    resolved = dict(arguments)
+    resolved["environment"] = registry[value]
+    return resolved, None
 
 
 def _tool_description(tool: object, name: str, server_name: str) -> str:
@@ -156,6 +287,9 @@ def _handle_request(
             return _make_error(req_id, -32601, f"Unknown tool: {name!r}")
         if not isinstance(arguments, dict):
             return _make_error(req_id, -32602, "tools/call arguments must be an object")
+        arguments, env_error = _resolve_environment_argument(arguments, logger)
+        if env_error is not None:
+            return _make_error(req_id, -32602, env_error)
         try:
             result = tool(**arguments)
         except TypeError as exc:
